@@ -1,0 +1,953 @@
+=== PAGE 1 ===
+   Scope Document for femora  
+1
+Project Proposal
+femora
+AI Powered Women’s Health & Wellness Application
+By
+Arshia Naseer – 232428
+Ali Haider Bilal – 232398
+Ammad Sajjad – 232497
+Supervisor
+Mustabshera Fatima
+Department of Computer Science
+Air University Islamabad (AU)
+
+
+=== PAGE 2 ===
+   Scope Document for femora  
+2
+Table of Contents
+Supervisor Meeting Log:
+3
+0. Updated Section
+5
+STREAMLINED MODULES
+5
+Domain 1: Menstrual Cycle
+5
+Domain 2: PCOS Detection
+5
+Domain 3: Breast Cancer
+5
+1. Introduction
+6
+2. Related System Analysis / Literature Review
+6
+3. Problem Statement
+7
+4. Problem Solution / Objectives of the Proposed System
+8
+4.1 Objectives
+8
+5. Scope
+8
+6. Modules
+9
+6.1 User Onboarding and Health
+9
+6.2 Menstrual Cycle Tracking and Prediction
+9
+6.3 Breast Cancer Awareness and Detection
+9
+6.4 PCOS / PCOD Risk Detection
+10
+6.5 Pregnancy Care
+10
+6.6 Harmonal Health Insights
+10
+6.7 AI Healthcare Companion
+10
+6.8 Notifications and Reminders
+10
+6.9 Reports and Health Insights Dashboard
+11
+6.10 Daily Symptom and Mood Tracker
+11
+7. System Limitations/Constraints
+11
+8. Data Gathering Approach
+11
+9. Tools and Technologies
+12
+10. Project Stakeholders and Roles
+12
+11. Module based Work Division
+14
+12. Gantt Chart
+14
+14. Flow-Chart
+15
+14. Mockups
+16
+14.1 Home / Dashboard
+16
+
+
+=== PAGE 3 ===
+   Scope Document for femora  
+3
+14.2 Cycle Calendar + Daily Tracker
+17
+14.3 PCOS Risks + Harmonal Insights
+18
+14.4 Breast Cancer Module
+19
+14.5 AI Health Companion
+20
+14. References
+21
+Supervisor Meeting Log:
+Meeting / Date
+Discussion
+Task Assignment
+Supervisor 
+Signature
+Meeting 01
+Date: 11 – 05 – 
+2026
+Discussed 
+FYP 
+ideas, 
+finalized 
+Femora as project topic. Evaluated 
+feasibility, constraints, and target 
+users.
+Write initial proposal. 
+Research similar apps 
+(Flo, Clue).
+Meeting 02
+Date: 12 – 05 – 
+2026
+Reviewed 
+research 
+papers 
+on 
+menstrual cycle prediction, PCOS 
+detection, breast cancer CNNs, and 
+AI in women's healthcare.
+Finalize 
+modules 
+based 
+on 
+literature. 
+Compile 
+related 
+system analysis.
+Meeting 03
+Date: 15 – 05 – 
+2026
+Explored datasets (Fehring, IEEE, 
+BUSI, 
+WISCOSINE). 
+Identified 
+limitations: small size, demographic 
+bias, 
+missing 
+fields. 
+Discussed 
+SMOTE.
+Download and analyze 
+datasets. 
+Document 
+complications 
+and 
+solutions.
+Meeting 04
+Date: 17 – 05 – 
+2026
+Finalized AI models: Random Forest 
++ 
+LSTM 
+for 
+cycle 
+prediction, 
+XGBoost for PCOS, ResNet50 for 
+breast cancer. Discussed train/test 
+split.
+Finalize 
+model 
+selection. Prepare data 
+preprocessing 
+pipeline.
+Meeting 05
+Date: 18 – 05 – 
+2026
+Reviewed 
+and 
+finalized 
+scope 
+document covering all modules, tools, 
+work division, and Gantt chart. 
+Reviewed presentation slides.
+Submit 
+scope 
+document. 
+Complete 
+FYP presentation with 
+supervisor feedback.
+Meeting 06
+Date: 29 – 06 – 
+2026
+Trimming some modules of each 
+domain meeting requirements of the 
+panel
+Submitted new scope 
+document 
+with 
+updated section
+
+
+=== PAGE 4 ===
+   Scope Document for femora  
+4
+0. Updated Section
+STREAMLINED MODULES
+Domain 1: Menstrual Cycle
+•
+Log cycle dates & symptoms
+•
+General Model: Random Forest (70% accuracy day 1)
+•
+Personalized Model: LSTM after 3+ cycles (85-90%)
+Domain 2: PCOS Detection
+•
+Risk questionnaire: cycle irregularity, BMI, symptoms
+•
+XGBoost classifier → Low/Medium/High risk score
+Domain 3: Breast Cancer
+•
+Module A: Ultrasound upload → ResNet50 CNN classification
+•
+Module B: Symptom questionnaire → XGBoost risk score
+DATASET USAGE & PRIVACY 
+Dataset
+Size
+Used For
+Verified Source
+Privacy
+Menstrual Cycle
+1. Fehring Dataset 
+2. IEEE Menstrual 
+Cycle Dataset 
+mcPHASES
+86 women × 12 
+cycles = 1,032 
+rows
+Cycle 
+length 
+prediction (General 
++ 
+Personalized 
+model)
+Fehring, R. J. et al. 
+(2013). 
+Marquette 
+University 
+e-
+Publications. [5] 
+PII stripped
+42 women, 2,937 
+daily rows
+Daily 
+phase 
+and 
+symptom detection 
+model (LSTM)
+IEEE Dataport (2022) 
+[10]
+PCOS Dataset
+541 labeled 
+women
+PCOS 
+risk 
+classification model
+Kaggle — Real hospital 
+records, Kerala, India. 
+[12]
+Encrypted locally
+Breast Cancer
+1. BUSI Dataset
+2. Breast-Lesions-
+USG
+3. WISCONSIN 
+Dataset
+780 images, 600 
+women
+Breast cancer CNN 
+classifier
+Al-Dhabyani 
+et 
+al. 
+(2020), Data in Brief 
+[24]
+Deleted 
+after 
+processing
+256 biopsy-
+confirmed images
+Breast cancer CNN 
+classifier (combined 
+with BUSI)
+Pawłowska et al. (2024), 
+Cancer Imaging Archive 
+[26]
+569 patient 
+records, 30 
+features
+Breast 
+cancer 
+symptom 
+risk 
+assessment 
+(XGBoost)
+Wolberg et al. (1993). 
+UCI Machine Learning 
+Repository. [22]  
+
+
+=== PAGE 5 ===
+   Scope Document for femora  
+5
+1. Introduction 
+Women's health remains significantly underserved in the digital healthcare space. Research 
+by Epstein D. A. (2017) [1] found that while menstrual cycle tracking apps are widely used, they are 
+most accurate only for women with very regular cycles, whereas the women who need these 
+applications most are those with irregular cycles. A study examining 10 menstrual cycle tracker apps 
+by Worsfold et al. (2021) [2] found that 67% of ovulation predictions were 2-9 days early, 
+demonstrating fundamental inaccuracy in current prediction approaches.
+Three major health conditions further demonstrate the need for Femora. First, PCOS affects 
+approximately 9.2% of women globally [4], with South Asian women at disproportionately higher 
+risk, yet no widely accessible AI-powered screening tool exists for this population. Second, breast 
+cancer 
+is the most commonly occurring cancer in women worldwide [21]. In 2022 alone, 2.3 million 
+women were diagnosed with 670,000 deaths [16]. In Pakistan specifically, breast cancer peaks at 
+ages 40–50, a decade earlier than in Western populations [17], making early awareness tools 
+critically important. Third, Pregnancy complications such as pre-eclampsia and eclampsia accounts 
+for approximately one-third of maternal deaths in Pakistani tertiary hospitals [18] conditions that 
+benefit significantly from early mobile-based monitoring. No single existing platform addresses all 
+three of these needs together.
+Femora aims to address this gap by providing an AI-powered women's health platform 
+integrating menstrual cycle prediction using adaptive personalization, PCOS risk detection, 
+pregnancy care, and a breast cancer module combining CNN-based ultrasound image classification 
+with a symptom-based risk assessment model, all in one accessible application requiring no 
+hardware.
+2. Related System Analysis / Literature Review
+Application 
+Name
+Weakness
+Proposed Project Solution
+Flo Health
+Zhaunova et al. (2023) [6] found Flo 
+relies on past cycle averages with no 
+lifestyle integration. A 2025 GDPR 
+audit [7] also reported that Flo uses 
+statistical 
+averaging 
+without 
+accounting for stress, sleep, or BMI. 
+No breast cancer awareness. No 
+PCOS detection.
+Femora uses Random Forest ML trained on 
+the Fehring peer-reviewed clinical dataset 
+[8] incorporating stress, sleep, and BMI. 
+Includes PCOS risk scoring, breast cancer 
+image classification [24], and pregnancy 
+care in one unified platform.
+Clue
+Oxford Open Digital Health (2025) 
+Femora integrates lifestyle-aware cycle 
+
+
+=== PAGE 6 ===
+   Scope Document for femora  
+6
+[3] reported that Clue does not 
+account for lifestyle factors in cycle 
+predictions. A systematic review [19] 
+highlighted the lack of breast cancer 
+awareness features in menstrual 
+health applications.
+prediction, PCOS risk scores, and a breast 
+cancer module combining CNN ultrasound 
+classification [24] with symptom-based risk 
+assessment [25] — unavailable in any 
+existing app.
+Natural 
+Cycles
+A 2025 ScienceDirect ML study [9] 
+reported that Natural Cycles requires 
+daily basal body temperature (BBT) 
+monitoring, making it less practical 
+for users with irregular cycles or 
+PCOS. The platform mainly focuses 
+on fertility tracking only.
+Femora operates without requiring external 
+hardware and provides integrated menstrual 
+tracking, PCOS risk assessment, pregnancy 
+care, and breast cancer awareness features.
+General 
+Period Apps
+Worsfold et al. (2021) [2] tested 10 
+apps, 67% of ovulation predictions 
+were inaccurate by 2-9 days. Epstein 
+et al. (2017) [1] also reported that 
+most apps perform poorly for women 
+with irregular cycles.
+Femora uses adaptive personalization to 
+improve prediction accuracy over time [11] 
+while combining cycle tracking, hormonal 
+health insights, PCOS detection, pregnancy 
+care, and breast cancer awareness in one 
+system.
+3. Problem Statement 
+Existing women’s health applications mainly focus on basic menstrual tracking using 
+generalized statistical averages. These applications fail to provide accurate predictions for women 
+with irregular cycles [1] because they do not adapt to individual lifestyle factors such as stress, sleep, 
+BMI, and symptom variations [3]. As a result, many users receive inaccurate ovulation and cycle 
+predictions, reducing the reliability and usefulness of current menstrual cycle tracking systems.
+PCOS is one of the most common hormonal disorders affecting women, particularly in South 
+Asian populations. Despite its prevalence, diagnosis is often delayed because accessible early 
+screening tools are limited. Current health applications do not analyze cycle irregularity, symptom 
+history, or BMI to provide intelligent PCOS risk assessment.
+Breast cancer awareness and early detection support remain limited in women’s health 
+applications. Most menstrual tracking systems do not include breast health monitoring, symptom-
+based risk assessment, or medical image analysis capabilities such as ultrasound classification. As a 
+result, users must rely on separate systems for reproductive health and breast health management. 
+This separation limits early awareness and prevents users from accessing multiple women’s health 
+services in one platform.
+Pregnancy care applications mainly provide static guidance and reminders but rarely include 
+intelligent symptom monitoring or anomaly detection. Additionally, pregnancy monitoring systems 
+
+
+=== PAGE 7 ===
+   Scope Document for femora  
+7
+are usually separated from menstrual and hormonal health platforms, forcing users to switch 
+between multiple applications during different stages of health management.
+4. Problem Solution / Objectives of the Proposed System 
+Femora proposes an AI-powered mobile application using machine learning trained on real 
+peer-reviewed clinical datasets. Li et al. (2022) [11] (Journal of the American Medical Informatics 
+Association) demonstrated that predictive models accounting for user adherence significantly 
+outperform simple averaging. 
+4.1 Objectives 
+
+To develop an AI-powered menstrual cycle tracking system capable of 
+predicting cycle length, period duration, ovulation window, and daily cycle 
+phases using clinical and symptom-based data
+
+To implement adaptive personalization that improves prediction accuracy 
+over time based on individual user history and symptom patterns.
+
+To develop a PCOS/PCOD risk assessment module using factors such as 
+cycle irregularity, BMI, and user-reported symptoms to provide early risk 
+awareness.
+
+To implement a breast cancer awareness module that supports AI-based 
+ultrasound image classification and symptom-based risk assessment for early 
+awareness assistance.
+
+To include a pregnancy care module that offers trimester-based guidance, 
+symptom monitoring, reminders, and anomaly flagging for high-risk 
+conditions.
+
+To provide hormonal health insights by analyzing symptom patterns across 
+different menstrual cycle phases.
+
+To develop an AI healthcare companion capable of answering user health-
+related queries and providing personalized wellness support.
+
+To provide visual health reports and dashboards showing cycle trends, 
+symptom history, and prediction analytics
+
+To ensure secure handling, privacy, and ethical management of sensitive user 
+health data.
+5. Scope 
+The scope of Femora includes the development of an AI-powered mobile healthcare 
+application that provides menstrual cycle prediction, PCOS risk assessment, hormonal health 
+insights, pregnancy care, breast cancer awareness and detection support, and an AI healthcare 
+companion within a single platform. The system utilizes machine learning models trained on peer-
+reviewed clinical datasets for cycle prediction, daily phase detection, breast cancer image 
+classification, and symptom-based risk assessment to deliver personalized healthcare insights and 
+
+
+=== PAGE 8 ===
+   Scope Document for femora  
+8
+early risk awareness. Predictions and recommendations are generated using user-logged symptoms, 
+health profiles, and optionally uploaded medical images, while the system operates without requiring 
+external hardware. Wearable device integration and Pakistan-specific dataset expansion are 
+considered future enhancements.
+6. Modules 
+6.1 User Onboarding and Health
+
+Collect baseline health information including age, BMI, cycle regularity, and existing 
+conditions such as PCOS.
+
+Build personalized user health profiles to initialize AI prediction models and address 
+the cold-start problem.
+
+Secure account creation with email authentication and profile management.
+6.2 Menstrual Cycle Tracking and Prediction
+
+Allow users to log menstrual cycle details including Menstruation dates, 
+cramps, and daily symptoms, addressing tracking needs identified by Epstein 
+et al. (2017) [1].
+
+General Model predicts next cycle length and period duration from day one. 
+70% accuracy on day one, improving with logged cycles (Random Forest, 
+trained on Fehring dataset [8]).
+
+Personalized Model adapts to specific woman's cycle pattern after 3+ cycles, 
+giving 85-90% accuracy, (LSTM, trained on individual user history).
+
+Display menstrual phases and predictions through an interactive calendar 
+interface.
+
+Detect delayed or irregular cycles and provide lifestyle-based explanatory 
+insights, addressing the documented gap in Oxford Open Digital Health 
+(2025) [3].
+6.3 Breast Cancer Awareness and Detection
+The breast cancer module consists of three integrated components:
+
+Component A CNN Image Classification: User uploads a hospital ultrasound 
+image (PNG/JPG). A ResNet50 CNN model using transfer learning, fine-
+tuned on combined BUSI dataset [24] and Breast-Lesions-USG dataset [26] 
+
+Component B Symptom-Based Risk Assessment: For users without an 
+ultrasound scan, a questionnaire-based XGBoost model trained on the 
+Wisconsin dataset [25] computes a risk score based on age, family history, 
+menstrual history, and self-reported symptoms.
+
+
+=== PAGE 9 ===
+   Scope Document for femora  
+9
+
+Component C AI Chatbot: Results from Component A or B feed into an NLP-
+based AI chatbot that explains findings in simple language and answers 
+follow-up questions.
+
+Provide monthly breast self-examination reminders
+
+Generate awareness and risk assessment only and not medical diagnosis [23]
+6.4 PCOS / PCOD Risk Detection
+
+Compute PCOS risk scores using cycle irregularity, BMI, and self-reported 
+symptoms including acne, weight gain, and abnormal hair growth.
+
+Classify risk as Low (0–30%), Medium (30–60%), or High (60–100%) with 
+educational guidance and professional consultation recommendation.
+
+Provide risk awareness only and not clinical diagnosis, considering the high 
+global prevalence of PCOS reported in recent studies [4]
+6.5 Pregnancy Care
+
+Switch to pregnancy mode when user marks confirmed pregnancy. Validated 
+by evidence that mobile-based pregnancy monitoring is feasible and effective 
+in low-resource settings including Pakistan [18].
+
+Track pregnancy week, trimester progress, and related symptoms.
+
+Allow daily logging of pregnancy symptoms such as nausea, swelling, fetal 
+movement, blood pressure changes. Pre-eclampsia risk monitoring directly 
+informed by Feroz et al. (2022) [18].
+
+Flag critical symptoms requiring immediate medical attention
+6.6 Harmonal Health Insights
+
+Analyze daily logged symptoms across cycle phases.
+
+Provide 
+phase-specific 
+hormonal 
+health 
+insights 
+and 
+wellness 
+recommendations.
+
+Flag persistent hormonal imbalance symptoms for medical consultation.
+6.7 AI Healthcare Companion
+
+Provide personalized health reminders including medication, hydration, and 
+self-examination notifications.
+
+Answer health-related queries using an NLP-based conversational interface 
+through Claude/GPT APIs.
+
+Offer emotional wellness support during menstrual and pregnancy phases. 
+6.8 Notifications and Reminders
+
+
+=== PAGE 10 ===
+   Scope Document for femora  
+10
+
+Send reminders for upcoming menstruation, ovulation windows, and fertility 
+phases.
+
+Provide daily symptom logging and medication reminders.
+
+Send monthly breast self-examination and pregnancy care reminders where 
+applicable.
+6.9 Reports and Health Insights Dashboard
+
+Display cycle history, symptom patterns, hormonal trends, and prediction 
+analytics.
+
+Generate downloadable health reports for healthcare consultation and personal 
+monitoring.
+
+Provide visual dashboards for improved health tracking and analysis.
+6.10 Daily Symptom and Mood Tracker
+
+Allow users to log daily symptoms, mood changes, sleep patterns, stress 
+levels, and related health indicators.
+
+Use logged data to improve adaptive personalization and AI prediction 
+accuracy.
+
+Display symptom trends and historical analysis using visual charts and 
+reports.
+7. System Limitations/Constraints 
+
+Femora does not provide clinical diagnoses. All risk scores and image classifications are for 
+awareness purposes only and must be followed up with qualified medical professionals.
+
+Prediction accuracy on day one is approximately 70%, improving to 90% after 3+ cycles. As 
+noted by Worsfold et al. (2021) [2], there are currently no universally agreed-upon criteria 
+for evaluating period prediction app accuracy. Femora's metrics are based on held-out real 
+patient test data.
+
+PCOS and breast cancer risk scores from the symptom-based model are derived from self-
+reported data only they do not incorporate blood tests, 3d-scans or clinical examination data.
+
+Wearable device integration for real-time physiological metrics is outside the current project 
+scope and is planned as a future enhancement.
+
+The system relies on consistent and honest user input. Inaccurate or irregular logging will 
+reduce prediction quality.
+8. Data Gathering Approach 
+Dataset
+Size
+Used For
+Verified Source
+Fehring Dataset
+86 women × 12 
+cycles = 1,032 rows
+Cycle 
+length 
+prediction (General 
+Fehring, R. J. et al. (2013). Marquette 
+University e-Publications. [5] 
+
+
+=== PAGE 11 ===
+   Scope Document for femora  
+11
++ 
+Personalized 
+model)
+IEEE Menstrual 
+Cycle Dataset 
+mcPHASES
+42 women, 2,937 
+daily rows
+Daily 
+phase 
+and 
+symptom 
+detection 
+model (LSTM)
+IEEE Dataport (2022) [10]
+PCOS Dataset
+541 labeled women
+PCOS 
+risk 
+classification model
+Kaggle — Real hospital records, Kerala, 
+India. [12]
+BUSI Dataset
+780 images, 600 
+women
+Breast cancer CNN 
+classifier
+Al-Dhabyani et al. (2020), Data in Brief 
+[24]
+Breast-Lesions-
+USG
+256 biopsy-confirmed 
+images
+Breast cancer CNN 
+classifier (combined 
+with BUSI)
+Pawłowska et al. (2024), Cancer Imaging 
+Archive [26]
+WISCONSIN 
+Dataset
+569 patient records, 
+30 features
+Breast 
+cancer 
+symptom 
+risk 
+assessment 
+(XGBoost)
+Wolberg et al. (1993). UCI Machine 
+Learning Repository. [22]  
+9. Tools and Technologies
+Category
+Tools / Technology
+Rationale
+Frontend
+Flutter /React Native
+Cross-platform mobile development for iOS 
+and Android from a single codebase.
+Backend
+Node.js, Microservices
+Scalable, event-driven backend architecture 
+suitable for health data and image upload 
+APIs.
+AI / ML (Tabular)
+Python, Scikit-learn, XGBoost
+Random Forest for cycle prediction; XGBoost 
+for PCOS and breast cancer risk assessment.
+AI / ML (Image)
+Python, TensorFlow, LSTM
+LSTM for personalized cycle prediction and 
+daily phase detection.
+AI Companion
+Python, TensorFlow, Keras, 
+OpenCV, ResNet50
+ResNet50 transfer learning for CNN breast 
+cancer ultrasound image classification (BUSI 
++ Breast-Lesions-USG datasets).
+Database
+Claude / GPT API, NLP
+NLP-based conversational AI for healthcare 
+companion and breast cancer result 
+explanation.
+Cloud
+PostgreSQL / Firebase
+Secure structured storage for health records 
+and uploaded images with real-time sync.
+Data Processing
+AWS / Google Cloud
+Scalable model hosting, image storage, and 
+
+
+=== PAGE 12 ===
+   Scope Document for femora  
+12
+API deployment.
+10. Project Stakeholders and Roles
+Project Sponsor
+Air University Islamabad
+Supervisor
+Mustabshera Fatima
+Development Team
+
+Arshia Naseer
+
+Ali Haider Bilal
+
+Ammad Sajjad
+11. Module based Work Division 
+Student Name
+Student Registration Number
+Responsibility/ Feature
+Arshia Naseer
+232428
+Backend 
+Lead 
+Node.js 
+microservices, 
+database design, user authentication, AI 
+companion chatbot (NLP API), pregnancy 
+care module, breast cancer CNN model 
+deployment, Wisconsin risk assessment 
+model
+Ali Haider Bilal
+232398
+AI/ML Lead Menstrual cycle prediction 
+models (General + Personalized), PCOS 
+risk 
+model, 
+SMOTE 
+pipeline, 
+data 
+cleaning, model training and evaluation, 
+backend API integration.
+Ammad Sajjad
+232497
+Frontend Lead Mobile UI/UX design, cycle 
+calendar, daily tracking screens, breast 
+cancer image upload UI, health dashboard, 
+notifications, user onboarding. Responsive 
+Design Implementation
+12. Gantt Chart
+
+
+=== PAGE 13 ===
+   Scope Document for femora  
+13
+14. Flow-Chart
+
+
+=== PAGE 14 ===
+   Scope Document for femora  
+14
+
+
+=== PAGE 15 ===
+   Scope Document for femora  
+15
+14. Mockups 
+14.1 Home / Dashboard
+
+
+=== PAGE 16 ===
+   Scope Document for femora  
+16
+Description:
+14.2 Cycle Calendar + Daily Tracker
+
+
+=== PAGE 17 ===
+   Scope Document for femora  
+17
+Description:
+14.3 PCOS Risks + Harmonal Insights
+Description:
+
+
+=== PAGE 18 ===
+   Scope Document for femora  
+18
+14.4 Breast Cancer Module
+
+
+=== PAGE 19 ===
+   Scope Document for femora  
+19
+Description:
+14.5 AI Health Companion
+Description:
+
+
+=== PAGE 20 ===
+   Scope Document for femora  
+20
+14. References 
+[1] Epstein, D. A., Lee, N. B., Kang, J. H., et al. (2017). Examining Menstrual Tracking to Inform the Design of 
+Personal Informatics Tools. Proceedings of the 2017 CHI Conference on Human Factors in Computing 
+Systems. https://pmc.ncbi.nlm.nih.gov/articles/PMC5432133/
+[2] Worsfold, L., Marriott, L., Johnson, S., & Harper, J. C. (2021). Period tracker applications: What menstrual 
+cycle 
+information 
+are 
+they 
+giving 
+women? 
+Women's 
+Health. 
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8504278/
+[3] Flowing data: women's views and experiences on privacy and data security when using menstrual cycle 
+tracking 
+apps. 
+Oxford 
+Open 
+Digital 
+Health 
+(2025). 
+https://academic.oup.com/oodh/article/doi/10.1093/oodh/oqaf011/8134275
+[4] Global prevalence of polycystic ovary syndrome in women worldwide: a comprehensive systematic review 
+and meta-analysis (2024). https://www.researchgate.net/publication/381732781
+[5] Fehring, Richard J., "Menstrual Cycle Data" (2012). Randomized Comparison of Two Internet-Supported 
+Methods of Natural Family Planning. 7.
+https://epublications.marquette.edu/data_nfp/7
+[6] Zhaunova, L., Bamford, R., Radovic, T., et al. (2023). Characterization of Self-reported Improvements in 
+Knowledge and Health Among Users of Flo Period Tracking App. JMIR mHealth and uHealth, 11, e40427. 
+https://doi.org/10.2196/40427
+[7] Experiential case study audit of three popular period trackers using GDPR and intimate privacy 
+assessment 
+criteria. 
+ScienceDirect 
+(2025). 
+https://www.sciencedirect.com/science/article/pii/S0010782425004263
+[8] Fehring, R. J., Schneider, M., Raviele, K., Rodriguez, D., & Pruszynski, J. (2013). Randomized 
+comparison of two Internet-supported fertility-awareness-based methods of family planning. Contraception, 
+88(1), 24–30. https://doi.org/10.1016/j.contraception.2012.10.010
+[9] Machine learning model for menstrual cycle phase classification and ovulation day detection based on 
+sleeping 
+heart 
+rate 
+under 
+free-living 
+conditions. 
+ScienceDirect 
+(2025). 
+https://www.sciencedirect.com/science/article/pii/S0010482525000551
+[10] KOMUNTALE PAULA, NAKIRYA WHITNEY, KAREREIGANA COURTNEY (2025). Dataset for 
+Menstrual Cycle Phase Prediction and Hygiene Guidance . IEEE Dataport. https://dx.doi.org/10.21227/jf7f-
+s431
+[11] Li, K., Urteaga, I., Shea, A., Vitzthum, V. J., Wiggins, C. H., & Elhadad, N. (2022). A predictive model for 
+next cycle start date that accounts for adherence in menstrual self-tracking. Journal of the American Medical 
+Informatics Association, 29(1), 3–11. https://doi.org/10.1093/jamia/ocab182
+[12] https://www.kaggle.com/datasets/shreyasvedpathak/pcos-dataset
+[13] Bhatta, A. (2024). Period Tracking Apps' Data Privacy Concerns: A Case Study Analysis. 
+https://anupamabhatta.github.io/docs/period-tracking-privacy.pdf
+[14] Chawla, N. V., Bowyer, K. W., Hall, L. O., & Kegelmeyer, W. P. (2002). SMOTE: Synthetic Minority Over-
+Sampling Technique. Journal of Artificial Intelligence Research, 16, 321–357. https://arxiv.org/abs/1106.1813
+
+
+=== PAGE 21 ===
+   Scope Document for femora  
+21
+[15] Mary Sowjanya, A., & Mrudula, O. (2023). Effective treatment of imbalanced datasets in health care 
+using modified SMOTE. Applied Nanoscience, 13(3), 1829–1840. https://doi.org/10.1007/s13204-021-02063-
+4
+[16] Global burden and projections of breast cancer incidence and mortality to 2050: GLOBOCAN data 
+analysis. Frontiers in Public Health (2025). https://pmc.ncbi.nlm.nih.gov/articles/PMC12611818/
+[17] Yusuf, A., Iskandar, Y. H. P., Ab Hadi, I. S., Nasution, A., & Lean Keng, S. (2022). Breast awareness 
+mobile apps for health education and promotion for breast cancer. Frontiers in Public Health, 10, 951641. 
+https://doi.org/10.3389/fpubh.2022.951641
+[18] Feroz, A. S., De Vera, K., Bragagnolo, N. D., Saleem, S., Bhutta, Z., & Seto, E. (2022). Understanding 
+the Needs of a Mobile Phone-Based Telemonitoring Program for Pregnant Women at High Risk for Pre-
+Eclampsia. JMIR Formative Research, 6(2), e32428. https://formative.jmir.org/2022/2/e32428
+[19] Mobilizing Breast Cancer Prevention Research Through Smartphone Apps: A Systematic Review. 
+PubMed Central (2019). https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6851054/
+[20] Exploring Maternal and Infant Health App Development and Effectiveness Research: Scoping Review. 
+JMIR Pediatrics and Parenting (2024). https://pmc.ncbi.nlm.nih.gov/articles/PMC10858421/
+[21] Breast cancer statistics and resources. World Cancer Research Fund International / BCRF. 
+https://www.bcrf.org/breast-cancer-statistics-and-resources/
+[22] https://www.kaggle.com/datasets/uciml/breast-cancer-wisconsin-data
+[23] Chowdhury, D., Das, A., Dey, A., et al. (2022). ABCanDroid: A Cloud Integrated Android App for 
+Noninvasive 
+Early 
+Breast 
+Cancer 
+Detection 
+Using 
+Transfer 
+Learning. 
+Sensors, 
+22(3), 
+832. 
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8838592/
+[24] Al-Dhabyani, W., Gomaa, M., Khaled, H., & Fahmy, A. (2020). Dataset of breast ultrasound images. Data 
+in Brief, 28, 104863. (BUSI Dataset — 780 images, 600 women, National Cancer Institute Cairo) 
+https://doi.org/10.1016/j.dib.2019.104863
+[25] Wolberg, W., Mangasarian, O., Street, N., & Street, W. (1993). Breast Cancer Wisconsin (Diagnostic) 
+[Dataset]. 
+UCI 
+Machine 
+Learning 
+Repository. 
+https://www.kaggle.com/datasets/uciml/breast-cancer-
+wisconsin-data https://www.kaggle.com/datasets/uciml/breast-cancer-wisconsin-data
+[26] Pawłowska, A., et al. (2024). Breast-Lesions-USG Dataset. The Cancer Imaging Archive. 256 biopsy-
+confirmed expert-annotated ultrasound images. https://doi.org/10.7937/9WKK-Q141
+
+
