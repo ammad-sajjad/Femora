@@ -46,3 +46,11 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# ML / Python
+ml/.venv/
+ml/data/
+ml/output/
+__pycache__/
+kaggle.json
+backend/.venv/
