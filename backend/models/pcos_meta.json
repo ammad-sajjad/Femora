@@ -1,0 +1,131 @@
+{
+  "features": [
+    "bmi",
+    "irregular_cycle",
+    "period_days",
+    "waist_hip_ratio",
+    "weight_gain",
+    "hair_growth",
+    "skin_darkening",
+    "hair_loss",
+    "pimples",
+    "fast_food",
+    "regular_exercise"
+  ],
+  "risk_bands": {
+    "low": [
+      0,
+      0.3
+    ],
+    "medium": [
+      0.3,
+      0.6
+    ],
+    "high": [
+      0.6,
+      1.0
+    ]
+  },
+  "monotone_constraints": {
+    "bmi": 1,
+    "irregular_cycle": 1,
+    "period_days": 0,
+    "waist_hip_ratio": 0,
+    "weight_gain": 1,
+    "hair_growth": 1,
+    "skin_darkening": 1,
+    "hair_loss": 1,
+    "pimples": 1,
+    "fast_food": 1,
+    "regular_exercise": -1
+  },
+  "test_metrics": {
+    "test_size": 109,
+    "accuracy": 0.844,
+    "precision": 0.7714,
+    "recall": 0.75,
+    "f1": 0.7606,
+    "roc_auc": 0.8839
+  },
+  "risk_band_validation": [
+    {
+      "band": "Low",
+      "women": 60,
+      "pcos_rate": 0.1
+    },
+    {
+      "band": "Medium",
+      "women": 16,
+      "pcos_rate": 0.25
+    },
+    {
+      "band": "High",
+      "women": 33,
+      "pcos_rate": 0.7878787878787878
+    }
+  ],
+  "cv_results": [
+    {
+      "features": "Self-report (app)",
+      "model": "Logistic Regression",
+      "accuracy": "0.813 \u00b1 0.027",
+      "f1": "0.748 \u00b1 0.025",
+      "recall": "0.842 \u00b1 0.028",
+      "roc_auc": "0.875 \u00b1 0.032"
+    },
+    {
+      "features": "Self-report (app)",
+      "model": "Random Forest",
+      "accuracy": "0.815 \u00b1 0.028",
+      "f1": "0.729 \u00b1 0.037",
+      "recall": "0.757 \u00b1 0.033",
+      "roc_auc": "0.880 \u00b1 0.034"
+    },
+    {
+      "features": "Self-report (app)",
+      "model": "XGBoost",
+      "accuracy": "0.795 \u00b1 0.054",
+      "f1": "0.705 \u00b1 0.061",
+      "recall": "0.740 \u00b1 0.048",
+      "roc_auc": "0.868 \u00b1 0.027"
+    },
+    {
+      "features": "Full clinical (reference)",
+      "model": "Logistic Regression",
+      "accuracy": "0.865 \u00b1 0.027",
+      "f1": "0.807 \u00b1 0.034",
+      "recall": "0.859 \u00b1 0.049",
+      "roc_auc": "0.932 \u00b1 0.009"
+    },
+    {
+      "features": "Full clinical (reference)",
+      "model": "Random Forest",
+      "accuracy": "0.891 \u00b1 0.028",
+      "f1": "0.829 \u00b1 0.046",
+      "recall": "0.813 \u00b1 0.059",
+      "roc_auc": "0.948 \u00b1 0.008"
+    },
+    {
+      "features": "Full clinical (reference)",
+      "model": "XGBoost",
+      "accuracy": "0.884 \u00b1 0.029",
+      "f1": "0.828 \u00b1 0.039",
+      "recall": "0.848 \u00b1 0.041",
+      "roc_auc": "0.949 \u00b1 0.012"
+    }
+  ],
+  "feature_importance": {
+    "weight_gain": 0.22859999537467957,
+    "fast_food": 0.2070000022649765,
+    "hair_growth": 0.14409999549388885,
+    "skin_darkening": 0.11259999871253967,
+    "irregular_cycle": 0.08209999650716782,
+    "period_days": 0.07079999893903732,
+    "waist_hip_ratio": 0.03550000116229057,
+    "pimples": 0.03550000116229057,
+    "bmi": 0.03370000049471855,
+    "regular_exercise": 0.02930000051856041,
+    "hair_loss": 0.020800000056624413
+  },
+  "dataset": "prasoonkottarathil/polycystic-ovary-syndrome-pcos (n=541)"
+}

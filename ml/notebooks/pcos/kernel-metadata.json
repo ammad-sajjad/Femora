@@ -1,0 +1,15 @@
+{
+  "id": "ammad0/femora-pcos-risk-xgboost",
+  "title": "Femora PCOS Risk XGBoost",
+  "code_file": "notebook.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "prasoonkottarathil/polycystic-ovary-syndrome-pcos"
+  ],
+  "competition_sources": [],
+  "kernel_sources": []
+}

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'models/models.dart';
+import 'models/pcos.dart';
 import 'theme/app_theme.dart';
 import 'screens/main_shell.dart';
 
@@ -21,8 +22,11 @@ class FemoraApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => AppState(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AppState()),
+        ChangeNotifierProvider(create: (_) => PcosState()),
+      ],
       child: MaterialApp(
         title: 'Femora',
         debugShowCheckedModeBanner: false,
