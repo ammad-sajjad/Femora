@@ -1,0 +1,16 @@
+{
+  "id": "ammad0/femora-breast-risk-xgboost",
+  "title": "Femora Breast Risk XGBoost",
+  "code_file": "notebook.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_internet": true,
+  "dataset_sources": [
+    "ammad0/bcsc-risk-estimation",
+    "uciml/breast-cancer-wisconsin-data"
+  ],
+  "competition_sources": [],
+  "kernel_sources": []
+}

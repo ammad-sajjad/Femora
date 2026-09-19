@@ -38,12 +38,6 @@ class AppState extends ChangeNotifier {
   String _userNotes = "";
   String get userNotes => _userNotes;
 
-  bool _isScanning = false;
-  bool get isScanning => _isScanning;
-
-  bool _hasScanResult = true;
-  bool get hasScanResult => _hasScanResult;
-
   final List<SymptomItem> _symptoms = [
     SymptomItem(id: 'cramps', name: 'Cramps', icon: Icons.water_drop_outlined),
     SymptomItem(id: 'bloating', name: 'Bloating', icon: Icons.bubble_chart_outlined),
@@ -127,7 +121,26 @@ class AppState extends ChangeNotifier {
           "Thanks for sharing. Based on your current Cycle Day 12 and follicular stage, estrogen levels are rising. Staying hydrated and eating balanced meals will support your optimal energy.";
       
       final lower = text.toLowerCase();
-      if (lower.contains('cramp') || lower.contains('pain')) {
+      // Breast-health topics first, so "breast pain" doesn't get the cycle-pain answer
+      if (lower.contains('biopsy')) {
+        response =
+            "A biopsy removes a small sample of tissue, usually with a thin needle under ultrasound guidance and local anaesthetic. It is the only way to confirm whether a lump is benign or cancer, and most biopsies come back benign.";
+      } else if (lower.contains('benign') || lower.contains('cyst') || lower.contains('fibroadenoma')) {
+        response =
+            "Benign means not cancer. Common benign findings are cysts (fluid-filled sacs) and fibroadenomas (firm, smooth lumps of normal tissue). Your doctor may suggest a repeat ultrasound in a few months to check it hasn't changed.";
+      } else if (lower.contains('malignant') || lower.contains('suspicious') || lower.contains('cancer')) {
+        response =
+            "A suspicious result means the scan has features doctors want to look at more closely. It is not a diagnosis. A breast specialist will usually examine you and may recommend a biopsy. Please book that appointment soon rather than waiting.";
+      } else if (lower.contains('mammogram') || lower.contains('screening')) {
+        response =
+            "A mammogram is a low-dose X-ray of the breast. In Pakistan breast cancer is most common between 40 and 50, so ask your doctor about screening every 1 to 2 years from age 40, or earlier if you have a strong family history.";
+      } else if (lower.contains('breast') && lower.contains('pain')) {
+        response =
+            "Breast pain on its own is rarely a sign of cancer and often rises and falls with your cycle. See a doctor if it stays in one spot for more than a few weeks, or if you notice a lump or other change.";
+      } else if (lower.contains('self-exam') || lower.contains('self exam') || lower.contains('lump') || lower.contains('breast')) {
+        response =
+            "Do a self-exam once a month, 3 to 5 days after your period ends. Look in the mirror, then feel each breast and armpit in small circles with light, medium and firm pressure. The Self-Exam Guide on the breast health screen walks you through it.";
+      } else if (lower.contains('cramp') || lower.contains('pain')) {
         response =
             "Mild pelvic sensations or twinges around day 12 can indicate impending ovulation (Mittelschmerz). Warm tea and gentle stretching help relieve discomfort.";
       } else if (lower.contains('pregnan') || lower.contains('baby') || lower.contains('trimester')) {
@@ -150,14 +163,13 @@ class AppState extends ChangeNotifier {
     });
   }
 
-  void triggerScan() {
-    _isScanning = true;
+  /// Posts a question and a model-generated explanation to the AI companion, then opens it.
+  void discussResult({required String question, required String answer}) {
+    final now = DateTime.now();
+    _chatMessages
+      ..add(ChatMessage(id: '${now.millisecondsSinceEpoch}', text: question, isUser: true, timestamp: now))
+      ..add(ChatMessage(id: '${now.millisecondsSinceEpoch + 1}', text: answer, isUser: false, timestamp: now));
+    _currentTabIndex = 4; // AI companion tab
     notifyListeners();
-
-    Future.delayed(const Duration(seconds: 2), () {
-      _isScanning = false;
-      _hasScanResult = true;
-      notifyListeners();
-    });
   }
 }
