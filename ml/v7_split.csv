@@ -1,0 +1,1023 @@
+file,source,label,group,split
+normal (10).png,BUSI,normal,1,train
+normal (100).png,BUSI,normal,2,train
+normal (101).png,BUSI,normal,3,test
+normal (102).png,BUSI,normal,4,train
+normal (103).png,BUSI,normal,5,test
+normal (104).png,BUSI,normal,6,val
+normal (105).png,BUSI,normal,7,train
+normal (106).png,BUSI,normal,8,test
+normal (107).png,BUSI,normal,9,val
+normal (108).png,BUSI,normal,10,train
+normal (109).png,BUSI,normal,11,train
+normal (11).png,BUSI,normal,12,train
+normal (110).png,BUSI,normal,13,train
+normal (111).png,BUSI,normal,14,train
+normal (112).png,BUSI,normal,15,val
+normal (113).png,BUSI,normal,16,test
+normal (114).png,BUSI,normal,17,val
+normal (115).png,BUSI,normal,18,train
+normal (116).png,BUSI,normal,19,train
+normal (117).png,BUSI,normal,20,train
+normal (118).png,BUSI,normal,21,train
+normal (119).png,BUSI,normal,22,train
+normal (12).png,BUSI,normal,23,test
+normal (120).png,BUSI,normal,24,val
+normal (121).png,BUSI,normal,25,train
+normal (122).png,BUSI,normal,26,train
+normal (123).png,BUSI,normal,27,train
+normal (124).png,BUSI,normal,53,val
+normal (125).png,BUSI,normal,48,train
+normal (126).png,BUSI,normal,54,train
+normal (127).png,BUSI,normal,31,train
+normal (128).png,BUSI,normal,32,train
+normal (129).png,BUSI,normal,62,train
+normal (13).png,BUSI,normal,78,test
+normal (130).png,BUSI,normal,52,test
+normal (131).png,BUSI,normal,36,val
+normal (132).png,BUSI,normal,37,train
+normal (133).png,BUSI,normal,38,test
+normal (14).png,BUSI,normal,39,train
+normal (15).png,BUSI,normal,40,train
+normal (16).png,BUSI,normal,41,train
+normal (17).png,BUSI,normal,42,train
+normal (18).png,BUSI,normal,43,test
+normal (19).png,BUSI,normal,44,train
+normal (2).png,BUSI,normal,45,train
+normal (20).png,BUSI,normal,46,train
+normal (21).png,BUSI,normal,47,val
+normal (22).png,BUSI,normal,48,train
+normal (23).png,BUSI,normal,49,train
+normal (24).png,BUSI,normal,50,train
+normal (25).png,BUSI,normal,51,train
+normal (26).png,BUSI,normal,52,test
+normal (27).png,BUSI,normal,53,val
+normal (28).png,BUSI,normal,54,train
+normal (29).png,BUSI,normal,55,train
+normal (3).png,BUSI,normal,56,train
+normal (30).png,BUSI,normal,57,train
+normal (31).png,BUSI,normal,58,train
+normal (32).png,BUSI,normal,59,train
+normal (33).png,BUSI,normal,60,train
+normal (35).png,BUSI,normal,62,train
+normal (36).png,BUSI,normal,63,train
+normal (37).png,BUSI,normal,64,test
+normal (38).png,BUSI,normal,65,val
+normal (39).png,BUSI,normal,66,train
+normal (4).png,BUSI,normal,67,train
+normal (40).png,BUSI,normal,74,val
+normal (41).png,BUSI,normal,91,train
+normal (42).png,BUSI,normal,77,train
+normal (43).png,BUSI,normal,71,train
+normal (44).png,BUSI,normal,91,train
+normal (45).png,BUSI,normal,77,train
+normal (46).png,BUSI,normal,74,val
+normal (47).png,BUSI,normal,91,train
+normal (48).png,BUSI,normal,76,train
+normal (49).png,BUSI,normal,77,train
+normal (5).png,BUSI,normal,78,test
+normal (50).png,BUSI,normal,79,test
+normal (51).png,BUSI,normal,83,train
+normal (52).png,BUSI,normal,81,train
+normal (53).png,BUSI,normal,82,train
+normal (54).png,BUSI,normal,83,train
+normal (55).png,BUSI,normal,84,train
+normal (56).png,BUSI,normal,85,val
+normal (57).png,BUSI,normal,86,train
+normal (58).png,BUSI,normal,99,train
+normal (59).png,BUSI,normal,88,test
+normal (6).png,BUSI,normal,89,train
+normal (60).png,BUSI,normal,99,train
+normal (61).png,BUSI,normal,91,train
+normal (62).png,BUSI,normal,77,train
+normal (63).png,BUSI,normal,93,train
+normal (64).png,BUSI,normal,94,train
+normal (65).png,BUSI,normal,95,train
+normal (66).png,BUSI,normal,96,train
+normal (67).png,BUSI,normal,97,train
+normal (68).png,BUSI,normal,98,test
+normal (69).png,BUSI,normal,99,train
+normal (7).png,BUSI,normal,100,val
+normal (70).png,BUSI,normal,101,train
+normal (71).png,BUSI,normal,102,train
+normal (72).png,BUSI,normal,103,train
+normal (73).png,BUSI,normal,104,test
+normal (74).png,BUSI,normal,105,train
+normal (75).png,BUSI,normal,106,train
+normal (76).png,BUSI,normal,107,val
+normal (77).png,BUSI,normal,108,train
+normal (78).png,BUSI,normal,109,train
+normal (79).png,BUSI,normal,110,train
+normal (8).png,BUSI,normal,111,train
+normal (80).png,BUSI,normal,112,train
+normal (81).png,BUSI,normal,113,test
+normal (82).png,BUSI,normal,114,train
+normal (83).png,BUSI,normal,115,train
+normal (84).png,BUSI,normal,116,train
+normal (85).png,BUSI,normal,117,val
+normal (86).png,BUSI,normal,118,test
+normal (87).png,BUSI,normal,119,train
+normal (88).png,BUSI,normal,120,train
+normal (89).png,BUSI,normal,121,train
+normal (9).png,BUSI,normal,122,test
+normal (90).png,BUSI,normal,123,train
+normal (91).png,BUSI,normal,124,val
+normal (92).png,BUSI,normal,125,val
+normal (93).png,BUSI,normal,126,train
+normal (94).png,BUSI,normal,127,train
+normal (95).png,BUSI,normal,128,train
+normal (96).png,BUSI,normal,129,train
+normal (97).png,BUSI,normal,131,test
+normal (98).png,BUSI,normal,131,test
+normal (99).png,BUSI,normal,132,val
+benign (1).png,BUSI,benign,133,train
+benign (10).png,BUSI,benign,386,train
+benign (100).png,BUSI,benign,135,train
+benign (101).png,BUSI,benign,136,train
+benign (102).png,BUSI,benign,137,train
+benign (103).png,BUSI,benign,138,train
+benign (104).png,BUSI,benign,139,train
+benign (105).png,BUSI,benign,196,train
+benign (106).png,BUSI,benign,141,test
+benign (107).png,BUSI,benign,142,train
+benign (108).png,BUSI,benign,143,test
+benign (109).png,BUSI,benign,144,train
+benign (11).png,BUSI,benign,145,train
+benign (110).png,BUSI,benign,146,val
+benign (111).png,BUSI,benign,147,train
+benign (112).png,BUSI,benign,148,train
+benign (113).png,BUSI,benign,149,train
+benign (114).png,BUSI,benign,150,train
+benign (115).png,BUSI,benign,151,test
+benign (116).png,BUSI,benign,152,val
+benign (117).png,BUSI,benign,153,train
+benign (118).png,BUSI,benign,154,train
+benign (119).png,BUSI,benign,155,train
+benign (12).png,BUSI,benign,156,val
+benign (120).png,BUSI,benign,157,train
+benign (121).png,BUSI,benign,158,test
+benign (122).png,BUSI,benign,159,train
+benign (123).png,BUSI,benign,160,train
+benign (124).png,BUSI,benign,161,val
+benign (125).png,BUSI,benign,162,train
+benign (126).png,BUSI,benign,163,train
+benign (127).png,BUSI,benign,164,train
+benign (128).png,BUSI,benign,165,train
+benign (129).png,BUSI,benign,166,train
+benign (13).png,BUSI,benign,390,train
+benign (130).png,BUSI,benign,168,test
+benign (132).png,BUSI,benign,170,val
+benign (133).png,BUSI,benign,171,train
+benign (134).png,BUSI,benign,172,train
+benign (135).png,BUSI,benign,173,train
+benign (136).png,BUSI,benign,174,train
+benign (137).png,BUSI,benign,175,train
+benign (138).png,BUSI,benign,527,val
+benign (139).png,BUSI,benign,532,train
+benign (14).png,BUSI,benign,178,train
+benign (140).png,BUSI,benign,179,test
+benign (141).png,BUSI,benign,180,train
+benign (142).png,BUSI,benign,181,train
+benign (143).png,BUSI,benign,182,val
+benign (144).png,BUSI,benign,183,train
+benign (145).png,BUSI,benign,184,train
+benign (146).png,BUSI,benign,185,train
+benign (147).png,BUSI,benign,186,train
+benign (148).png,BUSI,benign,187,train
+benign (149).png,BUSI,benign,188,val
+benign (15).png,BUSI,benign,392,val
+benign (150).png,BUSI,benign,190,train
+benign (151).png,BUSI,benign,191,train
+benign (152).png,BUSI,benign,222,train
+benign (153).png,BUSI,benign,300,val
+benign (154).png,BUSI,benign,194,test
+benign (155).png,BUSI,benign,195,train
+benign (156).png,BUSI,benign,196,train
+benign (157).png,BUSI,benign,532,train
+benign (158).png,BUSI,benign,198,train
+benign (159).png,BUSI,benign,199,train
+benign (16).png,BUSI,benign,200,test
+benign (160).png,BUSI,benign,201,train
+benign (161).png,BUSI,benign,202,val
+benign (162).png,BUSI,benign,203,train
+benign (163).png,BUSI,benign,555,train
+benign (165).png,BUSI,benign,206,train
+benign (166).png,BUSI,benign,207,train
+benign (167).png,BUSI,benign,208,train
+benign (168).png,BUSI,benign,209,train
+benign (169).png,BUSI,benign,210,test
+benign (17).png,BUSI,benign,211,train
+benign (170).png,BUSI,benign,212,val
+benign (171).png,BUSI,benign,213,train
+benign (172).png,BUSI,benign,214,test
+benign (173).png,BUSI,benign,215,val
+benign (174).png,BUSI,benign,216,train
+benign (175).png,BUSI,benign,217,train
+benign (176).png,BUSI,benign,218,train
+benign (177).png,BUSI,benign,411,test
+benign (178).png,BUSI,benign,220,train
+benign (179).png,BUSI,benign,221,val
+benign (18).png,BUSI,benign,222,train
+benign (180).png,BUSI,benign,223,train
+benign (181).png,BUSI,benign,224,test
+benign (182).png,BUSI,benign,225,train
+benign (183).png,BUSI,benign,226,train
+benign (184).png,BUSI,benign,227,train
+benign (185).png,BUSI,benign,228,train
+benign (186).png,BUSI,benign,229,train
+benign (187).png,BUSI,benign,230,train
+benign (188).png,BUSI,benign,231,train
+benign (189).png,BUSI,benign,232,train
+benign (19).png,BUSI,benign,233,train
+benign (190).png,BUSI,benign,234,train
+benign (191).png,BUSI,benign,235,test
+benign (192).png,BUSI,benign,236,val
+benign (193).png,BUSI,benign,237,test
+benign (194).png,BUSI,benign,238,train
+benign (195).png,BUSI,benign,239,train
+benign (196).png,BUSI,benign,240,train
+benign (197).png,BUSI,benign,241,train
+benign (198).png,BUSI,benign,242,train
+benign (199).png,BUSI,benign,243,test
+benign (2).png,BUSI,benign,244,train
+benign (20).png,BUSI,benign,245,val
+benign (200).png,BUSI,benign,246,train
+benign (201).png,BUSI,benign,247,train
+benign (202).png,BUSI,benign,358,train
+benign (203).png,BUSI,benign,343,train
+benign (204).png,BUSI,benign,336,train
+benign (205).png,BUSI,benign,251,test
+benign (206).png,BUSI,benign,252,train
+benign (207).png,BUSI,benign,253,val
+benign (208).png,BUSI,benign,254,train
+benign (209).png,BUSI,benign,255,train
+benign (21).png,BUSI,benign,256,train
+benign (210).png,BUSI,benign,353,test
+benign (211).png,BUSI,benign,258,val
+benign (212).png,BUSI,benign,259,train
+benign (213).png,BUSI,benign,260,train
+benign (214).png,BUSI,benign,335,train
+benign (215).png,BUSI,benign,323,train
+benign (216).png,BUSI,benign,317,train
+benign (217).png,BUSI,benign,320,val
+benign (218).png,BUSI,benign,351,train
+benign (219).png,BUSI,benign,266,test
+benign (22).png,BUSI,benign,267,train
+benign (220).png,BUSI,benign,324,train
+benign (221).png,BUSI,benign,269,train
+benign (222).png,BUSI,benign,270,val
+benign (223).png,BUSI,benign,271,train
+benign (224).png,BUSI,benign,272,train
+benign (225).png,BUSI,benign,348,train
+benign (226).png,BUSI,benign,331,val
+benign (227).png,BUSI,benign,301,train
+benign (228).png,BUSI,benign,363,train
+benign (229).png,BUSI,benign,277,train
+benign (23).png,BUSI,benign,278,train
+benign (230).png,BUSI,benign,279,test
+benign (231).png,BUSI,benign,350,train
+benign (232).png,BUSI,benign,341,val
+benign (233).png,BUSI,benign,354,val
+benign (234).png,BUSI,benign,313,train
+benign (235).png,BUSI,benign,349,train
+benign (236).png,BUSI,benign,285,train
+benign (237).png,BUSI,benign,286,val
+benign (238).png,BUSI,benign,357,train
+benign (239).png,BUSI,benign,288,train
+benign (24).png,BUSI,benign,289,test
+benign (240).png,BUSI,benign,330,test
+benign (241).png,BUSI,benign,291,train
+benign (242).png,BUSI,benign,342,train
+benign (243).png,BUSI,benign,293,train
+benign (244).png,BUSI,benign,294,train
+benign (245).png,BUSI,benign,295,train
+benign (246).png,BUSI,benign,296,train
+benign (247).png,BUSI,benign,297,train
+benign (248).png,BUSI,benign,298,train
+benign (249).png,BUSI,benign,336,train
+benign (25).png,BUSI,benign,300,val
+benign (250).png,BUSI,benign,301,train
+benign (251).png,BUSI,benign,302,train
+benign (252).png,BUSI,benign,303,train
+benign (253).png,BUSI,benign,304,train
+benign (254).png,BUSI,benign,305,train
+benign (255).png,BUSI,benign,330,test
+benign (256).png,BUSI,benign,307,test
+benign (257).png,BUSI,benign,308,val
+benign (258).png,BUSI,benign,309,train
+benign (259).png,BUSI,benign,334,train
+benign (26).png,BUSI,benign,311,train
+benign (260).png,BUSI,benign,312,train
+benign (261).png,BUSI,benign,313,train
+benign (262).png,BUSI,benign,314,train
+benign (263).png,BUSI,benign,331,val
+benign (264).png,BUSI,benign,316,train
+benign (265).png,BUSI,benign,317,train
+benign (266).png,BUSI,benign,332,train
+benign (267).png,BUSI,benign,319,test
+benign (268).png,BUSI,benign,320,val
+benign (27).png,BUSI,benign,322,train
+benign (270).png,BUSI,benign,323,train
+benign (271).png,BUSI,benign,324,train
+benign (272).png,BUSI,benign,325,train
+benign (273).png,BUSI,benign,343,train
+benign (274).png,BUSI,benign,345,test
+benign (275).png,BUSI,benign,352,train
+benign (276).png,BUSI,benign,341,val
+benign (277).png,BUSI,benign,330,test
+benign (278).png,BUSI,benign,331,val
+benign (279).png,BUSI,benign,332,train
+benign (28).png,BUSI,benign,333,train
+benign (280).png,BUSI,benign,334,train
+benign (281).png,BUSI,benign,335,train
+benign (282).png,BUSI,benign,336,train
+benign (283).png,BUSI,benign,337,train
+benign (284).png,BUSI,benign,339,test
+benign (285).png,BUSI,benign,339,test
+benign (286).png,BUSI,benign,340,train
+benign (287).png,BUSI,benign,341,val
+benign (288).png,BUSI,benign,342,train
+benign (289).png,BUSI,benign,343,train
+benign (29).png,BUSI,benign,344,train
+benign (290).png,BUSI,benign,345,test
+benign (291).png,BUSI,benign,346,val
+benign (292).png,BUSI,benign,348,train
+benign (293).png,BUSI,benign,348,train
+benign (294).png,BUSI,benign,349,train
+benign (295).png,BUSI,benign,350,train
+benign (296).png,BUSI,benign,351,train
+benign (297).png,BUSI,benign,352,train
+benign (298).png,BUSI,benign,353,test
+benign (299).png,BUSI,benign,354,val
+benign (3).png,BUSI,benign,379,test
+benign (30).png,BUSI,benign,356,train
+benign (300).png,BUSI,benign,357,train
+benign (301).png,BUSI,benign,358,train
+benign (302).png,BUSI,benign,359,val
+benign (303).png,BUSI,benign,360,train
+benign (304).png,BUSI,benign,361,train
+benign (305).png,BUSI,benign,362,train
+benign (306).png,BUSI,benign,363,train
+benign (307).png,BUSI,benign,488,train
+benign (308).png,BUSI,benign,365,train
+benign (309).png,BUSI,benign,492,train
+benign (31).png,BUSI,benign,367,train
+benign (310).png,BUSI,benign,368,test
+benign (311).png,BUSI,benign,369,train
+benign (312).png,BUSI,benign,491,val
+benign (313).png,BUSI,benign,371,train
+benign (314).png,BUSI,benign,372,train
+benign (315).png,BUSI,benign,373,test
+benign (316).png,BUSI,benign,496,test
+benign (317).png,BUSI,benign,375,val
+benign (318).png,BUSI,benign,376,train
+benign (319).png,BUSI,benign,377,train
+benign (32).png,BUSI,benign,378,test
+benign (320).png,BUSI,benign,379,test
+benign (321).png,BUSI,benign,466,train
+benign (322).png,BUSI,benign,515,train
+benign (323).png,BUSI,benign,382,train
+benign (324).png,BUSI,benign,537,train
+benign (325).png,BUSI,benign,384,train
+benign (326).png,BUSI,benign,559,train
+benign (327).png,BUSI,benign,386,train
+benign (328).png,BUSI,benign,387,val
+benign (329).png,BUSI,benign,388,train
+benign (33).png,BUSI,benign,389,test
+benign (330).png,BUSI,benign,390,train
+benign (331).png,BUSI,benign,391,train
+benign (332).png,BUSI,benign,392,val
+benign (333).png,BUSI,benign,393,train
+benign (334).png,BUSI,benign,394,train
+benign (335).png,BUSI,benign,395,test
+benign (336).png,BUSI,benign,396,val
+benign (337).png,BUSI,benign,397,train
+benign (338).png,BUSI,benign,398,train
+benign (339).png,BUSI,benign,399,train
+benign (34).png,BUSI,benign,400,train
+benign (340).png,BUSI,benign,401,train
+benign (341).png,BUSI,benign,402,test
+benign (342).png,BUSI,benign,403,val
+benign (343).png,BUSI,benign,404,train
+benign (344).png,BUSI,benign,405,train
+benign (345).png,BUSI,benign,406,val
+benign (346).png,BUSI,benign,407,train
+benign (347).png,BUSI,benign,408,train
+benign (348).png,BUSI,benign,409,train
+benign (349).png,BUSI,benign,410,train
+benign (35).png,BUSI,benign,411,test
+benign (350).png,BUSI,benign,412,train
+benign (351).png,BUSI,benign,413,train
+benign (352).png,BUSI,benign,414,train
+benign (353).png,BUSI,benign,415,val
+benign (354).png,BUSI,benign,416,train
+benign (355).png,BUSI,benign,417,test
+benign (356).png,BUSI,benign,418,train
+benign (357).png,BUSI,benign,419,val
+benign (358).png,BUSI,benign,420,train
+benign (359).png,BUSI,benign,421,train
+benign (36).png,BUSI,benign,422,train
+benign (360).png,BUSI,benign,423,train
+benign (361).png,BUSI,benign,424,train
+benign (362).png,BUSI,benign,425,test
+benign (363).png,BUSI,benign,426,train
+benign (364).png,BUSI,benign,427,val
+benign (365).png,BUSI,benign,428,train
+benign (366).png,BUSI,benign,429,train
+benign (367).png,BUSI,benign,430,train
+benign (368).png,BUSI,benign,431,train
+benign (369).png,BUSI,benign,432,train
+benign (37).png,BUSI,benign,433,train
+benign (370).png,BUSI,benign,434,test
+benign (371).png,BUSI,benign,435,val
+benign (372).png,BUSI,benign,436,train
+benign (373).png,BUSI,benign,437,train
+benign (374).png,BUSI,benign,438,train
+benign (375).png,BUSI,benign,439,train
+benign (376).png,BUSI,benign,440,test
+benign (377).png,BUSI,benign,441,train
+benign (378).png,BUSI,benign,442,train
+benign (379).png,BUSI,benign,443,train
+benign (38).png,BUSI,benign,444,val
+benign (380).png,BUSI,benign,445,train
+benign (381).png,BUSI,benign,446,train
+benign (382).png,BUSI,benign,447,train
+benign (383).png,BUSI,benign,448,val
+benign (384).png,BUSI,benign,449,train
+benign (385).png,BUSI,benign,450,test
+benign (386).png,BUSI,benign,451,train
+benign (387).png,BUSI,benign,452,train
+benign (388).png,BUSI,benign,453,train
+benign (389).png,BUSI,benign,454,train
+benign (39).png,BUSI,benign,455,train
+benign (390).png,BUSI,benign,456,train
+benign (391).png,BUSI,benign,457,train
+benign (392).png,BUSI,benign,458,train
+benign (393).png,BUSI,benign,459,test
+benign (394).png,BUSI,benign,460,train
+benign (395).png,BUSI,benign,480,test
+benign (396).png,BUSI,benign,462,train
+benign (397).png,BUSI,benign,463,train
+benign (398).png,BUSI,benign,464,val
+benign (4).png,BUSI,benign,466,train
+benign (40).png,BUSI,benign,467,train
+benign (400).png,BUSI,benign,481,test
+benign (401).png,BUSI,benign,469,train
+benign (402).png,BUSI,benign,470,train
+benign (403).png,BUSI,benign,471,test
+benign (404).png,BUSI,benign,472,val
+benign (405).png,BUSI,benign,473,train
+benign (406).png,BUSI,benign,474,train
+benign (407).png,BUSI,benign,475,train
+benign (408).png,BUSI,benign,476,train
+benign (409).png,BUSI,benign,477,train
+benign (41).png,BUSI,benign,478,train
+benign (410).png,BUSI,benign,479,train
+benign (411).png,BUSI,benign,480,test
+benign (412).png,BUSI,benign,481,test
+benign (413).png,BUSI,benign,482,val
+benign (414).png,BUSI,benign,483,train
+benign (415).png,BUSI,benign,484,train
+benign (416).png,BUSI,benign,485,train
+benign (417).png,BUSI,benign,486,train
+benign (418).png,BUSI,benign,487,val
+benign (419).png,BUSI,benign,488,train
+benign (420).png,BUSI,benign,490,test
+benign (421).png,BUSI,benign,491,val
+benign (422).png,BUSI,benign,492,train
+benign (423).png,BUSI,benign,493,train
+benign (424).png,BUSI,benign,494,train
+benign (425).png,BUSI,benign,495,train
+benign (426).png,BUSI,benign,496,test
+benign (427).png,BUSI,benign,497,train
+benign (428).png,BUSI,benign,498,train
+benign (429).png,BUSI,benign,499,val
+benign (43).png,BUSI,benign,500,train
+benign (430).png,BUSI,benign,501,val
+benign (431).png,BUSI,benign,502,train
+benign (432).png,BUSI,benign,503,train
+benign (434).png,BUSI,benign,505,train
+benign (435).png,BUSI,benign,506,train
+benign (436).png,BUSI,benign,507,train
+benign (44).png,BUSI,benign,509,test
+benign (45).png,BUSI,benign,510,train
+benign (46).png,BUSI,benign,511,val
+benign (47).png,BUSI,benign,512,train
+benign (48).png,BUSI,benign,513,train
+benign (49).png,BUSI,benign,514,train
+benign (5).png,BUSI,benign,515,train
+benign (50).png,BUSI,benign,516,test
+benign (51).png,BUSI,benign,517,train
+benign (52).png,BUSI,benign,518,train
+benign (53).png,BUSI,benign,519,train
+benign (54).png,BUSI,benign,520,train
+benign (55).png,BUSI,benign,521,val
+benign (56).png,BUSI,benign,522,train
+benign (57).png,BUSI,benign,523,train
+benign (58).png,BUSI,benign,524,train
+benign (59).png,BUSI,benign,525,test
+benign (6).png,BUSI,benign,526,train
+benign (60).png,BUSI,benign,527,val
+benign (61).png,BUSI,benign,528,train
+benign (62).png,BUSI,benign,529,train
+benign (63).png,BUSI,benign,530,train
+benign (64).png,BUSI,benign,531,val
+benign (65).png,BUSI,benign,532,train
+benign (66).png,BUSI,benign,533,train
+benign (67).png,BUSI,benign,534,test
+benign (68).png,BUSI,benign,535,train
+benign (69).png,BUSI,benign,536,train
+benign (7).png,BUSI,benign,537,train
+benign (70).png,BUSI,benign,538,train
+benign (71).png,BUSI,benign,539,train
+benign (72).png,BUSI,benign,540,test
+benign (73).png,BUSI,benign,541,train
+benign (74).png,BUSI,benign,542,train
+benign (75).png,BUSI,benign,543,val
+benign (76).png,BUSI,benign,544,train
+benign (77).png,BUSI,benign,545,train
+benign (78).png,BUSI,benign,546,val
+benign (79).png,BUSI,benign,547,train
+benign (8).png,BUSI,benign,548,train
+benign (80).png,BUSI,benign,549,train
+benign (81).png,BUSI,benign,550,test
+benign (82).png,BUSI,benign,551,train
+benign (83).png,BUSI,benign,552,train
+benign (84).png,BUSI,benign,553,train
+benign (86).png,BUSI,benign,555,train
+benign (87).png,BUSI,benign,556,test
+benign (88).png,BUSI,benign,557,val
+benign (89).png,BUSI,benign,558,train
+benign (9).png,BUSI,benign,559,train
+benign (90).png,BUSI,benign,560,train
+benign (91).png,BUSI,benign,561,train
+benign (92).png,BUSI,benign,562,train
+benign (93).png,BUSI,benign,563,train
+benign (94).png,BUSI,benign,564,test
+benign (95).png,BUSI,benign,565,val
+benign (96).png,BUSI,benign,566,train
+benign (97).png,BUSI,benign,567,train
+benign (98).png,BUSI,benign,568,train
+benign (99).png,BUSI,benign,569,train
+malignant (1).png,BUSI,malignant,570,train
+malignant (10).png,BUSI,malignant,571,val
+malignant (100).png,BUSI,malignant,572,train
+malignant (101).png,BUSI,malignant,573,train
+malignant (102).png,BUSI,malignant,574,test
+malignant (103).png,BUSI,malignant,575,train
+malignant (104).png,BUSI,malignant,576,test
+malignant (105).png,BUSI,malignant,577,train
+malignant (106).png,BUSI,malignant,578,train
+malignant (107).png,BUSI,malignant,579,train
+malignant (108).png,BUSI,malignant,580,test
+malignant (109).png,BUSI,malignant,581,test
+malignant (11).png,BUSI,malignant,582,val
+malignant (110).png,BUSI,malignant,583,train
+malignant (111).png,BUSI,malignant,584,val
+malignant (112).png,BUSI,malignant,585,train
+malignant (113).png,BUSI,malignant,586,train
+malignant (114).png,BUSI,malignant,587,train
+malignant (115).png,BUSI,malignant,588,val
+malignant (116).png,BUSI,malignant,659,train
+malignant (117).png,BUSI,malignant,590,train
+malignant (118).png,BUSI,malignant,591,train
+malignant (119).png,BUSI,malignant,592,train
+malignant (12).png,BUSI,malignant,593,train
+malignant (120).png,BUSI,malignant,594,test
+malignant (121).png,BUSI,malignant,595,train
+malignant (122).png,BUSI,malignant,596,val
+malignant (123).png,BUSI,malignant,597,train
+malignant (124).png,BUSI,malignant,598,train
+malignant (125).png,BUSI,malignant,599,train
+malignant (126).png,BUSI,malignant,600,train
+malignant (127).png,BUSI,malignant,601,train
+malignant (128).png,BUSI,malignant,602,train
+malignant (129).png,BUSI,malignant,603,train
+malignant (13).png,BUSI,malignant,604,test
+malignant (130).png,BUSI,malignant,605,train
+malignant (131).png,BUSI,malignant,606,val
+malignant (132).png,BUSI,malignant,607,train
+malignant (133).png,BUSI,malignant,608,test
+malignant (134).png,BUSI,malignant,609,train
+malignant (135).png,BUSI,malignant,610,train
+malignant (136).png,BUSI,malignant,611,train
+malignant (137).png,BUSI,malignant,612,train
+malignant (138).png,BUSI,malignant,613,train
+malignant (139).png,BUSI,malignant,614,train
+malignant (14).png,BUSI,malignant,615,val
+malignant (140).png,BUSI,malignant,616,train
+malignant (141).png,BUSI,malignant,617,train
+malignant (142).png,BUSI,malignant,618,test
+malignant (143).png,BUSI,malignant,619,train
+malignant (144).png,BUSI,malignant,620,train
+malignant (146).png,BUSI,malignant,622,val
+malignant (147).png,BUSI,malignant,623,train
+malignant (148).png,BUSI,malignant,624,train
+malignant (149).png,BUSI,malignant,625,test
+malignant (15).png,BUSI,malignant,626,train
+malignant (150).png,BUSI,malignant,627,train
+malignant (151).png,BUSI,malignant,628,train
+malignant (152).png,BUSI,malignant,629,train
+malignant (153).png,BUSI,malignant,630,test
+malignant (154).png,BUSI,malignant,631,train
+malignant (155).png,BUSI,malignant,632,val
+malignant (156).png,BUSI,malignant,633,train
+malignant (157).png,BUSI,malignant,634,train
+malignant (158).png,BUSI,malignant,635,train
+malignant (159).png,BUSI,malignant,636,train
+malignant (16).png,BUSI,malignant,637,train
+malignant (160).png,BUSI,malignant,638,train
+malignant (161).png,BUSI,malignant,639,train
+malignant (162).png,BUSI,malignant,640,test
+malignant (163).png,BUSI,malignant,641,train
+malignant (164).png,BUSI,malignant,642,val
+malignant (165).png,BUSI,malignant,643,train
+malignant (166).png,BUSI,malignant,644,train
+malignant (167).png,BUSI,malignant,645,val
+malignant (168).png,BUSI,malignant,646,train
+malignant (169).png,BUSI,malignant,647,train
+malignant (17).png,BUSI,malignant,648,test
+malignant (170).png,BUSI,malignant,649,val
+malignant (171).png,BUSI,malignant,650,train
+malignant (172).png,BUSI,malignant,651,train
+malignant (173).png,BUSI,malignant,652,train
+malignant (174).png,BUSI,malignant,653,test
+malignant (175).png,BUSI,malignant,654,train
+malignant (176).png,BUSI,malignant,655,train
+malignant (177).png,BUSI,malignant,656,train
+malignant (178).png,BUSI,malignant,657,val
+malignant (179).png,BUSI,malignant,658,train
+malignant (18).png,BUSI,malignant,659,train
+malignant (180).png,BUSI,malignant,660,train
+malignant (181).png,BUSI,malignant,661,train
+malignant (182).png,BUSI,malignant,662,test
+malignant (183).png,BUSI,malignant,663,train
+malignant (184).png,BUSI,malignant,664,train
+malignant (185).png,BUSI,malignant,665,train
+malignant (186).png,BUSI,malignant,666,train
+malignant (187).png,BUSI,malignant,667,train
+malignant (188).png,BUSI,malignant,668,train
+malignant (189).png,BUSI,malignant,669,test
+malignant (19).png,BUSI,malignant,670,val
+malignant (190).png,BUSI,malignant,671,train
+malignant (191).png,BUSI,malignant,672,train
+malignant (192).png,BUSI,malignant,673,test
+malignant (193).png,BUSI,malignant,674,val
+malignant (194).png,BUSI,malignant,675,train
+malignant (195).png,BUSI,malignant,676,train
+malignant (196).png,BUSI,malignant,677,test
+malignant (197).png,BUSI,malignant,678,train
+malignant (198).png,BUSI,malignant,679,train
+malignant (199).png,BUSI,malignant,680,val
+malignant (2).png,BUSI,malignant,681,train
+malignant (20).png,BUSI,malignant,682,train
+malignant (200).png,BUSI,malignant,683,train
+malignant (201).png,BUSI,malignant,684,train
+malignant (202).png,BUSI,malignant,685,train
+malignant (203).png,BUSI,malignant,686,train
+malignant (204).png,BUSI,malignant,687,test
+malignant (205).png,BUSI,malignant,688,val
+malignant (206).png,BUSI,malignant,689,train
+malignant (207).png,BUSI,malignant,690,train
+malignant (208).png,BUSI,malignant,691,train
+malignant (209).png,BUSI,malignant,692,val
+malignant (21).png,BUSI,malignant,693,train
+malignant (210).png,BUSI,malignant,694,train
+malignant (22).png,BUSI,malignant,695,train
+malignant (23).png,BUSI,malignant,696,train
+malignant (24).png,BUSI,malignant,697,test
+malignant (25).png,BUSI,malignant,698,train
+malignant (26).png,BUSI,malignant,699,val
+malignant (27).png,BUSI,malignant,700,train
+malignant (28).png,BUSI,malignant,701,train
+malignant (29).png,BUSI,malignant,702,train
+malignant (3).png,BUSI,malignant,703,train
+malignant (30).png,BUSI,malignant,704,train
+malignant (31).png,BUSI,malignant,705,train
+malignant (32).png,BUSI,malignant,706,train
+malignant (33).png,BUSI,malignant,707,train
+malignant (34).png,BUSI,malignant,708,test
+malignant (35).png,BUSI,malignant,709,train
+malignant (36).png,BUSI,malignant,710,test
+malignant (37).png,BUSI,malignant,711,train
+malignant (38).png,BUSI,malignant,712,val
+malignant (39).png,BUSI,malignant,713,train
+malignant (4).png,BUSI,malignant,714,train
+malignant (40).png,BUSI,malignant,715,train
+malignant (41).png,BUSI,malignant,716,test
+malignant (42).png,BUSI,malignant,717,val
+malignant (43).png,BUSI,malignant,718,train
+malignant (44).png,BUSI,malignant,719,train
+malignant (45).png,BUSI,malignant,720,train
+malignant (46).png,BUSI,malignant,721,train
+malignant (47).png,BUSI,malignant,722,train
+malignant (48).png,BUSI,malignant,723,test
+malignant (49).png,BUSI,malignant,724,val
+malignant (5).png,BUSI,malignant,725,train
+malignant (50).png,BUSI,malignant,726,train
+malignant (53).png,BUSI,malignant,729,test
+malignant (54).png,BUSI,malignant,730,train
+malignant (55).png,BUSI,malignant,731,train
+malignant (56).png,BUSI,malignant,732,val
+malignant (57).png,BUSI,malignant,733,train
+malignant (58).png,BUSI,malignant,734,test
+malignant (59).png,BUSI,malignant,735,train
+malignant (6).png,BUSI,malignant,736,train
+malignant (60).png,BUSI,malignant,737,train
+malignant (61).png,BUSI,malignant,738,train
+malignant (62).png,BUSI,malignant,739,val
+malignant (63).png,BUSI,malignant,740,train
+malignant (64).png,BUSI,malignant,741,train
+malignant (65).png,BUSI,malignant,742,train
+malignant (66).png,BUSI,malignant,743,test
+malignant (67).png,BUSI,malignant,744,train
+malignant (68).png,BUSI,malignant,745,val
+malignant (69).png,BUSI,malignant,746,train
+malignant (7).png,BUSI,malignant,747,train
+malignant (70).png,BUSI,malignant,748,train
+malignant (71).png,BUSI,malignant,749,test
+malignant (72).png,BUSI,malignant,750,train
+malignant (73).png,BUSI,malignant,751,train
+malignant (74).png,BUSI,malignant,752,train
+malignant (75).png,BUSI,malignant,753,train
+malignant (76).png,BUSI,malignant,754,train
+malignant (77).png,BUSI,malignant,755,train
+malignant (78).png,BUSI,malignant,756,train
+malignant (79).png,BUSI,malignant,757,train
+malignant (8).png,BUSI,malignant,758,val
+malignant (80).png,BUSI,malignant,759,train
+malignant (81).png,BUSI,malignant,760,test
+malignant (82).png,BUSI,malignant,761,train
+malignant (83).png,BUSI,malignant,762,val
+malignant (84).png,BUSI,malignant,763,train
+malignant (85).png,BUSI,malignant,764,train
+malignant (86).png,BUSI,malignant,765,train
+malignant (87).png,BUSI,malignant,766,train
+malignant (88).png,BUSI,malignant,767,test
+malignant (89).png,BUSI,malignant,768,test
+malignant (9).png,BUSI,malignant,769,train
+malignant (90).png,BUSI,malignant,770,train
+malignant (91).png,BUSI,malignant,771,val
+malignant (92).png,BUSI,malignant,772,train
+malignant (94).png,BUSI,malignant,774,train
+malignant (95).png,BUSI,malignant,775,train
+malignant (96).png,BUSI,malignant,776,test
+malignant (97).png,BUSI,malignant,777,val
+malignant (98).png,BUSI,malignant,778,train
+malignant (99).png,BUSI,malignant,779,train
+case001.png,BrEaST,benign,780,train
+case002.png,BrEaST,benign,781,train
+case003.png,BrEaST,benign,782,val
+case004.png,BrEaST,benign,783,train
+case005.png,BrEaST,malignant,784,train
+case006.png,BrEaST,benign,785,train
+case007.png,BrEaST,malignant,786,val
+case008.png,BrEaST,malignant,787,test
+case009.png,BrEaST,benign,788,train
+case010.png,BrEaST,malignant,789,train
+case011.png,BrEaST,malignant,790,train
+case012.png,BrEaST,malignant,791,train
+case013.png,BrEaST,malignant,792,train
+case014.png,BrEaST,benign,793,val
+case015.png,BrEaST,benign,794,test
+case016.png,BrEaST,benign,795,train
+case017.png,BrEaST,benign,796,val
+case018.png,BrEaST,benign,797,train
+case019.png,BrEaST,benign,798,train
+case020.png,BrEaST,benign,799,train
+case021.png,BrEaST,benign,800,train
+case022.png,BrEaST,benign,801,test
+case023.png,BrEaST,benign,802,train
+case024.png,BrEaST,benign,803,train
+case025.png,BrEaST,benign,804,train
+case026.png,BrEaST,malignant,805,train
+case027.png,BrEaST,malignant,806,train
+case028.png,BrEaST,benign,807,train
+case029.png,BrEaST,benign,808,val
+case030.png,BrEaST,benign,809,train
+case031.png,BrEaST,benign,810,train
+case032.png,BrEaST,malignant,811,train
+case033.png,BrEaST,benign,812,train
+case034.png,BrEaST,malignant,813,test
+case035.png,BrEaST,malignant,814,train
+case036.png,BrEaST,benign,815,val
+case037.png,BrEaST,benign,816,train
+case038.png,BrEaST,benign,817,train
+case039.png,BrEaST,benign,818,train
+case040.png,BrEaST,benign,819,train
+case041.png,BrEaST,benign,820,train
+case042.png,BrEaST,benign,821,train
+case043.png,BrEaST,benign,822,train
+case044.png,BrEaST,benign,823,train
+case045.png,BrEaST,normal,824,test
+case046.png,BrEaST,malignant,825,val
+case047.png,BrEaST,benign,826,train
+case048.png,BrEaST,benign,827,train
+case049.png,BrEaST,benign,828,train
+case050.png,BrEaST,malignant,829,train
+case051.png,BrEaST,benign,830,test
+case052.png,BrEaST,benign,831,train
+case053.png,BrEaST,malignant,832,test
+case054.png,BrEaST,benign,833,train
+case055.png,BrEaST,malignant,834,test
+case056.png,BrEaST,benign,835,train
+case057.png,BrEaST,benign,836,val
+case058.png,BrEaST,malignant,837,train
+case059.png,BrEaST,benign,838,train
+case060.png,BrEaST,malignant,839,test
+case061.png,BrEaST,normal,840,val
+case062.png,BrEaST,benign,841,train
+case063.png,BrEaST,malignant,842,train
+case064.png,BrEaST,benign,843,val
+case065.png,BrEaST,benign,844,train
+case066.png,BrEaST,malignant,845,train
+case067.png,BrEaST,malignant,846,train
+case068.png,BrEaST,benign,847,train
+case069.png,BrEaST,benign,848,test
+case070.png,BrEaST,benign,849,train
+case071.png,BrEaST,benign,850,val
+case072.png,BrEaST,malignant,851,train
+case073.png,BrEaST,benign,852,train
+case074.png,BrEaST,benign,853,train
+case075.png,BrEaST,malignant,854,train
+case076.png,BrEaST,malignant,855,test
+case077.png,BrEaST,benign,856,val
+case078.png,BrEaST,benign,857,train
+case079.png,BrEaST,malignant,858,train
+case080.png,BrEaST,benign,859,train
+case081.png,BrEaST,benign,860,train
+case082.png,BrEaST,malignant,861,train
+case083.png,BrEaST,benign,862,train
+case084.png,BrEaST,benign,863,val
+case085.png,BrEaST,benign,864,train
+case086.png,BrEaST,malignant,865,test
+case087.png,BrEaST,malignant,866,train
+case088.png,BrEaST,malignant,867,train
+case089.png,BrEaST,malignant,868,train
+case090.png,BrEaST,malignant,869,train
+case091.png,BrEaST,benign,870,test
+case092.png,BrEaST,benign,871,train
+case093.png,BrEaST,benign,872,train
+case094.png,BrEaST,malignant,873,val
+case095.png,BrEaST,benign,874,train
+case096.png,BrEaST,benign,875,train
+case097.png,BrEaST,benign,876,train
+case098.png,BrEaST,benign,877,train
+case099.png,BrEaST,malignant,878,train
+case100.png,BrEaST,benign,879,train
+case101.png,BrEaST,malignant,880,test
+case102.png,BrEaST,malignant,881,test
+case103.png,BrEaST,malignant,882,val
+case104.png,BrEaST,benign,883,val
+case105.png,BrEaST,malignant,884,train
+case106.png,BrEaST,malignant,885,train
+case107.png,BrEaST,malignant,886,train
+case108.png,BrEaST,benign,887,train
+case109.png,BrEaST,malignant,888,train
+case110.png,BrEaST,benign,889,train
+case111.png,BrEaST,malignant,890,train
+case112.png,BrEaST,malignant,891,test
+case113.png,BrEaST,malignant,892,train
+case114.png,BrEaST,malignant,893,train
+case115.png,BrEaST,benign,894,train
+case116.png,BrEaST,benign,895,train
+case117.png,BrEaST,malignant,896,train
+case118.png,BrEaST,benign,897,train
+case119.png,BrEaST,benign,898,val
+case120.png,BrEaST,benign,899,train
+case121.png,BrEaST,malignant,900,test
+case122.png,BrEaST,benign,901,train
+case123.png,BrEaST,benign,902,val
+case124.png,BrEaST,benign,903,train
+case125.png,BrEaST,malignant,904,train
+case126.png,BrEaST,benign,905,train
+case127.png,BrEaST,malignant,906,train
+case128.png,BrEaST,malignant,907,train
+case129.png,BrEaST,benign,908,test
+case130.png,BrEaST,malignant,909,val
+case131.png,BrEaST,benign,910,train
+case132.png,BrEaST,malignant,911,train
+case133.png,BrEaST,malignant,912,train
+case134.png,BrEaST,benign,913,train
+case135.png,BrEaST,benign,914,val
+case136.png,BrEaST,benign,915,train
+case137.png,BrEaST,benign,916,train
+case138.png,BrEaST,benign,917,train
+case139.png,BrEaST,benign,918,test
+case140.png,BrEaST,benign,919,train
+case141.png,BrEaST,benign,920,train
+case142.png,BrEaST,benign,921,train
+case143.png,BrEaST,benign,922,train
+case144.png,BrEaST,malignant,923,train
+case145.png,BrEaST,malignant,924,test
+case146.png,BrEaST,benign,925,train
+case147.png,BrEaST,malignant,926,val
+case148.png,BrEaST,malignant,927,train
+case149.png,BrEaST,malignant,928,train
+case150.png,BrEaST,malignant,929,train
+case151.png,BrEaST,benign,930,train
+case152.png,BrEaST,benign,931,test
+case153.png,BrEaST,malignant,932,val
+case154.png,BrEaST,malignant,933,train
+case155.png,BrEaST,benign,934,test
+case156.png,BrEaST,benign,935,train
+case157.png,BrEaST,benign,936,train
+case158.png,BrEaST,malignant,937,val
+case159.png,BrEaST,benign,938,train
+case160.png,BrEaST,malignant,939,train
+case161.png,BrEaST,benign,940,train
+case162.png,BrEaST,benign,941,train
+case163.png,BrEaST,benign,942,test
+case164.png,BrEaST,malignant,943,train
+case165.png,BrEaST,benign,944,train
+case166.png,BrEaST,benign,945,val
+case167.png,BrEaST,benign,946,train
+case168.png,BrEaST,benign,947,train
+case169.png,BrEaST,benign,948,train
+case170.png,BrEaST,malignant,949,train
+case171.png,BrEaST,benign,950,train
+case172.png,BrEaST,malignant,951,test
+case173.png,BrEaST,malignant,952,val
+case174.png,BrEaST,malignant,953,test
+case175.png,BrEaST,benign,954,train
+case176.png,BrEaST,malignant,955,train
+case177.png,BrEaST,benign,956,train
+case178.png,BrEaST,benign,957,train
+case179.png,BrEaST,benign,958,train
+case180.png,BrEaST,benign,959,train
+case181.png,BrEaST,benign,960,train
+case182.png,BrEaST,benign,961,test
+case183.png,BrEaST,benign,962,val
+case184.png,BrEaST,benign,963,train
+case185.png,BrEaST,benign,964,train
+case186.png,BrEaST,benign,965,train
+case187.png,BrEaST,benign,966,train
+case188.png,BrEaST,benign,967,train
+case189.png,BrEaST,benign,968,test
+case190.png,BrEaST,malignant,969,train
+case191.png,BrEaST,benign,970,train
+case192.png,BrEaST,benign,971,val
+case193.png,BrEaST,benign,972,val
+case194.png,BrEaST,benign,973,train
+case195.png,BrEaST,malignant,974,train
+case196.png,BrEaST,benign,975,test
+case197.png,BrEaST,benign,976,val
+case198.png,BrEaST,malignant,977,train
+case199.png,BrEaST,malignant,978,test
+case200.png,BrEaST,benign,979,train
+case201.png,BrEaST,benign,980,train
+case202.png,BrEaST,benign,981,train
+case203.png,BrEaST,benign,982,train
+case204.png,BrEaST,benign,983,train
+case205.png,BrEaST,malignant,984,test
+case206.png,BrEaST,malignant,985,train
+case207.png,BrEaST,benign,986,val
+case208.png,BrEaST,benign,987,train
+case209.png,BrEaST,normal,988,train
+case210.png,BrEaST,benign,989,train
+case211.png,BrEaST,malignant,990,train
+case212.png,BrEaST,malignant,991,val
+case213.png,BrEaST,normal,992,train
+case214.png,BrEaST,benign,993,train
+case215.png,BrEaST,benign,994,train
+case216.png,BrEaST,benign,995,test
+case217.png,BrEaST,benign,996,train
+case218.png,BrEaST,malignant,997,val
+case219.png,BrEaST,malignant,998,train
+case220.png,BrEaST,benign,999,train
+case221.png,BrEaST,malignant,1000,train
+case222.png,BrEaST,benign,1001,train
+case223.png,BrEaST,benign,1002,test
+case224.png,BrEaST,benign,1003,train
+case225.png,BrEaST,malignant,1004,train
+case226.png,BrEaST,malignant,1005,train
+case227.png,BrEaST,malignant,1006,val
+case228.png,BrEaST,malignant,1007,train
+case229.png,BrEaST,benign,1008,test
+case230.png,BrEaST,malignant,1009,train
+case231.png,BrEaST,benign,1010,train
+case232.png,BrEaST,benign,1011,train
+case233.png,BrEaST,malignant,1012,val
+case234.png,BrEaST,malignant,1013,train
+case235.png,BrEaST,benign,1014,train
+case236.png,BrEaST,benign,1015,val
+case237.png,BrEaST,benign,1016,train
+case238.png,BrEaST,malignant,1017,train
+case239.png,BrEaST,malignant,1018,train
+case240.png,BrEaST,benign,1019,train
+case241.png,BrEaST,benign,1020,test
+case242.png,BrEaST,benign,1021,val
+case243.png,BrEaST,malignant,1022,train
+case244.png,BrEaST,malignant,1023,train
+case245.png,BrEaST,malignant,1024,train
+case246.png,BrEaST,benign,1025,train
+case247.png,BrEaST,malignant,1026,train
+case248.png,BrEaST,malignant,1027,test
+case249.png,BrEaST,malignant,1028,train
+case250.png,BrEaST,malignant,1029,train
+case251.png,BrEaST,malignant,1030,train
+case252.png,BrEaST,benign,1031,train
+case253.png,BrEaST,benign,1032,train
+case254.png,BrEaST,malignant,1033,val
+case255.png,BrEaST,malignant,1034,train
+case256.png,BrEaST,benign,1035,train

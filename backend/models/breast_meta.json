@@ -1,4 +1,5 @@
 {
+  "version": "busbra (v7 pipeline + BUS-BRA)",
   "classes": [
     "normal",
     "benign",
@@ -24,172 +25,339 @@
     ],
     "preprocessing": "EXIF-rotate, grayscale, pad to square with black, bilinear resize to 224, repeat to 3 channels, ImageNet normalisation"
   },
-  "temperature": 1.0227748155593872,
-  "malignant_threshold": 0.42,
+  "temperature": 1.142532467842102,
+  "malignant_threshold": 0.21,
   "colour_limit": 0.1,
-  "ood_threshold": 10.805313110351562,
+  "gate_file": "breast_gate.npz",
+  "gate_threshold": 0.5,
+  "recipe": {
+    "name": "source-balanced + scanner augmentation",
+    "augment": "scanner",
+    "balance_sources": true
+  },
+  "recipe_comparison": [
+    {
+      "recipe": "baseline",
+      "selection_score": 0.8903,
+      "cv_accuracy": "0.823 \u00b1 0.027",
+      "cv_macro_f1": "0.806 \u00b1 0.031",
+      "cv_malignant_sensitivity": "0.811 \u00b1 0.026",
+      "cv_malignant_auc": "0.901 \u00b1 0.022",
+      "BUSI_accuracy": 0.8622,
+      "BUSI_malignant_auc": 0.9625,
+      "BrEaST_accuracy": 0.7466,
+      "BrEaST_malignant_auc": 0.8274,
+      "BUS-BRA_accuracy": 0.8157,
+      "BUS-BRA_malignant_auc": 0.8811
+    },
+    {
+      "recipe": "source-balanced + scanner augmentation",
+      "selection_score": 0.8926,
+      "cv_accuracy": "0.824 \u00b1 0.014",
+      "cv_macro_f1": "0.805 \u00b1 0.031",
+      "cv_malignant_sensitivity": "0.796 \u00b1 0.029",
+      "cv_malignant_auc": "0.901 \u00b1 0.015",
+      "BUSI_accuracy": 0.8499,
+      "BUSI_malignant_auc": 0.9538,
+      "BrEaST_accuracy": 0.7828,
+      "BrEaST_malignant_auc": 0.8451,
+      "BUS-BRA_accuracy": 0.818,
+      "BUS-BRA_malignant_auc": 0.8788
+    }
+  ],
   "test_metrics": {
-    "test_size": 148,
-    "accuracy": 0.7365,
-    "macro_f1": 0.7331,
-    "malignant_sensitivity": 0.7083,
-    "malignant_specificity": 0.82,
-    "malignant_auc": 0.851,
-    "macro_auc_ovr": 0.8869,
-    "ece": 0.089
+    "test_size": 710,
+    "accuracy": 0.6831,
+    "macro_f1": 0.7308,
+    "malignant_sensitivity": 0.9083,
+    "malignant_specificity": 0.5745,
+    "malignant_auc": 0.8688,
+    "macro_auc_ovr": 0.9128,
+    "ece": 0.0289
   },
   "test_metrics_argmax": {
-    "accuracy": 0.7432,
-    "macro_f1": 0.7368,
-    "malignant_sensitivity": 0.6875,
-    "malignant_specificity": 0.84,
-    "malignant_auc": 0.851
+    "accuracy": 0.8042,
+    "macro_f1": 0.807,
+    "malignant_sensitivity": 0.775,
+    "malignant_specificity": 0.8255,
+    "malignant_auc": 0.8688
   },
   "per_source_test": {
     "BUSI": {
       "images": 113,
-      "accuracy": 0.8142,
-      "macro_f1": 0.8028,
-      "malignant_sensitivity": 0.871,
-      "malignant_specificity": 0.8537,
-      "malignant_auc": 0.9268
+      "accuracy": 0.823,
+      "macro_f1": 0.8247,
+      "malignant_sensitivity": 1.0,
+      "malignant_specificity": 0.7805,
+      "malignant_auc": 0.9611
     },
     "BrEaST": {
       "images": 35,
-      "accuracy": 0.4857,
-      "macro_f1": 0.331,
-      "malignant_sensitivity": 0.4118,
-      "malignant_specificity": 0.6667,
-      "malignant_auc": 0.6667
+      "accuracy": 0.6,
+      "macro_f1": 0.7216,
+      "malignant_sensitivity": 0.7059,
+      "malignant_specificity": 0.5,
+      "malignant_auc": 0.6503
+    },
+    "BUS-BRA": {
+      "images": 562,
+      "accuracy": 0.6601,
+      "macro_f1": 0.4402,
+      "malignant_sensitivity": 0.9115,
+      "malignant_specificity": 0.5324,
+      "malignant_auc": 0.8655
+    }
+  },
+  "test_metrics_v7_subset": {
+    "test_size": 148,
+    "accuracy": 0.7703,
+    "macro_f1": 0.7885,
+    "malignant_sensitivity": 0.8958,
+    "malignant_specificity": 0.73,
+    "malignant_auc": 0.8821
+  },
+  "test_metrics_busbra": {
+    "test_size": 562,
+    "accuracy": 0.6601,
+    "macro_f1": 0.4402,
+    "malignant_sensitivity": 0.9115,
+    "malignant_specificity": 0.5324,
+    "malignant_auc": 0.8655
+  },
+  "per_device_test": {
+    "GE Logiq 5 @10-12MHz": {
+      "images": 242,
+      "accuracy": 0.6942,
+      "macro_f1": 0.6925,
+      "malignant_sensitivity": 0.9259,
+      "malignant_specificity": 0.5776,
+      "malignant_auc": 0.8894
+    },
+    "GE Logiq 7 @10-14MHz": {
+      "images": 268,
+      "accuracy": 0.6455,
+      "macro_f1": 0.6455,
+      "malignant_sensitivity": 0.9149,
+      "malignant_specificity": 0.5,
+      "malignant_auc": 0.8542
+    },
+    "Toshiba Aplio 300 @12-14 MHz": {
+      "images": 41,
+      "accuracy": 0.5366,
+      "macro_f1": 0.3591,
+      "malignant_sensitivity": 0.8667,
+      "malignant_specificity": 0.3846,
+      "malignant_auc": 0.8
+    },
+    "U-Systems @10-14MHz": {
+      "images": 11,
+      "accuracy": 0.7273,
+      "macro_f1": 0.6118,
+      "malignant_sensitivity": 0.5,
+      "malignant_specificity": 0.7778,
+      "malignant_auc": 0.7222
     }
   },
   "comparison": [
     {
       "model": "Linear probe (frozen ImageNet ResNet50)",
-      "accuracy": 0.7635,
-      "macro_f1": 0.7466,
-      "malignant_sensitivity": 0.6667,
-      "malignant_specificity": 0.89,
-      "malignant_auc": 0.8525
+      "accuracy": 0.7211,
+      "macro_f1": 0.694,
+      "malignant_sensitivity": 0.5792,
+      "malignant_specificity": 0.8149,
+      "malignant_auc": 0.7729
     },
     {
       "model": "Fine-tuned ResNet50, argmax",
-      "accuracy": 0.7432,
-      "macro_f1": 0.7368,
-      "malignant_sensitivity": 0.6875,
-      "malignant_specificity": 0.84,
-      "malignant_auc": 0.851
+      "accuracy": 0.8042,
+      "macro_f1": 0.807,
+      "malignant_sensitivity": 0.775,
+      "malignant_specificity": 0.8255,
+      "malignant_auc": 0.8688
     },
     {
-      "model": "Fine-tuned ResNet50, screening rule (P(mal) \u2265 0.42)",
-      "accuracy": 0.7365,
-      "macro_f1": 0.7331,
-      "malignant_sensitivity": 0.7083,
-      "malignant_specificity": 0.82,
-      "malignant_auc": 0.851
+      "model": "Fine-tuned ResNet50, screening rule (P(mal) >= 0.21)",
+      "accuracy": 0.6831,
+      "macro_f1": 0.7308,
+      "malignant_sensitivity": 0.9083,
+      "malignant_specificity": 0.5745,
+      "malignant_auc": 0.8688
     }
   ],
   "cv_results": [
     {
+      "recipe": "baseline",
       "fold": 1,
-      "accuracy": 0.8012,
-      "macro_f1": 0.8027,
-      "malignant_sensitivity": 0.9184,
-      "malignant_specificity": 0.7869,
-      "malignant_auc": 0.9179
+      "accuracy": 0.8211,
+      "macro_f1": 0.8086,
+      "malignant_sensitivity": 0.8281,
+      "malignant_specificity": 0.8344,
+      "malignant_auc": 0.9012
     },
     {
+      "recipe": "baseline",
       "fold": 2,
-      "accuracy": 0.8286,
-      "macro_f1": 0.8349,
-      "malignant_sensitivity": 0.8302,
-      "malignant_specificity": 0.8443,
-      "malignant_auc": 0.9134
+      "accuracy": 0.8169,
+      "macro_f1": 0.8283,
+      "malignant_sensitivity": 0.777,
+      "malignant_specificity": 0.8456,
+      "malignant_auc": 0.9066
     },
     {
+      "recipe": "baseline",
       "fold": 3,
-      "accuracy": 0.8686,
-      "macro_f1": 0.8476,
-      "malignant_sensitivity": 0.8704,
-      "malignant_specificity": 0.9008,
-      "malignant_auc": 0.9599
+      "accuracy": 0.8078,
+      "macro_f1": 0.7627,
+      "malignant_sensitivity": 0.7955,
+      "malignant_specificity": 0.8426,
+      "malignant_auc": 0.8661
     },
     {
+      "recipe": "baseline",
       "fold": 4,
-      "accuracy": 0.8736,
-      "macro_f1": 0.8535,
-      "malignant_sensitivity": 0.9167,
-      "malignant_specificity": 0.8968,
-      "malignant_auc": 0.9428
+      "accuracy": 0.7991,
+      "macro_f1": 0.7905,
+      "malignant_sensitivity": 0.8092,
+      "malignant_specificity": 0.8176,
+      "malignant_auc": 0.9042
     },
     {
+      "recipe": "baseline",
       "fold": 5,
-      "accuracy": 0.8268,
-      "macro_f1": 0.8221,
-      "malignant_sensitivity": 0.8846,
-      "malignant_specificity": 0.8661,
-      "malignant_auc": 0.9502
+      "accuracy": 0.8679,
+      "macro_f1": 0.8394,
+      "malignant_sensitivity": 0.844,
+      "malignant_specificity": 0.896,
+      "malignant_auc": 0.9254
+    },
+    {
+      "recipe": "source-balanced + scanner augmentation",
+      "fold": 1,
+      "accuracy": 0.8211,
+      "macro_f1": 0.8261,
+      "malignant_sensitivity": 0.8359,
+      "malignant_specificity": 0.8247,
+      "malignant_auc": 0.9104
+    },
+    {
+      "recipe": "source-balanced + scanner augmentation",
+      "fold": 2,
+      "accuracy": 0.8192,
+      "macro_f1": 0.8113,
+      "malignant_sensitivity": 0.7986,
+      "malignant_specificity": 0.8557,
+      "malignant_auc": 0.9061
+    },
+    {
+      "recipe": "source-balanced + scanner augmentation",
+      "fold": 3,
+      "accuracy": 0.8101,
+      "macro_f1": 0.7499,
+      "malignant_sensitivity": 0.7879,
+      "malignant_specificity": 0.8525,
+      "malignant_auc": 0.8741
+    },
+    {
+      "recipe": "source-balanced + scanner augmentation",
+      "fold": 4,
+      "accuracy": 0.8219,
+      "macro_f1": 0.8158,
+      "malignant_sensitivity": 0.7557,
+      "malignant_specificity": 0.8697,
+      "malignant_auc": 0.908
+    },
+    {
+      "recipe": "source-balanced + scanner augmentation",
+      "fold": 5,
+      "accuracy": 0.8474,
+      "macro_f1": 0.8207,
+      "malignant_sensitivity": 0.8014,
+      "malignant_specificity": 0.8859,
+      "malignant_auc": 0.9049
     }
   ],
   "cv_summary": {
-    "accuracy": "0.840 \u00b1 0.031",
-    "macro_f1": "0.832 \u00b1 0.020",
-    "malignant_sensitivity": "0.884 \u00b1 0.037",
-    "malignant_specificity": "0.859 \u00b1 0.046",
-    "malignant_auc": "0.937 \u00b1 0.020"
+    "selection_score": 0.8926,
+    "cv_accuracy": "0.824 \u00b1 0.014",
+    "cv_macro_f1": "0.805 \u00b1 0.031",
+    "cv_malignant_sensitivity": "0.796 \u00b1 0.029",
+    "cv_malignant_auc": "0.901 \u00b1 0.015",
+    "BUSI_accuracy": 0.8499,
+    "BUSI_malignant_auc": 0.9538,
+    "BrEaST_accuracy": 0.7828,
+    "BrEaST_malignant_auc": 0.8451,
+    "BUS-BRA_accuracy": 0.818,
+    "BUS-BRA_malignant_auc": 0.8788
   },
   "calibration": {
-    "temperature": 1.0228,
-    "val_ece_before": 0.0643,
-    "val_ece_after": 0.0465,
-    "test_ece_before": 0.0936,
-    "test_ece_after": 0.089
+    "temperature": 1.1425,
+    "fitted_on": "2187 out-of-fold predictions",
+    "oof_ece_before": 0.0344,
+    "oof_ece_after": 0.0182,
+    "val_ece_final_model": 0.0506,
+    "test_ece_before": 0.0385,
+    "test_ece_after": 0.0289
   },
   "cam_evaluation": {
-    "lesion_images": 126,
-    "pointing_game": 0.2778,
-    "mean_iou": 0.1294,
-    "pointing_game_chance": 0.1077
+    "lesion_images": 688,
+    "pointing_game": 0.3081,
+    "mean_iou": 0.1358,
+    "pointing_game_chance": 0.0971
   },
   "ood_evaluation": [
     {
       "images": "Test ultrasounds (should pass)",
-      "n": 148,
+      "n": 710,
       "rejected_colour": 0.0,
-      "rejected_distance": 0.006756756756756757,
-      "rejected_total": 0.006756756756756757
-    },
-    {
-      "images": "Natural photos (should be rejected)",
-      "n": 300,
-      "rejected_colour": 0.83,
-      "rejected_distance": 0.01,
-      "rejected_total": 0.8333333333333334
-    },
-    {
-      "images": "Chest X-rays (should be rejected)",
-      "n": 300,
-      "rejected_colour": 0.0,
-      "rejected_distance": 0.0,
+      "rejected_gate": 0.0,
       "rejected_total": 0.0
+    },
+    {
+      "images": "Colour photos, unseen categories",
+      "n": 300,
+      "rejected_colour": 0.9033,
+      "rejected_gate": 0.98,
+      "rejected_total": 0.99
+    },
+    {
+      "images": "Grayscale photos, unseen categories",
+      "n": 300,
+      "rejected_colour": 0.0,
+      "rejected_gate": 0.98,
+      "rejected_total": 0.98
+    },
+    {
+      "images": "Chest X-rays, held out",
+      "n": 300,
+      "rejected_colour": 0.0,
+      "rejected_gate": 1.0,
+      "rejected_total": 1.0
+    },
+    {
+      "images": "Brain MRI, never seen",
+      "n": 250,
+      "rejected_colour": 0.0,
+      "rejected_gate": 0.944,
+      "rejected_total": 0.944
     }
   ],
   "onnx_parity": {
-    "fp32_export_max_abs_diff": 5.1021575927734375e-05,
-    "deployed_max_abs_diff": 0.02400261163711548,
-    "test_predictions_changed_by_fp16": 1
+    "fp32_export_max_abs_diff": 0.00010833144187927246,
+    "deployed_max_abs_diff": 0.018610894680023193,
+    "test_predictions_changed_by_fp16": 2
   },
-  "best_epoch": 18,
+  "best_epoch": 23,
   "samples": {
-    "benign": "case196.png",
-    "malignant": "case086.png"
+    "benign": "case189.png",
+    "malignant": "case055.png"
   },
   "dataset": {
     "sources": [
       "BUSI (Al-Dhabyani et al., 2020)",
-      "BrEaST-Lesions-USG (Paw\u0142owska et al., 2024, TCIA, CC BY 4.0)"
+      "BrEaST-Lesions-USG (Paw\u0142owska et al., 2024, TCIA, CC BY 4.0)",
+      "BUS-BRA (G\u00f3mez-Flores et al., Medical Physics 2024)"
     ],
-    "images": 1022,
+    "images": 2897,
     "near_duplicates": {
       "images_in_duplicate_groups": 148,
       "duplicate_groups": 67,
@@ -197,22 +365,25 @@
     },
     "counts": {
       "benign": {
+        "BUS-BRA": 1268,
         "BUSI": 429,
         "BrEaST": 154
       },
       "malignant": {
+        "BUS-BRA": 607,
         "BUSI": 206,
         "BrEaST": 98
       },
       "normal": {
+        "BUS-BRA": 0,
         "BUSI": 131,
         "BrEaST": 4
       }
     },
     "splits": {
-      "train": 727,
-      "test": 148,
-      "val": 147
+      "train": 1851,
+      "test": 710,
+      "val": 336
     }
   }
 }

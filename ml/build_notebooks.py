@@ -1282,7 +1282,124 @@ print(sorted(os.listdir(OUT)))
 ]
 
 
+# ---------------------------------------------------------------- Breast ultrasound + BUS-BRA (a copy of the v7 notebook, edited)
+# A separate Kaggle notebook, so v7 stays untouched. Each edit must match exactly once, so a change to the v7 cells above
+# can never silently skip an edit here.
+def _edit(cells, old, new):
+    hits = [i for i, (_, src) in enumerate(cells) if old in src]
+    assert len(hits) == 1 and cells[hits[0]][1].count(old) == 1, f"edit must match exactly once: {old[:60]!r} ({len(hits)} cells)"
+    i = hits[0]
+    cells[i] = (cells[i][0], cells[i][1].replace(old, new))
+
+
+BUSBRA_SPLIT_LOGIC = r"""
+# ---- BUSI + BrEaST keep the exact train/val/test assignment of notebook v7, so v7's test set is unchanged.
+# BUS-BRA is split by patient. All BUS-BRA test patients are unseen by the model, and come from a third hospital.
+V7 = pd.read_csv(io.StringIO(V7_SPLIT_CSV))
+v7_split = dict(zip(V7["source"] + "/" + V7["file"], V7["split"]))
+old = df["source"].isin(["BUSI", "BrEaST"]).values
+df["split"] = (df["source"] + "/" + df["path"].map(os.path.basename)).map(v7_split)
+df = df[~(old & df["split"].isna().values)].reset_index(drop=True)   # v7 dropped these (conflicting near-duplicates)
+
+bra = (df["source"] == "BUS-BRA").values
+shared = df.groupby("group")["source"].transform(lambda s: bool((s == "BUS-BRA").any() and (s != "BUS-BRA").any()))
+print(f"{int((shared.values & bra).sum())} BUS-BRA images are near-duplicates of BUSI/BrEaST images and are dropped")
+df = df[~(shared.values & bra)].reset_index(drop=True)
+bra = (df["source"] == "BUS-BRA").values
+
+# One patient (both breasts) and any near-duplicate scans always stay together, in the split and in cross-validation
+uf = {}
+def ufind(a):
+    uf.setdefault(a, a)
+    while uf[a] != a:
+        uf[a] = uf[uf[a]]
+        a = uf[a]
+    return a
+for case, grp in zip(df.loc[bra, "case"], df.loc[bra, "group"]):
+    uf[ufind(case)] = ufind(f"g{grp}")
+df.loc[bra, "group"] = pd.factorize(pd.Series([ufind(c) for c in df.loc[bra, "case"]]))[0] + 10**6
+
+bra_idx = np.where(bra)[0]
+if SMOKE:
+    df.loc[bra, "split"] = np.array(["test", "val", "train"])[np.arange(len(bra_idx)) % 3]
+else:
+    fold = np.zeros(len(bra_idx), int)
+    for k, (_, part) in enumerate(StratifiedGroupKFold(n_splits=10, shuffle=True, random_state=SEED)
+                                  .split(bra_idx, df["strata"].values[bra_idx], df["group"].values[bra_idx])):
+        fold[part] = k
+    df.loc[bra, "split"] = np.select([fold < 3, fold == 3], ["test", "val"], "train")   # 30% / 10% / 60% of patients
+"""
+
+BUSBRA_LOAD = r"""
+# BUS-BRA (Kaggle mirror of Gómez-Flores et al., Medical Physics 2024): National Cancer Institute, Rio de Janeiro,
+# 4 scanners, 1,875 biopsy-proven scans from 1,064 patients (benign / malignant only, no normal class).
+bra_dir = os.path.dirname(glob.glob(f"{INPUT}/**/bus_data.csv", recursive=True)[0])
+for r in pd.read_csv(f"{bra_dir}/bus_data.csv").itertuples():
+    mask = f"{bra_dir}/Masks/mask_{r.ID[4:]}.png"
+    rows.append({"path": f"{bra_dir}/Images/{r.ID}.png", "source": "BUS-BRA", "label": r.Pathology,
+                 "masks": [mask] if os.path.exists(mask) else [], "case": f"bra{r.Case}", "device": r.Device})
+
+df = pd.DataFrame(rows)"""
+
+BUSBRA_EXTRA_METRICS = r"""
+print(pd.DataFrame(per_source).T)
+
+# Same images as v7's test set (BUSI + BrEaST), so this row is directly comparable with v7's published numbers
+old_t = np.isin(sources[idx["test"]], ["BUSI", "BrEaST"])
+test_v7_subset = {"test_size": int(old_t.sum()), **summarize(y_test[old_t], p_test[old_t], pred_test[old_t])}
+test_busbra = {"test_size": int((~old_t).sum()), **summarize(y_test[~old_t], p_test[~old_t], pred_test[~old_t])}
+per_device = {}
+for d in sorted(set(devices[idx["test"]][~old_t])):
+    m = devices[idx["test"]] == d
+    try:
+        per_device[d] = {"images": int(m.sum()), **summarize(y_test[m], p_test[m], pred_test[m])}
+    except ValueError as e:
+        print(d, e)
+print("v7-comparable test subset:", test_v7_subset)
+print("BUS-BRA held-out patients:", test_busbra)
+display(pd.DataFrame(per_device).T)"""
+
+BREAST_ULTRASOUND_BUSBRA = list(BREAST_ULTRASOUND)
+_edit(BREAST_ULTRASOUND_BUSBRA, "# Femora — Breast Ultrasound Classifier (ResNet50)", """# Femora — Breast Ultrasound Classifier (ResNet50) + BUS-BRA
+
+> **A separate notebook from v7.** It is v7's pipeline with a third hospital added (BUS-BRA: 1,875 scans, 4 scanners, Brazil).
+> BUSI and BrEaST keep **exactly v7's train / validation / test split**, so the v7 test images are unchanged and the
+> numbers are comparable. BUS-BRA is split **by patient**: ~60% train, ~10% validation, ~30% held out as a test set the
+> model never trains on. v7 scored 77% sensitivity / 58% specificity / AUC 0.73 on all of BUS-BRA before seeing it.""")
+_edit(BREAST_ULTRASOUND_BUSBRA, "**Datasets (combined)**", """**Datasets (combined)**
+- **BUS-BRA**: 1,875 scans from 1,064 patients, 4 scanners, National Cancer Institute, Rio de Janeiro (Gómez-Flores et al.,
+  Medical Physics 2024). Biopsy-proven benign / malignant only (no normal class). Cite the paper when using it.""")
+_edit(BREAST_ULTRASOUND_BUSBRA, "import copy, glob, json, os, random, shutil, urllib.request, zipfile, warnings",
+      "import copy, glob, io, json, os, random, shutil, urllib.request, zipfile, warnings")
+_edit(BREAST_ULTRASOUND_BUSBRA, 'SOURCES = ["BUSI", "BrEaST"]', 'SOURCES = ["BUSI", "BrEaST", "BUS-BRA"]')
+_edit(BREAST_ULTRASOUND_BUSBRA, "## 1. Load both datasets", "## 1. Load the three datasets")
+_edit(BREAST_ULTRASOUND_BUSBRA, "\ndf = pd.DataFrame(rows)", BUSBRA_LOAD)
+_edit(BREAST_ULTRASOUND_BUSBRA, "The split is stratified by source × class: 5/7 train, 1/7 validation, 1/7 test.",
+      "BUSI and BrEaST keep v7's exact split. BUS-BRA is split by patient (both breasts of a patient stay together).")
+_edit(BREAST_ULTRASOUND_BUSBRA, '''folds = np.zeros(len(df), int)
+for k, (_, test_part) in enumerate(StratifiedGroupKFold(n_splits=7, shuffle=True, random_state=SEED)
+                                   .split(df, df["strata"], df["group"])):
+    folds[test_part] = k
+df["split"] = np.select([folds == 0, folds == 1], ["test", "val"], "train")''', BUSBRA_SPLIT_LOGIC.strip("\n"))
+_edit(BREAST_ULTRASOUND_BUSBRA, 'sources = df["source"].values', 'sources = df["source"].values\ndevices = df["device"].fillna("").values')
+_edit(BREAST_ULTRASOUND_BUSBRA, "\nprint(pd.DataFrame(per_source).T)", BUSBRA_EXTRA_METRICS)
+_edit(BREAST_ULTRASOUND_BUSBRA, 'for src, colour in [("BUSI", "#C2185B"), ("BrEaST", "#6C2D7E")]:',
+      'for src, colour in [("BUSI", "#C2185B"), ("BrEaST", "#6C2D7E"), ("BUS-BRA", "#00897B")]:')
+_edit(BREAST_ULTRASOUND_BUSBRA, '[["file", "source", "label", "group", "split"]]', '[["file", "source", "label", "group", "split", "case", "device"]]')
+_edit(BREAST_ULTRASOUND_BUSBRA, '        "per_source_test": per_source,',
+      '        "per_source_test": per_source,\n        "test_metrics_v7_subset": test_v7_subset,\n        "test_metrics_busbra": test_busbra,\n        "per_device_test": per_device,')
+_edit(BREAST_ULTRASOUND_BUSBRA, '"BrEaST-Lesions-USG (Pawłowska et al., 2024, TCIA, CC BY 4.0)"],',
+      '"BrEaST-Lesions-USG (Pawłowska et al., 2024, TCIA, CC BY 4.0)",\n                    "BUS-BRA (Gómez-Flores et al., Medical Physics 2024)"],')
+_edit(BREAST_ULTRASOUND_BUSBRA, '        "classes": CLASSES,', '        "version": "busbra (v7 pipeline + BUS-BRA)",\n        "classes": CLASSES,')
+# the v7 split ships inside the notebook, since a Kaggle notebook is a single file
+BREAST_ULTRASOUND_BUSBRA.insert(3, ("code", "V7_SPLIT_CSV = '''" + (Path(__file__).parent / "v7_split.csv").read_text(encoding="utf-8") + "'''"))
+
+
 if __name__ == "__main__":
+    write("breast_ultrasound_busbra", "femora-breast-ultrasound-resnet50-busbra", "Femora Breast Ultrasound ResNet50 BUSBRA",
+          ["aryashah2k/breast-ultrasound-images-dataset", "orvile/bus-bra-a-breast-ultrasound-dataset", "prasunroy/natural-images",
+           "paultimothymooney/chest-xray-pneumonia", "navoneel/brain-mri-images-for-brain-tumor-detection"],
+          BREAST_ULTRASOUND_BUSBRA, gpu=True)
     write("pcos", "femora-pcos-risk-xgboost", "Femora PCOS Risk XGBoost",
           ["prasoonkottarathil/polycystic-ovary-syndrome-pcos"], PCOS)
     write("breast_ultrasound", "femora-breast-ultrasound-resnet50", "Femora Breast Ultrasound ResNet50",
