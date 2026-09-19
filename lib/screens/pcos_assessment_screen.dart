@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/insights.dart';
 import '../models/pcos.dart';
 import '../theme/app_theme.dart';
 import '../widgets/femora_header.dart';
 import '../widgets/gauge_meter_widget.dart';
+import '../widgets/guidance_card.dart';
 import '../widgets/hormone_chart_widget.dart';
 import 'pcos_questionnaire_screen.dart';
 
@@ -151,15 +153,11 @@ class PCOSAssessmentScreen extends StatelessWidget {
 
   Widget _buildResultCard(BuildContext context, PcosResult result) {
     final (badgeBg, badgeText, badgeIcon) = switch (result.riskLevel) {
-      PcosRiskLevel.low => (const Color(0xFFD4F8E5), AppColors.greenSuccess, Icons.check_circle_outline_rounded),
-      PcosRiskLevel.medium => (AppColors.purpleTagBg, AppColors.purpleTagText, Icons.warning_amber_rounded),
-      PcosRiskLevel.high => (AppColors.pinkTagBg, AppColors.pinkTagText, Icons.error_outline_rounded),
+      RiskLevel.low => (const Color(0xFFD4F8E5), AppColors.greenSuccess, Icons.check_circle_outline_rounded),
+      RiskLevel.medium => (AppColors.purpleTagBg, AppColors.purpleTagText, Icons.warning_amber_rounded),
+      RiskLevel.high => (AppColors.pinkTagBg, AppColors.pinkTagText, Icons.error_outline_rounded),
     };
-    const tagColors = [
-      (AppColors.orangeTagBg, AppColors.orangeTagText),
-      (AppColors.pinkTagBg, AppColors.pinkTagText),
-      (AppColors.blueTagBg, AppColors.blueTagText),
-    ];
+    const tagColors = InfoTag.palette;
 
     return Container(
       width: double.infinity,
@@ -218,7 +216,7 @@ class PCOSAssessmentScreen extends StatelessWidget {
               runSpacing: 8,
               children: [
                 for (var i = 0; i < result.factors.length; i++)
-                  _buildDiagnosticTag(
+                  InfoTag(
                     label: result.factors[i].label,
                     bgColor: tagColors[i % tagColors.length].$1,
                     textColor: tagColors[i % tagColors.length].$2,
@@ -298,8 +296,8 @@ class PCOSAssessmentScreen extends StatelessWidget {
           const SizedBox(height: 16),
           for (var i = 0; i < result.guidance.length; i++) ...[
             if (i > 0) const SizedBox(height: 12),
-            _buildGuidanceCard(
-              icon: _guidanceIcon(result.guidance[i].key),
+            GuidanceCard(
+              icon: guidanceIcon(result.guidance[i].key),
               title: result.guidance[i].title,
               description: result.guidance[i].description,
             ),
@@ -308,15 +306,6 @@ class PCOSAssessmentScreen extends StatelessWidget {
       ),
     );
   }
-
-  IconData _guidanceIcon(String key) => switch (key) {
-        'specialist' => Icons.local_hospital_outlined,
-        'monitor' => Icons.visibility_outlined,
-        'nutrition' => Icons.restaurant_outlined,
-        'exercise' => Icons.fitness_center_rounded,
-        'tracking' => Icons.calendar_month_outlined,
-        _ => Icons.favorite_border_rounded,
-      };
 
   Widget _buildPrimaryButton({required String label, required VoidCallback onTap}) {
     return GestureDetector(
@@ -339,80 +328,6 @@ class PCOSAssessmentScreen extends StatelessWidget {
             color: Colors.white,
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildDiagnosticTag({
-    required String label,
-    required Color bgColor,
-    required Color textColor,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontFamily: 'Inter',
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: textColor,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGuidanceCard({
-    required IconData icon,
-    required String title,
-    required String description,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEFF3FA),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            icon,
-            color: const Color(0xFF7A4F84),
-            size: 20,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textDark,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  description,
-                  style: const TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 12.5,
-                    color: Color(0xFF4A5568),
-                    height: 1.35,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

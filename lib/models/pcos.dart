@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../services/api_service.dart';
-
-enum PcosRiskLevel { low, medium, high }
+import 'insights.dart';
 
 class PcosAnswers {
   final int age;
@@ -55,36 +54,12 @@ class PcosAnswers {
       };
 }
 
-class PcosFactor {
-  final String key;
-  final String label;
-
-  const PcosFactor({required this.key, required this.label});
-
-  factory PcosFactor.fromJson(Map<String, dynamic> json) =>
-      PcosFactor(key: json['key'] as String, label: json['label'] as String);
-}
-
-class PcosGuidance {
-  final String key;
-  final String title;
-  final String description;
-
-  const PcosGuidance({required this.key, required this.title, required this.description});
-
-  factory PcosGuidance.fromJson(Map<String, dynamic> json) => PcosGuidance(
-        key: json['key'] as String,
-        title: json['title'] as String,
-        description: json['description'] as String,
-      );
-}
-
 class PcosResult {
   final double probability; // 0.0 to 1.0
-  final PcosRiskLevel riskLevel;
+  final RiskLevel riskLevel;
   final double bmi;
-  final List<PcosFactor> factors;
-  final List<PcosGuidance> guidance;
+  final List<RiskFactor> factors;
+  final List<Guidance> guidance;
   final String disclaimer;
 
   const PcosResult({
@@ -98,13 +73,13 @@ class PcosResult {
 
   factory PcosResult.fromJson(Map<String, dynamic> json) => PcosResult(
         probability: (json['probability'] as num).toDouble(),
-        riskLevel: PcosRiskLevel.values.byName(json['risk_level'] as String),
+        riskLevel: RiskLevel.values.byName(json['risk_level'] as String),
         bmi: (json['bmi'] as num).toDouble(),
         factors: (json['factors'] as List)
-            .map((f) => PcosFactor.fromJson(f as Map<String, dynamic>))
+            .map((f) => RiskFactor.fromJson(f as Map<String, dynamic>))
             .toList(),
         guidance: (json['guidance'] as List)
-            .map((g) => PcosGuidance.fromJson(g as Map<String, dynamic>))
+            .map((g) => Guidance.fromJson(g as Map<String, dynamic>))
             .toList(),
         disclaimer: json['disclaimer'] as String,
       );
@@ -112,9 +87,9 @@ class PcosResult {
   int get percent => (probability * 100).round();
 
   String get riskLabel => switch (riskLevel) {
-        PcosRiskLevel.low => 'Low Risk',
-        PcosRiskLevel.medium => 'Moderate Risk',
-        PcosRiskLevel.high => 'High Risk',
+        RiskLevel.low => 'Low Risk',
+        RiskLevel.medium => 'Moderate Risk',
+        RiskLevel.high => 'High Risk',
       };
 }
 
