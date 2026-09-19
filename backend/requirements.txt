@@ -2,3 +2,6 @@ fastapi
 uvicorn
 xgboost
 numpy
+onnxruntime
+pillow
+python-multipart

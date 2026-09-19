@@ -3,13 +3,19 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
 class CircularRiskWidget extends StatelessWidget {
-  final double percentage; // e.g. 0.38 for 38%
+  final double percentage; // ring fill, e.g. 0.38 for 38%
   final String riskLabel;
+  final String? centerText; // defaults to the fill as a percentage
+  final Color color;
+  final Color trackColor;
 
   const CircularRiskWidget({
     super.key,
     this.percentage = 0.38,
     this.riskLabel = 'Low Risk',
+    this.centerText,
+    this.color = AppColors.greenSuccess,
+    this.trackColor = const Color(0xFFE5F6EC),
   });
 
   @override
@@ -22,18 +28,18 @@ class CircularRiskWidget extends StatelessWidget {
         children: [
           CustomPaint(
             size: const Size(136, 136),
-            painter: CircularRiskPainter(percentage: percentage),
+            painter: CircularRiskPainter(percentage: percentage, color: color, trackColor: trackColor),
           ),
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                '${(percentage * 100).toInt()}%',
-                style: const TextStyle(
+                centerText ?? '${(percentage * 100).toInt()}%',
+                style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 26,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.greenSuccess,
+                  color: color,
                   height: 1.1,
                 ),
               ),
@@ -57,8 +63,10 @@ class CircularRiskWidget extends StatelessWidget {
 
 class CircularRiskPainter extends CustomPainter {
   final double percentage;
+  final Color color;
+  final Color trackColor;
 
-  CircularRiskPainter({required this.percentage});
+  CircularRiskPainter({required this.percentage, required this.color, required this.trackColor});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -67,7 +75,7 @@ class CircularRiskPainter extends CustomPainter {
 
     // Track Paint
     final trackPaint = Paint()
-      ..color = const Color(0xFFE5F6EC)
+      ..color = trackColor
       ..strokeWidth = 14
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
@@ -75,13 +83,13 @@ class CircularRiskPainter extends CustomPainter {
 
     // Progress Arc Paint
     final progressPaint = Paint()
-      ..color = AppColors.greenSuccess
+      ..color = color
       ..strokeWidth = 14
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
     // Draw arc from top (-pi / 2)
-    final sweepAngle = 2 * math.pi * percentage;
+    final sweepAngle = 2 * math.pi * percentage.clamp(0.0, 1.0);
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
       -math.pi / 2,
@@ -93,6 +101,6 @@ class CircularRiskPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CircularRiskPainter oldDelegate) {
-    return oldDelegate.percentage != percentage;
+    return oldDelegate.percentage != percentage || oldDelegate.color != color || oldDelegate.trackColor != trackColor;
   }
 }

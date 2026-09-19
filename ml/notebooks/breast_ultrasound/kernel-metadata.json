@@ -1,0 +1,19 @@
+{
+  "id": "ammad0/femora-breast-ultrasound-resnet50",
+  "title": "Femora Breast Ultrasound ResNet50",
+  "code_file": "notebook.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "machine_shape": "NvidiaTeslaT4",
+  "dataset_sources": [
+    "aryashah2k/breast-ultrasound-images-dataset",
+    "prasunroy/natural-images",
+    "paultimothymooney/chest-xray-pneumonia",
+    "navoneel/brain-mri-images-for-brain-tumor-detection"
+  ],
+  "competition_sources": [],
+  "kernel_sources": []
+}

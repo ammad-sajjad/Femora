@@ -1,0 +1,218 @@
+{
+  "classes": [
+    "normal",
+    "benign",
+    "malignant"
+  ],
+  "onnx_file": "breast_resnet50.onnx",
+  "outputs": [
+    "logits",
+    "embedding",
+    "cam"
+  ],
+  "input": {
+    "size": 224,
+    "mean": [
+      0.48500001430511475,
+      0.4560000002384186,
+      0.4059999883174896
+    ],
+    "std": [
+      0.2290000021457672,
+      0.2240000069141388,
+      0.22499999403953552
+    ],
+    "preprocessing": "EXIF-rotate, grayscale, pad to square with black, bilinear resize to 224, repeat to 3 channels, ImageNet normalisation"
+  },
+  "temperature": 1.0227748155593872,
+  "malignant_threshold": 0.42,
+  "colour_limit": 0.1,
+  "ood_threshold": 10.805313110351562,
+  "test_metrics": {
+    "test_size": 148,
+    "accuracy": 0.7365,
+    "macro_f1": 0.7331,
+    "malignant_sensitivity": 0.7083,
+    "malignant_specificity": 0.82,
+    "malignant_auc": 0.851,
+    "macro_auc_ovr": 0.8869,
+    "ece": 0.089
+  },
+  "test_metrics_argmax": {
+    "accuracy": 0.7432,
+    "macro_f1": 0.7368,
+    "malignant_sensitivity": 0.6875,
+    "malignant_specificity": 0.84,
+    "malignant_auc": 0.851
+  },
+  "per_source_test": {
+    "BUSI": {
+      "images": 113,
+      "accuracy": 0.8142,
+      "macro_f1": 0.8028,
+      "malignant_sensitivity": 0.871,
+      "malignant_specificity": 0.8537,
+      "malignant_auc": 0.9268
+    },
+    "BrEaST": {
+      "images": 35,
+      "accuracy": 0.4857,
+      "macro_f1": 0.331,
+      "malignant_sensitivity": 0.4118,
+      "malignant_specificity": 0.6667,
+      "malignant_auc": 0.6667
+    }
+  },
+  "comparison": [
+    {
+      "model": "Linear probe (frozen ImageNet ResNet50)",
+      "accuracy": 0.7635,
+      "macro_f1": 0.7466,
+      "malignant_sensitivity": 0.6667,
+      "malignant_specificity": 0.89,
+      "malignant_auc": 0.8525
+    },
+    {
+      "model": "Fine-tuned ResNet50, argmax",
+      "accuracy": 0.7432,
+      "macro_f1": 0.7368,
+      "malignant_sensitivity": 0.6875,
+      "malignant_specificity": 0.84,
+      "malignant_auc": 0.851
+    },
+    {
+      "model": "Fine-tuned ResNet50, screening rule (P(mal) \u2265 0.42)",
+      "accuracy": 0.7365,
+      "macro_f1": 0.7331,
+      "malignant_sensitivity": 0.7083,
+      "malignant_specificity": 0.82,
+      "malignant_auc": 0.851
+    }
+  ],
+  "cv_results": [
+    {
+      "fold": 1,
+      "accuracy": 0.8012,
+      "macro_f1": 0.8027,
+      "malignant_sensitivity": 0.9184,
+      "malignant_specificity": 0.7869,
+      "malignant_auc": 0.9179
+    },
+    {
+      "fold": 2,
+      "accuracy": 0.8286,
+      "macro_f1": 0.8349,
+      "malignant_sensitivity": 0.8302,
+      "malignant_specificity": 0.8443,
+      "malignant_auc": 0.9134
+    },
+    {
+      "fold": 3,
+      "accuracy": 0.8686,
+      "macro_f1": 0.8476,
+      "malignant_sensitivity": 0.8704,
+      "malignant_specificity": 0.9008,
+      "malignant_auc": 0.9599
+    },
+    {
+      "fold": 4,
+      "accuracy": 0.8736,
+      "macro_f1": 0.8535,
+      "malignant_sensitivity": 0.9167,
+      "malignant_specificity": 0.8968,
+      "malignant_auc": 0.9428
+    },
+    {
+      "fold": 5,
+      "accuracy": 0.8268,
+      "macro_f1": 0.8221,
+      "malignant_sensitivity": 0.8846,
+      "malignant_specificity": 0.8661,
+      "malignant_auc": 0.9502
+    }
+  ],
+  "cv_summary": {
+    "accuracy": "0.840 \u00b1 0.031",
+    "macro_f1": "0.832 \u00b1 0.020",
+    "malignant_sensitivity": "0.884 \u00b1 0.037",
+    "malignant_specificity": "0.859 \u00b1 0.046",
+    "malignant_auc": "0.937 \u00b1 0.020"
+  },
+  "calibration": {
+    "temperature": 1.0228,
+    "val_ece_before": 0.0643,
+    "val_ece_after": 0.0465,
+    "test_ece_before": 0.0936,
+    "test_ece_after": 0.089
+  },
+  "cam_evaluation": {
+    "lesion_images": 126,
+    "pointing_game": 0.2778,
+    "mean_iou": 0.1294,
+    "pointing_game_chance": 0.1077
+  },
+  "ood_evaluation": [
+    {
+      "images": "Test ultrasounds (should pass)",
+      "n": 148,
+      "rejected_colour": 0.0,
+      "rejected_distance": 0.006756756756756757,
+      "rejected_total": 0.006756756756756757
+    },
+    {
+      "images": "Natural photos (should be rejected)",
+      "n": 300,
+      "rejected_colour": 0.83,
+      "rejected_distance": 0.01,
+      "rejected_total": 0.8333333333333334
+    },
+    {
+      "images": "Chest X-rays (should be rejected)",
+      "n": 300,
+      "rejected_colour": 0.0,
+      "rejected_distance": 0.0,
+      "rejected_total": 0.0
+    }
+  ],
+  "onnx_parity": {
+    "fp32_export_max_abs_diff": 5.1021575927734375e-05,
+    "deployed_max_abs_diff": 0.02400261163711548,
+    "test_predictions_changed_by_fp16": 1
+  },
+  "best_epoch": 18,
+  "samples": {
+    "benign": "case196.png",
+    "malignant": "case086.png"
+  },
+  "dataset": {
+    "sources": [
+      "BUSI (Al-Dhabyani et al., 2020)",
+      "BrEaST-Lesions-USG (Paw\u0142owska et al., 2024, TCIA, CC BY 4.0)"
+    ],
+    "images": 1022,
+    "near_duplicates": {
+      "images_in_duplicate_groups": 148,
+      "duplicate_groups": 67,
+      "dropped_conflicting_images": 14
+    },
+    "counts": {
+      "benign": {
+        "BUSI": 429,
+        "BrEaST": 154
+      },
+      "malignant": {
+        "BUSI": 206,
+        "BrEaST": 98
+      },
+      "normal": {
+        "BUSI": 131,
+        "BrEaST": 4
+      }
+    },
+    "splits": {
+      "train": 727,
+      "test": 148,
+      "val": 147
+    }
+  }
+}

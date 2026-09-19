@@ -14,6 +14,7 @@ class AICompanionScreen extends StatefulWidget {
 class _AICompanionScreenState extends State<AICompanionScreen> {
   final TextEditingController _chatController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  int _messageCount = 0;
 
   @override
   void dispose() {
@@ -37,6 +38,12 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
+
+    // Follow new messages, including ones posted from other screens (e.g. "Ask Femora AI" on a result)
+    if (appState.chatMessages.length != _messageCount) {
+      _messageCount = appState.chatMessages.length;
+      _scrollToBottom();
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,

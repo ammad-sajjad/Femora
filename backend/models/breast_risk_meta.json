@@ -1,0 +1,156 @@
+{
+  "placeholder": "Trained on SYNTHETIC data only to test the pipeline. Retrain the breast_risk notebook on the real BCSC file.",
+  "features": [
+    "agegrp",
+    "menopaus",
+    "bmi",
+    "agefirst",
+    "nrelbc",
+    "brstproc",
+    "hrt",
+    "surgmeno",
+    "density",
+    "lastmamm"
+  ],
+  "monotone_constraints": {
+    "agegrp": 1,
+    "menopaus": 0,
+    "bmi": 0,
+    "agefirst": 0,
+    "nrelbc": 1,
+    "brstproc": 1,
+    "hrt": 1,
+    "surgmeno": 0,
+    "density": 1,
+    "lastmamm": 0
+  },
+  "age_groups": {
+    "1": "35-39",
+    "2": "40-44",
+    "3": "45-49",
+    "4": "50-54",
+    "5": "55-59",
+    "6": "60-64",
+    "7": "65-69",
+    "8": "70-74",
+    "9": "75-79",
+    "10": "80-84"
+  },
+  "age_average_risk": {
+    "1": 0.003095905676898337,
+    "2": 0.003332879746778357,
+    "3": 0.0036418185342705555,
+    "4": 0.004160336231466591,
+    "5": 0.004728069998757705,
+    "6": 0.005222839887002222,
+    "7": 0.0058961146074357085,
+    "8": 0.006208672460099309,
+    "9": 0.007076187103033768,
+    "10": 0.007810332648181982
+  },
+  "relative_risk_bands": {
+    "low": [
+      0,
+      1.35
+    ],
+    "medium": [
+      1.35,
+      2.4
+    ],
+    "high": [
+      2.4,
+      null
+    ]
+  },
+  "validation_metrics": {
+    "roc_auc": 0.6221,
+    "brier": 0.005117,
+    "expected_over_observed": 0.99
+  },
+  "comparison": [
+    {
+      "model": "Age only (logistic regression)",
+      "roc_auc": 0.593,
+      "brier": 0.005119,
+      "expected_over_observed": 0.999
+    },
+    {
+      "model": "All questions (logistic regression, one-hot)",
+      "roc_auc": 0.6229,
+      "brier": 0.005117,
+      "expected_over_observed": 0.998
+    },
+    {
+      "model": "All questions (XGBoost, monotone) \u2014 deployed",
+      "roc_auc": 0.6221,
+      "brier": 0.005117,
+      "expected_over_observed": 0.99
+    }
+  ],
+  "band_validation": [
+    {
+      "band": "low",
+      "women": 1636546.0,
+      "cases": 7815.0,
+      "expected_at_age_average": 8375.17745664185,
+      "share_of_women": 0.9149416136622968,
+      "observed_per_1000": 4.775301152549333,
+      "observed_rr_vs_age_average": 0.9331145567312599
+    },
+    {
+      "band": "medium",
+      "women": 149629.0,
+      "cases": 1345.0,
+      "expected_at_age_average": 751.8529361343647,
+      "share_of_women": 0.08365288767359781,
+      "observed_per_1000": 8.988899210714502,
+      "observed_rr_vs_age_average": 1.788913676277289
+    },
+    {
+      "band": "high",
+      "women": 2514.0,
+      "cases": 49.0,
+      "expected_at_age_average": 19.16894871456783,
+      "share_of_women": 0.0014054986641053866,
+      "observed_per_1000": 19.49085123309467,
+      "observed_rr_vs_age_average": 2.556217387277032
+    }
+  ],
+  "feature_importance": {
+    "agegrp": 0.4755,
+    "nrelbc": 0.2526,
+    "brstproc": 0.1059,
+    "density": 0.0627,
+    "menopaus": 0.0306,
+    "bmi": 0.0218,
+    "hrt": 0.0176,
+    "agefirst": 0.0167,
+    "lastmamm": 0.01,
+    "surgmeno": 0.0065
+  },
+  "dataset": {
+    "name": "SYNTHETIC placeholder (not BCSC)",
+    "file": "risk.txt",
+    "combinations": 46308,
+    "mammograms": 6001084,
+    "cancers_1yr": 30887
+  },
+  "wisconsin_reference": {
+    "dataset": "Breast Cancer Wisconsin (Diagnostic), Wolberg et al. 1993 (n=569)",
+    "cv": {
+      "accuracy": "0.965 \u00b1 0.018",
+      "f1": "0.952 \u00b1 0.026",
+      "recall": "0.939 \u00b1 0.051",
+      "roc_auc": "0.994 \u00b1 0.005"
+    },
+    "test": {
+      "test_size": 114,
+      "accuracy": 0.9649,
+      "precision": 1.0,
+      "recall": 0.9048,
+      "f1": 0.95,
+      "roc_auc": 0.994
+    },
+    "note": "Inputs are cytology measurements from a biopsy, so it is not usable as a self-report questionnaire."
+  }
+}

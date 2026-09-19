@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'models/breast.dart';
 import 'models/models.dart';
 import 'models/pcos.dart';
+import 'models/self_exam.dart';
 import 'theme/app_theme.dart';
 import 'screens/main_shell.dart';
 
@@ -26,6 +28,8 @@ class FemoraApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AppState()),
         ChangeNotifierProvider(create: (_) => PcosState()),
+        ChangeNotifierProvider(create: (_) => BreastState()),
+        ChangeNotifierProvider(create: (_) => SelfExamState()..load()),
       ],
       child: MaterialApp(
         title: 'Femora',
