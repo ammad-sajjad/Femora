@@ -235,7 +235,7 @@ for a, b in (("Team", "Arshia Naseer (232428)\nAli Haider Bilal (232398)\nAmmad 
              ("Supervisor", "Mustabshera Fatima"),
              ("Department", "Computer Science, Air University Islamabad"),
              ("Report date", "20 September 2026"),
-             ("Source code", "github.com/ammad-sajjad/Femora (branch main, state as of commit 8ca482f)")):
+             ("Source code", "github.com/ammad-sajjad/Femora (branch main, state as of commit 8b0caf7)")):
     cells = tt.add_row().cells
     cells[0].text = ""; cells[1].text = ""
     add_runs(cells[0].paragraphs[0], a, bold=True, color=BERRY)
@@ -839,6 +839,12 @@ table(["Item", "Detail"], [
     ["Gradle memory", "The project asks for an 8 GB heap, which crashed the build on this PC. Lower limits (1.5 GB heap) and Kotlin incremental compilation off were set in the user-level Gradle file only, without changing project files"],
     ["Docker files", "backend/Dockerfile (python:3.12-slim, libgomp for xgboost, non-root user, port 7860) and pinned requirements-space.txt. Booting the app from a clean environment on port 7860 was verified; Docker itself is not installed on the PC, so the image was not built locally"],
 ], [3.6, 13.0], caption="Environment", size=8.5)
+H2("9.4 APK builds")
+table(["Build", "Source state", "Result"], [
+    ["1 (20 Sep 2026)", "Commit 6479090 (in-app server address setting added)", "app-release.apk, 19.0 MB (19,873,821 bytes), arm64-v8a, APK signature scheme v2 (debug key), SHA-256 starts 1e8848241c77dd1a. First build took about 13 minutes (cold Gradle cache)"],
+    ["2 (20 Sep 2026)", "Commit 8b0caf7 (only the report, README and scripts changed since build 1)", "Same size, same SHA-256: the rebuild is byte-for-byte identical, which confirms the APK matches the current app code. Took under one minute (warm cache)"],
+], [3.0, 5.6, 8.0], caption="Release APK builds", size=8.5,
+    note="Both builds pass apksigner verification and request INTERNET, POST_NOTIFICATIONS, RECEIVE_BOOT_COMPLETED and VIBRATE. The file is copied to the user's Desktop as femora-release-arm64.apk. It has not yet been run on a physical phone.")
 
 # ================================================================== 10 VERIFICATION
 H1("10. Verification and testing")
@@ -851,7 +857,7 @@ table(["What", "How", "Result"], [
     ["Notebooks", "Every Kaggle notebook was run first as a tiny smoke test, then in full", "All stages ran; ONNX parity checks passed"],
     ["Backend boot", "Clean environment, pinned requirements, port 7860", "/health, scan, risk and /docs all answered"],
     ["Tunnel", "Script self-test", "Public HTTPS address reached the backend"],
-    ["Release APK", "Signature and permission check", "Verified; internet permission present"],
+    ["Release APK", "Signature and permission check; second build compared by checksum", "Verified; internet permission present; rebuild identical to the first build"],
 ], [3.6, 7.2, 5.8], caption="Verification performed")
 para("**Not verified:** the APK has not yet been run on a physical phone; the server-address dialog has been tested for its logic but not clicked through on a device; "
      "the backend Docker image has not been built; one older template test (widget_test.dart, which looks for the text \"Femora\" on the first screen) fails and also fails on the previous main branch.")
@@ -977,6 +983,7 @@ table(["Commit", "Date", "Change"], [
     ["ce35151", "20 Sep 2026", "Add Hugging Face Space (Docker) files for the backend"],
     ["6479090", "20 Sep 2026", "Add in-app server address setting and free-tunnel demo script"],
     ["8ca482f", "20 Sep 2026", "Fix tunnel path in README"],
+    ["8b0caf7", "20 Sep 2026", "Add detailed project progress and technical report (Word)"],
 ], [2.4, 3.0, 11.2], caption="Commits made during this period")
 
 H1("Appendix F. Questions a panel may ask")
@@ -1031,7 +1038,11 @@ qa = [
      "Package the backend in Docker (files are ready), host it on a paid or institutional service with HTTPS, add authentication and rate limits, restrict CORS, log without storing images, and monitor performance. Then validate on local data."),
     ("Q25. What would you do with more time?",
      "Build the missing modules (cycle prediction, logging, AI companion, accounts), try a lesion-focused two-step ultrasound model, collect local scans, add mammography, and consider on-device inference."),
-    ("Q26. What is not finished?",
+    ("Q26. Which phones can run the APK?",
+     "The release build targets 64-bit ARM Android phones (arm64-v8a), which covers nearly all phones made in recent years, and uses Flutter's default minimum Android version. A phone that only supports 32-bit ARM would need a different build. It is 19 MB and is installed directly (not through the Play Store), so Android asks to allow installs from unknown sources."),
+    ("Q27. Is the APK build reproducible?",
+     "Yes in practice: a second build from the same source produced a byte-for-byte identical file (same SHA-256), so the APK on the phone matches the code in the repository."),
+    ("Q28. What is not finished?",
      "About two thirds of the scope: cycle tracking and prediction, symptom and mood logging, the AI companion and breast chatbot, onboarding, pregnancy mode, most reminders, reports. Section 12 gives the plan."),
 ]
 table(["Question", "Answer"], [[q, a] for q, a in qa], [5.4, 11.2], caption="Anticipated questions", size=8.5, first_bold=True)
