@@ -207,7 +207,11 @@ class BreastRiskResult {
 class BreastState extends ChangeNotifier {
   final ApiService _api;
 
-  BreastState({ApiService? api}) : _api = api ?? ApiService();
+  /// Called after each successful scan or risk assessment (the health store records them).
+  final void Function(BreastScanResult result)? onScan;
+  final void Function(BreastRiskResult result)? onRisk;
+
+  BreastState({ApiService? api, this.onScan, this.onRisk}) : _api = api ?? ApiService();
 
   BreastScanResult? _scanResult;
   BreastScanResult? get scanResult => _scanResult;
@@ -234,6 +238,7 @@ class BreastState extends ChangeNotifier {
     try {
       _scanResult = await _api.predictBreastScan(bytes, filename);
       _scanImage = bytes;
+      onScan?.call(_scanResult!);
       return null;
     } on ApiException catch (e) {
       return e.message;
@@ -256,6 +261,7 @@ class BreastState extends ChangeNotifier {
     try {
       _riskResult = await _api.predictBreastRisk(answers);
       _lastRiskAnswers = answers;
+      onRisk?.call(_riskResult!);
       return null;
     } on ApiException catch (e) {
       return e.message;

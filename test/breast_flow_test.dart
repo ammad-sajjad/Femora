@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:femora/models/breast.dart';
+import 'package:femora/models/chat_state.dart';
+import 'package:femora/models/health_store.dart';
 import 'package:femora/models/models.dart';
 import 'package:femora/models/self_exam.dart';
 import 'package:femora/screens/breast_health_screen.dart';
@@ -72,23 +74,37 @@ class _FakeReminders extends ReminderService {
   Future<void> cancel() async => cancelled = true;
 }
 
+const _chatResponse = {'reply': 'This result is a screening estimate, not a diagnosis.', 'source': 'gemini', 'urgency': 'none', 'language': 'en'};
+
 class _Harness {
   final AppState app = AppState();
+  final HealthStore store;
   final BreastState breast;
+  final ChatState chat;
   final SelfExamState selfExam;
   final _FakeReminders reminders;
 
-  _Harness._(this.breast, this.selfExam, this.reminders);
+  _Harness._(this.store, this.breast, this.chat, this.selfExam, this.reminders);
 
   factory _Harness(MockClient client) {
     final reminders = _FakeReminders();
-    return _Harness._(BreastState(api: ApiService(client: client)), SelfExamState(reminders: reminders), reminders);
+    final store = HealthStore();
+    final api = ApiService(client: client);
+    return _Harness._(
+      store,
+      BreastState(api: api, onScan: store.recordScan, onRisk: store.recordBreastRisk),
+      ChatState(api: api),
+      SelfExamState(reminders: reminders),
+      reminders,
+    );
   }
 
   Widget get widget => MultiProvider(
         providers: [
           ChangeNotifierProvider.value(value: app),
+          ChangeNotifierProvider.value(value: store),
           ChangeNotifierProvider.value(value: breast),
+          ChangeNotifierProvider.value(value: chat),
           ChangeNotifierProvider.value(value: selfExam),
         ],
         child: const MaterialApp(home: BreastHealthScreen()),
@@ -169,9 +185,14 @@ void main() {
 
   testWidgets('sample scan is analysed and the result can be discussed with the AI companion', (tester) async {
     useTallScreen(tester);
-    http.Request? sent;
+    http.Request? scanRequest;
+    Map<String, dynamic>? chatBody;
     final h = _Harness(MockClient((request) async {
-      sent = request;
+      if (request.url.path == '/chat') {
+        chatBody = jsonDecode(request.body) as Map<String, dynamic>;
+        return http.Response(jsonEncode(_chatResponse), 200);
+      }
+      scanRequest = request;
       return http.Response(jsonEncode(_scanResponse), 200);
     }));
     await tester.pumpWidget(h.widget);
@@ -179,18 +200,24 @@ void main() {
     await _tap(tester, find.text('Browse Files'));
     await _tap(tester, find.text('Sample scan: benign lesion'));
 
-    expect(sent!.url.path, '/predict/breast/scan');
-    expect(sent!.headers['content-type'], startsWith('multipart/form-data'));
+    expect(scanRequest!.url.path, '/predict/breast/scan');
+    expect(scanRequest!.headers['content-type'], startsWith('multipart/form-data'));
     expect(find.text('Analysis Complete'), findsOneWidget);
     expect(find.text('Likely Benign'), findsOneWidget);
     expect(find.text('87% Confidence'), findsOneWidget);
     expect(find.text('AI Focus'), findsOneWidget);
     expect(find.text('Follow Up With Your Doctor'), findsOneWidget);
+    expect(h.store.scan?.title, 'Likely Benign'); // the result was recorded for the companion and the report
 
     await _tap(tester, find.text('Ask Femora AI'));
+    await tester.pumpAndSettle();
     expect(h.app.currentTabIndex, 4);
-    expect(h.app.chatMessages.last.isUser, isFalse);
-    expect(h.app.chatMessages.last.text, startsWith(_scanResponse['summary'] as String));
+    expect(h.chat.messages.first.isUser, isTrue);
+    expect(h.chat.messages.first.text, 'Can you explain my breast ultrasound result?');
+    expect(h.chat.messages.last.isUser, isFalse);
+    expect(h.chat.messages.last.text, _chatResponse['reply']);
+    // the companion is given the fresh result as context (and never a name)
+    expect(chatBody!['context'], contains('Likely Benign'));
   });
 
   testWidgets('shows the server explanation when an upload is rejected', (tester) async {
