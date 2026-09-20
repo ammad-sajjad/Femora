@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/breast.dart';
 import '../models/pcos.dart';
@@ -20,7 +21,40 @@ class ApiService {
   /// when running on a physical phone (use your computer's Wi-Fi IP address).
   static const String _envBaseUrl = String.fromEnvironment('API_BASE_URL');
 
+  // Server address chosen inside the app (long-press the header): lets a demo point the same APK at a new tunnel address.
+  static const String _prefsKey = 'api_base_url';
+  static String? _serverOverride;
+
+  static Future<void> loadServerOverride() async {
+    try {
+      _serverOverride = (await SharedPreferences.getInstance()).getString(_prefsKey);
+    } catch (_) {}
+  }
+
+  /// Saves the address and returns true, or returns false if [value] is not an http(s) address.
+  /// An empty value goes back to the built-in default.
+  static Future<bool> setServerOverride(String? value) async {
+    final trimmed = (value ?? '').trim().replaceAll(RegExp(r'/+$'), '');
+    if (trimmed.isEmpty) {
+      _serverOverride = null;
+    } else {
+      final uri = Uri.tryParse(trimmed);
+      if (uri == null || !(uri.scheme == 'http' || uri.scheme == 'https') || uri.host.isEmpty) return false;
+      _serverOverride = trimmed;
+    }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (_serverOverride == null) {
+        await prefs.remove(_prefsKey);
+      } else {
+        await prefs.setString(_prefsKey, _serverOverride!);
+      }
+    } catch (_) {}
+    return true;
+  }
+
   static String get baseUrl {
+    if (_serverOverride != null) return _serverOverride!;
     if (_envBaseUrl.isNotEmpty) return _envBaseUrl;
     // The Android emulator reaches the host computer's localhost via 10.0.2.2
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {

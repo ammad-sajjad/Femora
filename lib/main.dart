@@ -5,11 +5,13 @@ import 'models/breast.dart';
 import 'models/models.dart';
 import 'models/pcos.dart';
 import 'models/self_exam.dart';
+import 'services/api_service.dart';
 import 'theme/app_theme.dart';
 import 'screens/main_shell.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await ApiService.loadServerOverride();
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
