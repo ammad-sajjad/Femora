@@ -43,6 +43,7 @@ Find your computer's IP on macOS with `ipconfig getifaddr en0`.
 - The BUS-BRA notebook is a separate copy of v7's pipeline (`ml/build_notebooks.py`, `BREAST_ULTRASOUND_BUSBRA`). BUSI/BrEaST keep v7's exact split (`ml/v7_split.csv`); BUS-BRA is split by patient (60/10/30%).
 - It flags more cancers (higher sensitivity) at the cost of more false alarms on the old test scans, and generalises much better to a new hospital. BrEaST (35 test scans, AUC 0.65) did not improve, and the U-Systems / Toshiba scanners are still weak (few scans).
 - The accuracy shown in the app is the model's accuracy on the combined test set (68%): it includes the harder BUS-BRA scans and the screening threshold that favours catching cancer.
+- **BUS-UCLM round (not deployed):** adding BUS-UCLM (`femora-breast-ultrasound-resnet50-uclm`, train/validation only, same 710 test scans) gave no measurable gain: AUC 0.868 vs 0.869 overall and 0.863 vs 0.866 on BUS-BRA, with lower sensitivity (85% vs 91%; its screening threshold drifted to 0.13). Marked and Doppler UCLM images were excluded on purpose (marks would leak the label). Its BrEaST AUC rose 0.65 to 0.84 but that is only 35 scans, within noise.
 - To go back to v7: rerun `kaggle kernels output ammad0/femora-breast-ultrasound-resnet50 -p ml/output/breast_ultrasound` (version 7) and copy its `model/` files into `backend/models/`.
 - Cite: Gómez-Flores et al., *BUS-BRA*, Medical Physics 2024.
 
