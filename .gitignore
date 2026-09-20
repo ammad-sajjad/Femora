@@ -54,3 +54,6 @@ ml/output/
 __pycache__/
 kaggle.json
 backend/.venv/
+
+# Claude Code personal permissions
+.claude/settings.local.json
