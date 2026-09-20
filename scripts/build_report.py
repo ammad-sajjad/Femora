@@ -865,6 +865,25 @@ table(["What", "How", "Result"], [
 ], [3.6, 7.2, 5.8], caption="Verification performed")
 para("**Not verified:** the phone run was confirmed as working in general; each feature (both questionnaires, scan upload with the demo scans and a wrong image, heatmap toggle, self-exam reminder notification) was not itemised, "
      "so per-feature results on the phone are not yet recorded. The backend Docker image has not been built. One older template test (widget_test.dart, which looks for the text \"Femora\" on the first screen) fails and also fails on the previous main branch.")
+H2("10.1 Checking the ultrasound module on a phone")
+para("A test kit of real held-out scans (never used in training) was prepared on the developer's Desktop (folder femora-test-scans, with a READ_ME_FIRST.txt). "
+     "It is not stored in the repository because it contains dataset images whose terms require citation. The expected results below were computed with the same ONNX model, temperature and screening threshold the server uses; "
+     "the phone's result may differ by a few points because the app's image picker can re-encode the picture.")
+table(["Test file", "Real label", "Expected in the app"], [
+    ["01_benign_BUS-BRA", "benign", "Likely Benign, about 84% (heatmap available)"],
+    ["02_benign_BUS-BRA", "benign", "Likely Benign, about 93%"],
+    ["03_benign_BUSI", "benign", "Likely Benign, about 91%"],
+    ["04_malignant_BUS-BRA", "malignant", "Suspicious Finding, about 79%"],
+    ["05_malignant_BUS-BRA", "malignant", "Suspicious Finding, about 91%"],
+    ["06_malignant_BUSI", "malignant", "Suspicious Finding, about 93%"],
+    ["07_normal_BUSI", "normal", "Likely Normal, about 91% (no heatmap)"],
+    ["08_WRONG_colour_noise", "not an ultrasound", "Refused: looks like a colour photo or colour Doppler scan"],
+    ["09_WRONG_grayscale_gradient", "not an ultrasound", "Refused: does not look like a breast ultrasound"],
+], [5.2, 3.4, 8.0], caption="Phone test kit for the ultrasound module", size=8.5,
+    note="The seven ultrasound scans were chosen because the model handles them correctly. Across the whole test set it still misses about one cancer in ten and flags about a third of non-cancer scans, so other scans can give a different answer without being a bug.")
+para("**How to run the check:** (1) start the demo script and set the server address in the app; (2) copy the kit to the phone; (3) in the Breast tab choose Upload, then Choose from Gallery, and open each file in turn; "
+     "(4) compare the title and percentage, check that the heatmap toggle appears for benign and malignant results only, that the guidance cards and the disclaimer show, and that the two wrong images are refused with a message; "
+     "(5) also try the two built-in sample scans and an ordinary photo from the gallery (it should be refused).")
 
 # ================================================================== 11 LIMITS + ETHICS
 H1("11. Limitations, ethics and risks")
