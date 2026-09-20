@@ -906,8 +906,8 @@ table(["What", "How", "Result"], [
     ["Wrong uploads", "Colour noise and a grayscale gradient", "Both refused with an explanatory message"],
     ["Threshold change", "Reran the model on all 710 test scans; first reproduced the notebook's 68.3% at 0.21", "Reproduced, then 71.8% at 0.25"],
     ["Risk questionnaire", "Eight profiles through the API", "Risk rises with each added factor; no placeholder warning"],
-    ["Flutter tests", "Breast flows, PCOS flow, server-address logic, health store, chat state, companion screen with a fake microphone, onboarding and app launch, report builder", "54 of 54 pass; flutter analyze reports no errors or warnings"],
-    ["Companion backend tests", "backend/tests/test_companion.py: safety detector, language detection, prompt building, request validation, rate limit, speech clean-up, fallback (Gemini calls are faked)", "50 of 50 pass"],
+    ["Flutter tests", "Breast flows, PCOS flow, server-address logic, health store, chat state, companion screen with a fake microphone, onboarding and app launch, report builder", "58 of 58 pass; flutter analyze reports no errors or warnings"],
+    ["Companion backend tests", "backend/tests/test_companion.py: safety detector, language detection, prompt building, request validation, rate limit, speech clean-up, fallback (Gemini calls are faked)", "53 of 53 pass"],
     ["Live Gemini check", "Real calls with the developer's key against the running backend: English and Urdu chat with personal context, emergency and breast-lump wording, a prompt-injection attempt, Urdu speech to text, text to speech, both models, both demo scans and a colour photo", "Chat 1.5 to 3 s, speech synthesis 4 to 6 s; Urdu speech transcribed in Urdu script after a stricter prompt and an automatic retry"],
     ["Notebooks", "Every Kaggle notebook was run first as a tiny smoke test, then in full", "All stages ran; ONNX parity checks passed"],
     ["Backend boot", "Clean environment, pinned requirements, port 7860", "/health, scan, risk and /docs all answered"],
@@ -1049,9 +1049,19 @@ H2("13.5 Voice: results from live tests")
 table(["Step", "Model", "Measured", "Notes"], [
     ["Chat", "gemini-3.1-flash-lite", "about 1.5 to 3 s", "Chosen after gemini-2.5-flash turned out to be closed to new keys and gemini-3.8-flash gave 503 errors under load; gemini-3.6-flash is the backup"],
     ["Speech to text", "gemini-3.1-flash-lite (audio input)", "about 2 s", "English correct. Urdu was first returned in Devanagari script; a stricter prompt plus an automatic retry when Devanagari is detected fixed it, verified live"],
-    ["Text to speech", "gemini-3.1-flash-tts-preview, voice Kore", "about 4 to 6 s", "Returns 24 kHz PCM that the server wraps as WAV; the answer text is cleaned (no symbols) before speaking"],
+    ["Text to speech", "gemini-3.1-flash-tts-preview (backup gemini-2.5-flash-preview-tts), voice Kore", "about 4 to 6 s", "Returns 24 kHz PCM that the server wraps as WAV; the answer text is cleaned (no symbols) before speaking. Free-tier quota: 10 requests a day per model (see 13.5a)"],
 ], [2.6, 4.2, 2.8, 7.0], caption="Voice pipeline", size=8.5,
     note="Each voice question therefore takes roughly 8 to 12 seconds end to end (transcribe, answer, speak). The answer text appears first, before the audio is ready. Urdu and English speech was checked with generated audio; recognition of real voices on a phone microphone should be tried on the day.")
+H2("13.5a Voice output stopped on the phone: cause and fix")
+para("**Report from the developer's phone test (20 September 2026):** speech recognition worked and the words were converted, but the companion did not speak, and the speaker button did nothing. "
+     "**Cause, confirmed with a direct call:** the Gemini text-to-speech model returned HTTP 429. The free tier allows only 10 voice requests a day per model (the error names GenerateRequestsPerDayPerProjectPerModel-FreeTier with a value of 10), and the day's testing had used them. Chat and speech recognition use other models and were unaffected. The gemini-2.5-pro voice model was also at its limit; gemini-2.5-flash-preview-tts still had quota.")
+bullets([
+    "**Server:** the voice endpoint now tries two voice models in turn (each has its own daily quota), and answers HTTP 429 with a clear message when every model is exhausted.",
+    "**App, phone voice fallback:** when the AI voice fails for any reason (daily limit, no connection, audio that cannot be played) the app now reads the answer with the phone's own text-to-speech (flutter_tts; English, and Urdu where the phone has an Urdu voice installed). It is instant and has no daily limit. If neither voice is available the reason is shown on screen.",
+    "**App, playback:** the AI voice is now saved to a temporary file and played from the file, which is more dependable on Android than playing from memory. This was a precaution; the confirmed cause was the quota.",
+    "**Why this was missed:** the app tests use a fake speaker, and the live checks were run within the quota. The limit only appeared after a day of testing. The fallback tests (quota error, playback failure, no Urdu phone voice) now cover it.",
+    "**For a demo:** the AI voice gives about 20 spoken answers a day on a free key (two models); after that the phone voice is used automatically. A paid Gemini key removes the limit.",
+])
 H2("13.6 The health report generator")
 para("The report is a separate feature (Companion menu, Health report) built to look like a diagnostic-laboratory report. It is Femora-branded, not modelled on any lab's branding, and it says on every page that it is an AI screening summary and not a laboratory or clinical record.")
 table(["Section", "Content"], [
@@ -1085,21 +1095,22 @@ para("Question-and-answer datasets (for example medical exam or consumer-health 
      "Both are recorded as the next step for the companion; neither is built yet.")
 H2("13.9 Tests")
 table(["Suite", "Count", "What it covers"], [
-    ["backend/tests/test_companion.py", "50", "Red-flag detector in three languages, language detection, prompt construction and injection wording, request limits, rate limit, speech clean-up, PCM to WAV, fallback replies, endpoints with a faked Gemini"],
-    ["test/health_store_test.dart", "part of 44 new", "Saving and loading, one log entry a day and a 60-entry cap, name-free context text, clear-all"],
-    ["test/chat_state_test.dart", "part of 44 new", "History rules, personalisation switch, retry of an unanswered message, persistence"],
-    ["test/companion_flow_test.dart", "part of 44 new", "Typing indicator, suggestion chips, failed message and Try again, urgent highlight, full voice flow with a fake microphone, missing permission, speaker button, Delete all my data"],
-    ["test/app_flow_test.dart", "part of 44 new", "First launch shows onboarding, skipping is remembered, form validation, editing a saved profile"],
-    ["test/home_flow_test.dart", "part of 44 new", "Home shows the real name and only real results, empty state, rows open the right tab, next-step rules, relative dates"],
-    ["test/report_service_test.dart", "part of 44 new", "Empty, sample and full reports build as valid PDFs; long logs spill onto more pages; report IDs"],
+    ["backend/tests/test_companion.py", "53", "Red-flag detector in three languages, language detection, prompt construction and injection wording, request limits, rate limit, speech clean-up, PCM to WAV, fallback replies, endpoints with a faked Gemini"],
+    ["test/health_store_test.dart", "part of 48 new", "Saving and loading, one log entry a day and a 60-entry cap, name-free context text, clear-all"],
+    ["test/chat_state_test.dart", "part of 48 new", "History rules, personalisation switch, retry of an unanswered message, persistence"],
+    ["test/companion_flow_test.dart", "part of 48 new", "Typing indicator, suggestion chips, failed message and Try again, urgent highlight, full voice flow with a fake microphone, missing permission, speaker button, Delete all my data"],
+    ["test/app_flow_test.dart", "part of 48 new", "First launch shows onboarding, skipping is remembered, form validation, editing a saved profile"],
+    ["test/home_flow_test.dart", "part of 48 new", "Home shows the real name and only real results, empty state, rows open the right tab, next-step rules, relative dates"],
+    ["test/report_service_test.dart", "part of 48 new", "Empty, sample and full reports build as valid PDFs; long logs spill onto more pages; report IDs"],
 ], [5.6, 2.6, 8.4], caption="New tests", size=8.5,
-    note="All 54 Flutter tests (10 earlier plus 44 new) and all 50 backend tests pass. The companion screen's real speech recognition and the real microphone are not covered by automatic tests because they need a phone.")
+    note="All 58 Flutter tests (10 earlier plus 48 new) and all 53 backend tests pass. The companion screen's real speech recognition and the real microphone are not covered by automatic tests because they need a phone.")
 H2("13.10 Defects found while building, and their fixes")
 table(["Problem", "Fix"], [
     ["A coloured card containing a switch tile threw a Material assertion (real UI bug caught by a test)", "Wrapped the tile in a transparent Material"],
     ["A breast lump was rated no urgency", "Added a soon level and mapped lumps and discharge to it"],
     ["Urdu speech was transcribed in Devanagari", "Stricter prompt and automatic retry"],
     ["Report watermark covered the text", "Much lighter colour"],
+    ["No spoken reply on the phone (Gemini voice quota of 10 a day used up)", "Backup voice model, phone voice fallback, clear message; section 13.5a"],
     ["The mock chat and a fake pre-selected symptom were still in the app", "Removed; the chat is real and symptoms start empty"],
     ["Home tab greeted every user as Ayesha and showed a fake cycle day, stress, sleep and insight (found while checking the app in Chrome)", "Home rewritten to read the health store; fake values removed; six new tests"],
     ["The emergency detector missed \"mujhe bohat zyada bleeding ho rahi hai aur chakkar aa rahe hain\" (found by the live check; the model advised a doctor, but no urgent flag was set)", "A bleeding word together with an intensity word (heavy, a lot, bohat, zyada, Urdu equivalents) now counts as an emergency; four new tests"],
@@ -1178,6 +1189,7 @@ table(["Decision", "Reason"], [
     ["Retrain only the gate, with other-organ ultrasounds", "A non-breast ultrasound passed the old gate; changing only the gate leaves every classification unchanged. Kept the honest unseen-organ estimate (43% to 60% refused) separate from the deployed version's scores"],
     ["In-app server address setting", "The free tunnel address changes on each start"],
     ["Call Gemini from the backend, never from the app", "An API key inside an APK can be extracted; the backend also holds the safety rules and rate limit"],
+    ["Phone voice as the fallback for the AI voice", "The free AI voice quota is small (10 a day per model); the phone's own voice is instant and unlimited, so speech never depends on a quota"],
     ["gemini-3.1-flash-lite for chat and speech recognition", "Fastest model available to a new key (1.5 to 3 s); 2.5-flash was closed to new users and 3.8-flash returned 503 under load; 3.6-flash kept as backup"],
     ["Red flags detected in code, not by the model", "Emergency handling must not depend on a model's judgement; it also works when Gemini is down"],
     ["Send a name-free summary to the model", "The model does not need identity to be helpful; limits what leaves the phone"],

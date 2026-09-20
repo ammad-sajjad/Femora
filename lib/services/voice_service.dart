@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 
@@ -16,6 +17,9 @@ abstract class VoiceDevice {
   Future<Uint8List?> stopRecording();
   Future<void> cancelRecording();
   Future<void> play(Uint8List wav);
+
+  /// Reads [text] with the phone's own voice. Returns false when the phone has no voice for that language.
+  Future<bool> speakLocal(String text, {required bool urdu});
   Future<void> stopPlayback();
   Stream<void> get playbackComplete;
   void dispose();
@@ -24,6 +28,14 @@ abstract class VoiceDevice {
 class PlatformVoiceDevice implements VoiceDevice {
   final AudioRecorder _recorder = AudioRecorder();
   final AudioPlayer _player = AudioPlayer();
+  final FlutterTts _tts = FlutterTts();
+  final StreamController<void> _complete = StreamController<void>.broadcast();
+  StreamSubscription<void>? _playerDone;
+  bool _ttsReady = false;
+
+  PlatformVoiceDevice() {
+    _playerDone = _player.onPlayerComplete.listen((_) => _complete.add(null));
+  }
 
   @override
   Future<bool> ensureMicPermission() => _recorder.hasPermission();
@@ -54,18 +66,54 @@ class PlatformVoiceDevice implements VoiceDevice {
   }
 
   @override
-  Future<void> play(Uint8List wav) => _player.play(BytesSource(wav));
+  Future<void> play(Uint8List wav) async {
+    // A file is more dependable than in-memory bytes on Android phones.
+    final dir = await getTemporaryDirectory();
+    final file = File('${dir.path}/femora_reply.wav');
+    await file.writeAsBytes(wav, flush: true);
+    await _player.play(DeviceFileSource(file.path));
+  }
 
   @override
-  Future<void> stopPlayback() => _player.stop();
+  Future<bool> speakLocal(String text, {required bool urdu}) async {
+    try {
+      if (!_ttsReady) {
+        _ttsReady = true;
+        _tts.setCompletionHandler(() => _complete.add(null));
+        _tts.setCancelHandler(() => _complete.add(null));
+        _tts.setErrorHandler((_) => _complete.add(null));
+      }
+      final lang = urdu ? 'ur-PK' : 'en-US';
+      final available = await _tts.isLanguageAvailable(lang);
+      if (available != true && available != 1) return false;
+      await _tts.setLanguage(lang);
+      await _tts.setSpeechRate(0.45);
+      await _tts.setVolume(1.0);
+      final started = await _tts.speak(text);
+      return started == 1 || started == true;
+    } catch (_) {
+      return false;
+    }
+  }
 
   @override
-  Stream<void> get playbackComplete => _player.onPlayerComplete;
+  Future<void> stopPlayback() async {
+    await _player.stop();
+    try {
+      await _tts.stop();
+    } catch (_) {}
+  }
+
+  @override
+  Stream<void> get playbackComplete => _complete.stream;
 
   @override
   void dispose() {
+    _playerDone?.cancel();
+    _complete.close();
     _recorder.dispose();
     _player.dispose();
+    _tts.stop();
   }
 }
 
@@ -183,22 +231,31 @@ class VoiceController extends ChangeNotifier {
     }
   }
 
-  /// Reads [text] aloud. Failures are reported through [error] and never block the chat.
+  static final _urduScript = RegExp(r'[؀-ۿ]');
+
+  /// Reads [text] aloud with the AI voice; if that is unavailable (daily limit, no connection, playback problem)
+  /// the phone's own voice is used. Failures are reported through [error] and never block the chat.
   Future<void> speak(String text, {required String language}) async {
     if (_phase == VoicePhase.recording || _phase == VoicePhase.transcribing) return;
     _error = null;
     _set(VoicePhase.speaking);
+    String failure;
     try {
       final wav = await _api.speak(text, language: language);
       if (_phase != VoicePhase.speaking) return; // stopped while the voice was being prepared
       await _device.play(wav);
+      return;
     } on ApiException catch (e) {
-      _error = e.message;
-      _set(VoicePhase.idle);
+      failure = e.message;
     } catch (_) {
-      _error = 'Could not play the voice. Please read the text instead.';
-      _set(VoicePhase.idle);
+      failure = 'Could not play the voice. Please read the text instead.';
     }
+    if (_phase != VoicePhase.speaking) return;
+    final urdu = language == 'ur' || (language != 'en' && _urduScript.hasMatch(text));
+    if (await _device.speakLocal(text, urdu: urdu)) return; // stays "speaking" until the phone voice finishes
+    if (_phase != VoicePhase.speaking) return;
+    _error = urdu ? '$failure This phone also has no Urdu voice installed.' : failure;
+    _set(VoicePhase.idle);
   }
 
   Future<void> stopSpeaking() async {
