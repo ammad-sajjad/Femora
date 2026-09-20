@@ -36,7 +36,7 @@ Find your computer's IP on macOS with `ipconfig getifaddr en0`.
 | Cycle prediction — Random Forest | — | Planned |
 | Personalized cycle — LSTM | — | Planned |
 | Breast ultrasound — ResNet50 (BUSI + BrEaST + BUS-BRA) | [femora-breast-ultrasound-resnet50-busbra](https://www.kaggle.com/code/ammad0/femora-breast-ultrasound-resnet50-busbra) | 🟡 Connected (BUS-BRA model, replaces v7): AUC 0.87 / sensitivity 90% / specificity 61% (threshold 0.25) on 562 held-out BUS-BRA scans (unseen patients); v7 scored AUC 0.69 / 72% / 58% on the same scans. On v7's original 148 test scans: AUC 0.88, sensitivity 85%, specificity 75%, accuracy 77% at threshold 0.25 (v7: 0.84, 81%, 81%, 80%). Ultrasound gate included |
-| Breast cancer risk questionnaire — XGBoost (BCSC) | `ml/notebooks/breast_risk` | 🟡 Notebook ready; `backend/models` holds a synthetic **placeholder** until the BCSC data file is added |
+| Breast cancer risk questionnaire — XGBoost (BCSC) | [femora-breast-risk-xgboost](https://www.kaggle.com/code/ammad0/femora-breast-risk-xgboost) | ✅ Trained on the real BCSC Risk Estimation data (2.39M mammograms, 11,638 cancers within 1 year) and connected. Validation (~598k mammograms): AUC 0.64 (age-only 0.60), calibration expected/observed 1.01. AUC is modest by nature: risk factors cannot diagnose; published risk models score about 0.6–0.7. Only ~0.03% of women fall in the 'high' band |
 
 ### Breast ultrasound: v7 vs the BUS-BRA model
 
@@ -66,9 +66,7 @@ On Windows, start the backend with `backend\.venv\Scripts\uvicorn app:app --app-
 
 To do:
 1. ~~Install notebook v7 outputs~~ — done: `backend/models/` holds the v7 ONNX, meta and `breast_gate.npz`; the gate rejects colour and non-ultrasound uploads.
-2. **Train the questionnaire model:** download the BCSC Risk Estimation dataset (https://www.bcsc-research.org/index.php/datasets/rfdataset) into `ml/data/bcsc/`,
-   upload it as the private Kaggle dataset `ammad0/bcsc-risk-estimation`, push `ml/notebooks/breast_risk`, and replace the placeholder
-   `breast_risk_xgb.json` / `breast_risk_meta.json`.
+2. ~~Train the questionnaire model~~ — done: BCSC `risk.txt` (public download, cite: *Data collection and sharing was supported by the National Cancer Institute-funded Breast Cancer Surveillance Consortium (HHSN261201100031C)*) uploaded as the private Kaggle dataset `ammad0/bcsc-risk-estimation`; model installed in `backend/models/`.
 3. ~~Verify the Android build~~ — `flutter build apk --debug` succeeds (self-exam reminder notifications compile). Not yet tested on a physical device.
 
 Data: BUSI (Al-Dhabyani et al., 2020, *Data in Brief*); BUS-BRA (Gómez-Flores et al., 2024, *Medical Physics*); BrEaST-Lesions-USG (Pawłowska et al., 2024, The Cancer Imaging Archive, CC BY 4.0).
