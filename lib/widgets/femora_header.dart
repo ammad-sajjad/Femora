@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'server_address_dialog.dart';
 
 class FemoraHeader extends StatelessWidget {
   final bool showMenuIcon;
@@ -12,7 +13,13 @@ class FemoraHeader extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onLongPress: () => showServerAddressDialog(context), // hidden demo setting
+        child: _layout(context),
+      );
+
+  Widget _layout(BuildContext context) {
     if (isCalendarStyle) {
       // Calendar screen header layout: "femora" logo on left, pink profile avatar on right
       return Padding(
