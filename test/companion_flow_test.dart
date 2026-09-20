@@ -23,7 +23,12 @@ class _FakeDevice implements VoiceDevice {
   bool permission = true;
   bool recording = false;
   final played = <Uint8List>[];
+  final spokenLocally = <String>[];
+  bool phoneVoiceAvailable = false;
+  bool failPlayback = false;
   final _done = StreamController<void>.broadcast();
+
+  void finishSpeaking() => _done.add(null);
 
   @override
   Future<bool> ensureMicPermission() async => permission;
@@ -38,7 +43,17 @@ class _FakeDevice implements VoiceDevice {
   @override
   Future<void> cancelRecording() async => recording = false;
   @override
-  Future<void> play(Uint8List wav) async => played.add(wav);
+  Future<void> play(Uint8List wav) async {
+    if (failPlayback) throw StateError('cannot play');
+    played.add(wav);
+  }
+
+  @override
+  Future<bool> speakLocal(String text, {required bool urdu}) async {
+    if (!phoneVoiceAvailable) return false;
+    spokenLocally.add('${urdu ? 'ur' : 'en'}: $text');
+    return true;
+  }
   @override
   Future<void> stopPlayback() async {}
   @override
@@ -61,6 +76,7 @@ class _Harness {
   late final ChatState chat;
   late final VoiceController voice;
   Future<http.Response> Function(http.Request request)? chatHandler;
+  http.Response Function()? speakHandler;
 
   _Harness() {
     final client = MockClient((request) async {
@@ -71,6 +87,7 @@ class _Harness {
         case '/voice/transcribe':
           return http.Response(jsonEncode({'text': 'What is PCOS?'}), 200);
         case '/voice/speak':
+          if (speakHandler != null) return speakHandler!();
           return http.Response.bytes(Uint8List.fromList(utf8.encode('RIFFxxxxWAVE')), 200, headers: {'content-type': 'audio/wav'});
       }
       return http.Response('{}', 404);
@@ -238,6 +255,73 @@ void main() {
     await tester.tap(find.byKey(Key('speak_${h.chat.messages.last.id}')));
     await tester.pumpAndSettle();
     expect(h.device.played, hasLength(1));
+  });
+
+  testWidgets('when the AI voice is over its daily limit the phone voice reads the answer instead', (tester) async {
+    _tallScreen(tester);
+    final h = _Harness();
+    h.speakHandler = () => http.Response(jsonEncode({'detail': 'The AI voice has reached its daily limit. Please read the text instead.'}), 429);
+    h.device.phoneVoiceAvailable = true;
+    await tester.pumpWidget(h.widget);
+    await _type(tester, 'hello');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(Key('speak_${h.chat.messages.last.id}')));
+    await tester.pumpAndSettle();
+    expect(h.device.played, isEmpty);
+    expect(h.device.spokenLocally, ['en: Here is a careful answer.']);
+    expect(find.byKey(const Key('voice_error')), findsNothing); // it worked, so no error is shown
+    expect(h.voice.phase, VoicePhase.speaking);
+    h.device.finishSpeaking();
+    await tester.pump();
+    expect(h.voice.phase, VoicePhase.idle);
+  });
+
+  testWidgets('if the AI voice audio cannot be played the phone voice takes over', (tester) async {
+    _tallScreen(tester);
+    final h = _Harness();
+    h.device.failPlayback = true;
+    h.device.phoneVoiceAvailable = true;
+    await tester.pumpWidget(h.widget);
+    await _type(tester, 'hello');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(Key('speak_${h.chat.messages.last.id}')));
+    await tester.pumpAndSettle();
+    expect(h.device.spokenLocally, hasLength(1));
+    expect(find.byKey(const Key('voice_error')), findsNothing);
+  });
+
+  testWidgets('with no AI voice and no phone voice the reason is shown and typing keeps working', (tester) async {
+    _tallScreen(tester);
+    final h = _Harness();
+    h.speakHandler = () => http.Response(jsonEncode({'detail': 'The AI voice has reached its daily limit. Please read the text instead.'}), 429);
+    await tester.pumpWidget(h.widget);
+    await _type(tester, 'hello');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(Key('speak_${h.chat.messages.last.id}')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('voice_error')), findsOneWidget);
+    expect(find.textContaining('daily limit'), findsOneWidget);
+    expect(h.voice.phase, VoicePhase.idle);
+    await _type(tester, 'still works');
+    await tester.pumpAndSettle();
+    expect(find.text('Here is a careful answer.'), findsWidgets);
+  });
+
+  testWidgets('an Urdu answer falls back to the Urdu phone voice, and says so when there is none', (tester) async {
+    _tallScreen(tester);
+    final h = _Harness();
+    h.chatHandler = (_) async => http.Response(jsonEncode({'reply': 'آپ کو ڈاکٹر سے ملنا چاہیے۔', 'source': 'gemini', 'urgency': 'none', 'language': 'ur'}), 200);
+    h.speakHandler = () => http.Response(jsonEncode({'detail': 'The AI voice has reached its daily limit. Please read the text instead.'}), 429);
+    await tester.pumpWidget(h.widget);
+    await _type(tester, 'hello');
+    await tester.pumpAndSettle();
+
+    await h.voice.speak('آپ کو ڈاکٹر سے ملنا چاہیے۔', language: 'auto'); // no Urdu voice on the phone
+    expect(h.voice.error, contains('no Urdu voice'));
+
+    h.device.phoneVoiceAvailable = true;
+    await h.voice.speak('آپ کو ڈاکٹر سے ملنا چاہیے۔', language: 'auto');
+    expect(h.device.spokenLocally.single, startsWith('ur:'));
   });
 
   testWidgets('delete all my data clears the profile, results and conversation', (tester) async {

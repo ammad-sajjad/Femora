@@ -222,5 +222,35 @@ def test_speak_failure_is_a_clean_error(monkeypatch):
     assert client.post("/voice/speak", json={"text": "hello"}).status_code == 502
 
 
+def test_speak_quota_error_says_so(monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "test")
+    monkeypatch.setattr(companion, "gemini_speak", lambda text: (_ for _ in ()).throw(companion.GeminiError("http 429")))
+    r = client.post("/voice/speak", json={"text": "hello"})
+    assert r.status_code == 429 and "daily limit" in r.json()["detail"]
+
+
+def test_speak_tries_the_backup_voice_model_when_the_first_is_out_of_quota(monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "test")
+    tried = []
+
+    def fake_post(model, body, timeout):
+        tried.append(model)
+        if model == companion.TTS_MODEL:
+            raise companion.GeminiError("http 429")
+        import base64
+        return {"candidates": [{"content": {"parts": [{"inlineData": {"data": base64.b64encode(b"\x00\x00" * 50).decode()}}]}}]}
+
+    monkeypatch.setattr(companion, "_post", fake_post)
+    wav = companion.gemini_speak("hello")
+    assert tried == [companion.TTS_MODEL, companion.TTS_MODEL_BACKUP]
+    assert wav[:4] == b"RIFF"
+
+
+def test_speak_fails_when_every_voice_model_fails(monkeypatch):
+    monkeypatch.setattr(companion, "_post", lambda model, body, timeout: (_ for _ in ()).throw(companion.GeminiError("http 429")))
+    with pytest.raises(companion.GeminiError):
+        companion.gemini_speak("hello")
+
+
 def test_health_reports_companion():
     assert "companion" in client.get("/health").json()
