@@ -829,8 +829,11 @@ H2("9.2 Demo procedure")
 bullets([
     "Run scripts\\start_demo.ps1. It starts the backend and the tunnel, waits until the new tunnel name is visible in DNS, checks /health and prints the public address.",
     "In the app, long-press the header, choose Server address, paste the address and save.",
-    "Keep the PC awake during the demo; press Enter in the script window to stop everything.",
+    "Keep the PC awake during the demo. Do not type or paste anything in the script window: pressing Enter there stops the server and the tunnel, and the address must be pasted into the phone app instead.",
 ])
+para("**Lesson from the first phone run (20 September 2026).** The first attempt failed because the address was pasted into the script window's \"press Enter to stop\" prompt, "
+     "which shut the server and tunnel down (and the emulator default address was typed instead of the tunnel address). After restarting the script and pasting the new address into the app, the app connected and worked. "
+     "The script's stop prompt now says clearly not to type or paste there, and a harmless clean-up error message about the temporary log file (caused by the short Windows temp path) was removed.")
 H2("9.3 Build environment and workarounds")
 table(["Item", "Detail"], [
     ["Development PC", "Windows 11, 8 GB RAM, little free space on C:, so Flutter, JDK, Android SDK, Gradle cache and package cache live on D:"],
@@ -844,7 +847,7 @@ table(["Build", "Source state", "Result"], [
     ["1 (20 Sep 2026)", "Commit 6479090 (in-app server address setting added)", "app-release.apk, 19.0 MB (19,873,821 bytes), arm64-v8a, APK signature scheme v2 (debug key), SHA-256 starts 1e8848241c77dd1a. First build took about 13 minutes (cold Gradle cache)"],
     ["2 (20 Sep 2026)", "Commit 8b0caf7 (only the report, README and scripts changed since build 1)", "Same size, same SHA-256: the rebuild is byte-for-byte identical, which confirms the APK matches the current app code. Took under one minute (warm cache)"],
 ], [3.0, 5.6, 8.0], caption="Release APK builds", size=8.5,
-    note="Both builds pass apksigner verification and request INTERNET, POST_NOTIFICATIONS, RECEIVE_BOOT_COMPLETED and VIBRATE. The file is copied to the user's Desktop as femora-release-arm64.apk. It has not yet been run on a physical phone.")
+    note="Both builds pass apksigner verification and request INTERNET, POST_NOTIFICATIONS, RECEIVE_BOOT_COMPLETED and VIBRATE. The file is copied to the user's Desktop as femora-release-arm64.apk. Build 1 was installed and run on the developer's phone on 20 September 2026 (section 10).")
 
 # ================================================================== 10 VERIFICATION
 H1("10. Verification and testing")
@@ -858,9 +861,10 @@ table(["What", "How", "Result"], [
     ["Backend boot", "Clean environment, pinned requirements, port 7860", "/health, scan, risk and /docs all answered"],
     ["Tunnel", "Script self-test", "Public HTTPS address reached the backend"],
     ["Release APK", "Signature and permission check; second build compared by checksum", "Verified; internet permission present; rebuild identical to the first build"],
+    ["First run on a real phone", "APK installed on the developer's phone; demo script started; tunnel address pasted into the in-app Server address dialog", "Connected and working, confirmed by the developer after one retry (see the lesson in section 9.2)"],
 ], [3.6, 7.2, 5.8], caption="Verification performed")
-para("**Not verified:** the APK has not yet been run on a physical phone; the server-address dialog has been tested for its logic but not clicked through on a device; "
-     "the backend Docker image has not been built; one older template test (widget_test.dart, which looks for the text \"Femora\" on the first screen) fails and also fails on the previous main branch.")
+para("**Not verified:** the phone run was confirmed as working in general; each feature (both questionnaires, scan upload with the demo scans and a wrong image, heatmap toggle, self-exam reminder notification) was not itemised, "
+     "so per-feature results on the phone are not yet recorded. The backend Docker image has not been built. One older template test (widget_test.dart, which looks for the text \"Femora\" on the first screen) fails and also fails on the previous main branch.")
 
 # ================================================================== 11 LIMITS + ETHICS
 H1("11. Limitations, ethics and risks")
