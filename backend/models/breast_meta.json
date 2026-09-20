@@ -29,7 +29,7 @@
   "malignant_threshold": 0.25,
   "colour_limit": 0.1,
   "gate_file": "breast_gate.npz",
-  "gate_threshold": 0.5,
+  "gate_threshold": 0.45244884490966797,
   "recipe": {
     "name": "source-balanced + scanner augmentation",
     "augment": "scanner",
@@ -407,6 +407,111 @@
       "macro_f1": 0.4686,
       "malignant_sensitivity": 0.901,
       "malignant_specificity": 0.6054
+    }
+  },
+  "gate_v2": {
+    "note": "Gate retrained on 20 Sep 2026 (ml/train_gate_v2.py) so it also refuses ultrasounds of other organs. The classifier network is unchanged. ood_evaluation above is the original gate; rows below are the current gate.",
+    "previous_threshold": 0.5,
+    "threshold": 0.45244884490966797,
+    "training_negatives": {
+      "photos": 600,
+      "xray": 148,
+      "thyroid_ddti": 250,
+      "fetal_head": 250,
+      "thyroid_auitd": 250,
+      "kidney": 250
+    },
+    "evaluation_final_gate": [
+      {
+        "images": "Breast test ultrasounds (must pass; rejected = wrong)",
+        "n": 710,
+        "rejected_old_gate": 0.0,
+        "rejected_new_gate": 0.0028
+      },
+      {
+        "images": "Colour and grayscale photos, unseen categories",
+        "n": 300,
+        "rejected_old_gate": 1.0,
+        "rejected_new_gate": 0.9933
+      },
+      {
+        "images": "Chest X-rays, held out",
+        "n": 40,
+        "rejected_old_gate": 1.0,
+        "rejected_new_gate": 1.0
+      },
+      {
+        "images": "Brain MRI, never seen",
+        "n": 250,
+        "rejected_old_gate": 0.944,
+        "rejected_new_gate": 0.988
+      },
+      {
+        "images": "Thyroid ultrasound, different dataset (AUITD)",
+        "n": 300,
+        "rejected_old_gate": 0.0067,
+        "rejected_new_gate": 0.9233
+      },
+      {
+        "images": "Kidney ultrasound, organ never seen",
+        "n": 300,
+        "rejected_old_gate": 0.2167,
+        "rejected_new_gate": 1.0
+      },
+      {
+        "images": "Fetal head ultrasound, held-out images",
+        "n": 200,
+        "rejected_old_gate": 0.02,
+        "rejected_new_gate": 1.0
+      }
+    ],
+    "unseen_estimate": {
+      "note": "Same recipe trained WITHOUT kidney and without the second thyroid set, so those two rows are truly unseen (dataset / organ).",
+      "rows": [
+        {
+          "images": "Breast test ultrasounds (must pass; rejected = wrong)",
+          "n": 710,
+          "rejected_old_gate": 0.0,
+          "rejected_new_gate": 0.0
+        },
+        {
+          "images": "Colour and grayscale photos, unseen categories",
+          "n": 300,
+          "rejected_old_gate": 1.0,
+          "rejected_new_gate": 1.0
+        },
+        {
+          "images": "Chest X-rays, held out",
+          "n": 40,
+          "rejected_old_gate": 1.0,
+          "rejected_new_gate": 1.0
+        },
+        {
+          "images": "Brain MRI, never seen",
+          "n": 250,
+          "rejected_old_gate": 0.944,
+          "rejected_new_gate": 0.984
+        },
+        {
+          "images": "Thyroid ultrasound, different dataset (AUITD)",
+          "n": 300,
+          "rejected_old_gate": 0.02,
+          "rejected_new_gate": 0.43
+        },
+        {
+          "images": "Kidney ultrasound, organ never seen",
+          "n": 300,
+          "rejected_old_gate": 0.2267,
+          "rejected_new_gate": 0.6033
+        },
+        {
+          "images": "Fetal head ultrasound, held-out images",
+          "n": 200,
+          "rejected_old_gate": 0.02,
+          "rejected_new_gate": 1.0
+        }
+      ],
+      "threshold": 0.5
     }
   }
 }

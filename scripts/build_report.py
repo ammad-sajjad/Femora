@@ -278,6 +278,7 @@ bullets([
     "**The risk questionnaire is now trained on real data.** AUC 0.64 is normal for risk-factor models; its strength is calibration (expected/observed cancers = 1.01).",
     "**One planned improvement was tested and rejected.** Adding the BUS-UCLM dataset gave no measurable gain, so it is documented but not deployed.",
     "**The app now runs on a phone.** A release APK (19 MB) was built. Hugging Face Docker hosting turned out to need a paid plan, so the demo uses a free tunnel to the backend on the developer PC.",
+    "**The ultrasound gate was strengthened.** A real non-breast ultrasound had slipped through, so the gate was retrained with other-organ ultrasounds. It now refuses the organs it saw and about 43% to 60% of unseen ones, and wrongly refuses 0.3% of real breast scans; classifications did not change.",
     "**About one third of the scope is working.** The largest gaps are cycle prediction, symptom and mood logging, the AI companion, onboarding, pregnancy mode and reports.",
 ])
 
@@ -692,9 +693,29 @@ bullets([
 ])
 rows = [[r["images"], r["n"], pct(r["rejected_colour"]), pct(r["rejected_gate"]), pct(r["rejected_total"])] for r in UB["ood_evaluation"]]
 table(["Uploaded images", "Count", "Rejected by colour", "Rejected by gate", "Rejected in total"], rows, [6.2, 1.6, 2.9, 2.9, 3.0],
-      caption="Ultrasound gate (deployed model)", align_right_from=1,
-      note="Real test ultrasounds are never wrongly rejected. About 6% of unseen brain MRIs still pass, so a dark fan-shaped image of the wrong body part is not guaranteed to be refused. Ultrasounds of other organs were not part of this test, and one such image passed (section 6.13).")
-figure("ml/output/breast_busbra/model/breast_gate.png", "Gate score distributions for ultrasounds and the other image types (log scale).", 12.5)
+      caption="Original ultrasound gate (before the update below)", align_right_from=1,
+      note="Real test ultrasounds are never wrongly rejected. About 6% of unseen brain MRIs still pass. Ultrasounds of other organs were not part of this test; one such image passed, which led to the update below (section 6.13).")
+figure("ml/output/breast_busbra/model/breast_gate.png", "Score distributions of the original gate for ultrasounds and the other image types (log scale).", 12.5)
+G2 = UB["gate_v2"]
+H3("Gate update (20 September 2026): refusing ultrasounds of other organs")
+para("The web-image check (section 6.13) showed that an ultrasound of another body part passed the gate, because the gate had only seen photos and X-rays as negatives. "
+     "The gate was therefore retrained (ml/train_gate_v2.py). Only the gate changed: the classifier network is untouched, so no ultrasound result changed. The gate is a logistic regression on the network's 2,048-number embedding, "
+     "so retraining needed only the embeddings of new images, which were computed locally on the CPU.")
+bullets([
+    "**Training negatives:** 600 grayscale photos (four categories), 400 chest X-rays, and other-organ ultrasounds: 250 thyroid nodule ultrasounds (DDTI), 250 thyroid ultrasounds (AUITD, Algeria), 250 fetal head ultrasounds and 250 kidney ultrasounds (Kaggle datasets). Positives: the 1,851 training breast ultrasounds. Same settings as before (regularisation 0.1, balanced classes, standardised inputs).",
+    f"**Threshold:** the lower of 0.5 and the 1st percentile of validation breast scores, now {G2['threshold']:.3f} (was {G2['previous_threshold']:.3f}), so about 99% of validation breast scans still pass.",
+    "**Honest estimate for unseen organs:** a first version was trained without the kidney and the AUITD thyroid data, so those two sets were genuinely unseen. It refused 43% of unseen thyroid ultrasounds (a different dataset) and 60% of kidney ultrasounds (an organ it never saw). The deployed version then also trained on those two sets, so its scores on them are no longer a test of generalisation.",
+])
+rows = [[r["images"], r["n"], pct(r["rejected_old_gate"]), pct(r["rejected_new_gate"])] for r in G2["evaluation_final_gate"]]
+table(["Held-out images", "Count", "Refused by the old gate", "Refused by the updated gate"], rows, [8.0, 1.6, 3.5, 3.5],
+      caption="Old gate against the updated (deployed) gate (colour check and gate together)", align_right_from=1,
+      note="The first row must stay near 0%: the updated gate wrongly refuses 0.3% of real breast test scans (2 of 710). The thyroid, kidney and fetal rows use other images of sources the updated gate trained on, so they are in-distribution.")
+rows = [[r["images"], r["n"], pct(r["rejected_old_gate"]), pct(r["rejected_new_gate"])] for r in G2["unseen_estimate"]["rows"] if "ultrasound" in r["images"].lower() and "Breast" not in r["images"]]
+table(["Truly unseen ultrasounds (first version)", "Count", "Refused by the old gate", "Refused by the first new gate"], rows, [8.0, 1.6, 3.5, 3.5],
+      caption="Generalisation to unseen ultrasound datasets and organs", align_right_from=1,
+      note="The fetal row is the same dataset as its training images, so it is not a generalisation test. New organs (liver, abdomen, carotid, obstetric scans) are therefore refused only partly; more organ data would help.")
+para("After installing the updated gate, the earlier checks were repeated through the API: the two built-in demo scans, the real carcinoma and fibroadenoma web images and all seven test-kit scans (clean, compressed, low resolution and annotated) still pass; "
+     "the generic non-breast ultrasound that slipped through before is now refused; the two wrong images are still refused; colour-tinted images are still refused by the colour check.")
 H2("6.10 The screening threshold decision")
 para("The notebook fitted a threshold of 0.21 (at least 90% of cancers caught on out-of-fold predictions). After the results were in, the threshold "
      "was raised to 0.25 to reduce false alarms, and the displayed accuracy in the app was updated with it.")
@@ -721,7 +742,7 @@ bullets([
     "The Toshiba scanner, the BrEaST hospital and the U-Systems scanner remain weak; they need more scans from those machines.",
     "Telling benign from malignant on a single ultrasound image is hard even for radiologists, so further gains from retraining are expected to be small.",
     "All training hospitals are in Egypt, Poland and Brazil; none is in Pakistan.",
-    "**Ultrasounds of other body parts are not refused.** The gate was trained against photos and X-rays, not against ultrasounds of other organs, so a non-breast ultrasound passes and receives a breast verdict (section 6.13).",
+    "**Ultrasounds of other body parts are only partly refused.** The original gate let them through. The updated gate refuses the organs it was trained on (thyroid, fetal head, kidney) but only about 43% to 60% of unseen ones, so a scan of another organ can still receive a breast verdict (section 6.9).",
 ])
 H2("6.13 Informal check with images from the web")
 para("Because users may try images found online, two experiments were run through the running server (20 September 2026). They are informal: two real web images are far too few to estimate accuracy.")
@@ -729,7 +750,7 @@ H3("Real images from Wikipedia (free licences; descriptions give the label)")
 table(["Image", "Description", "App result"], [
     ["Mamma ca 1.jpg (497 x 344 px)", "Breast carcinoma on ultrasound (malignant)", "Suspicious Finding, 93%: correct"],
     ["Breast US Fibroadenoma (Nevit, 600 x 550 px)", "Fibroadenoma (benign)", "Suspicious Finding, 66%: a false alarm (malignant 66%, benign 29%)"],
-    ["Ultrasound Scan ND (800 x 600 px)", "Generic medical ultrasound, organ not stated (not a breast scan)", "Passed the gate and returned Likely Benign, 96%: should have been refused"],
+    ["Ultrasound Scan ND (800 x 600 px)", "Generic medical ultrasound, organ not stated (not a breast scan)", "Original gate: passed and returned Likely Benign, 96% (should have been refused). After the gate update (section 6.9): refused"],
 ], [5.4, 5.6, 5.6], caption="Web images through the deployed model", size=8.5,
     note="The images were taken from Wikipedia articles (the Wikimedia Commons site itself was not reachable from the development PC). The benign false alarm is consistent with the measured false-alarm rate (about a third of non-cancer scans).")
 H3("Web-style damage to the seven test-kit scans")
@@ -740,8 +761,8 @@ table(["Change applied", "Same answer as the clean upload", "Refused by the chec
     ["Sepia colour tint", "4 of 7", "3", "0"],
 ], [7.4, 3.8, 2.8, 2.6], caption="Robustness to typical web changes (7 scans)", size=8.5, align_right_from=1,
     note="Confidence moved by up to about 35 points on one scan with annotation marks (79% to 44%), but the class did not change. Tinted images are often refused because the colour check treats them as photos or Doppler scans.")
-para("**Conclusion.** Compression, low resolution and on-screen marks do not change the answer. Colour-tinted or colour Doppler images are refused. Grayscale ultrasounds of other organs are wrongly accepted, and a benign lesion can still be flagged, so results on web images "
-     "should not be read as validation. A future improvement is to add ultrasounds of other organs (abdomen, thyroid, obstetric) as negatives when training the gate.")
+para("**Conclusion.** Compression, low resolution and on-screen marks do not change the answer. Colour-tinted or colour Doppler images are refused. Grayscale ultrasounds of other organs were wrongly accepted by the original gate; the updated gate (section 6.9) refuses the generic example and the organs it was trained on, but unseen organs only partly. A benign lesion can still be flagged, so results on web images "
+     "should not be read as validation. Adding more organs (abdomen, carotid, obstetric) as gate negatives would improve this further.")
 
 # ================================================================== 7 RISK
 H1("7. Breast cancer risk questionnaire (component B)")
@@ -881,7 +902,8 @@ table(["What", "How", "Result"], [
     ["Backend boot", "Clean environment, pinned requirements, port 7860", "/health, scan, risk and /docs all answered"],
     ["Tunnel", "Script self-test", "Public HTTPS address reached the backend"],
     ["Release APK", "Signature and permission check; second build compared by checksum", "Verified; internet permission present; rebuild identical to the first build"],
-    ["First run on a real phone", "APK installed on the developer's phone; demo script started; tunnel address pasted into the in-app Server address dialog", "Connected and working, confirmed by the developer after one retry (see the lesson in section 9.2)"],
+    ["Updated ultrasound gate", "Held-out sets through the gate offline, then demo scans, real web images and the kit scans (with damage) through the API", "Breast scans still pass (0.3% wrongly refused); other-organ ultrasound refused; unseen organs only partly (43% to 60%)"],
+    ["First run on a real phone","APK installed on the developer's phone; demo script started; tunnel address pasted into the in-app Server address dialog", "Connected and working, confirmed by the developer after one retry (see the lesson in section 9.2)"],
 ], [3.6, 7.2, 5.8], caption="Verification performed")
 para("**Not verified:** the phone run was confirmed as working in general; each feature (both questionnaires, scan upload with the demo scans and a wrong image, heatmap toggle, self-exam reminder notification) was not itemised, "
      "so per-feature results on the phone are not yet recorded. The backend Docker image has not been built. One older template test (widget_test.dart, which looks for the text \"Femora\" on the first screen) fails and also fails on the previous main branch.")
@@ -931,7 +953,7 @@ table(["Failure", "Consequence", "Mitigation today", "Still needed"], [
     ["Cancer missed by the ultrasound model (about 11% of malignant scans)", "False reassurance", "Low screening threshold; every result advises a doctor; disclaimer", "Clinical validation; clear wording that a benign result is not a clearance"],
     ["Benign scan flagged suspicious (about 36% of non-cancer scans)", "Worry, an unneeded visit", "Wording \"suspicious, get it checked\"; guidance says most findings prove benign", "Explain real-world prevalence in the app"],
     ["Wrong image uploaded", "Meaningless prediction", "Colour check and ultrasound gate (about 6% of unseen brain MRIs still pass)", "A stronger out-of-distribution check"],
-    ["Ultrasound of another body part", "A breast verdict for a non-breast scan (observed once)", "None: the gate was not trained against other ultrasounds", "Add other-organ ultrasounds as gate negatives"],
+    ["Ultrasound of another body part", "A breast verdict for a non-breast scan (observed once, before the gate update)", "Gate retrained with thyroid, fetal-head and kidney ultrasounds; unseen organs refused only about 43% to 60%", "More organs (liver, abdomen, carotid, obstetric) as gate negatives"],
     ["New scanner or hospital", "Lower accuracy than reported", "Trained on three hospitals and four scanners", "More local data; per-scanner monitoring"],
     ["Risk model on a different population", "Miscalibrated risk", "Relative-to-age wording", "Validation on local data"],
     ["Server unreachable", "No result", "Clear error messages, form stays open", "Real hosting; offline fallback"],
@@ -1004,6 +1026,7 @@ table(["Item", "Where"], [
     ["Kaggle dataset", "ammad0/bcsc-risk-estimation (private copy of BCSC risk.txt)"],
     ["Backend", "backend/app.py, backend/models/, backend/Dockerfile, backend/requirements-space.txt"],
     ["Demo", "scripts/start_demo.ps1 (server + tunnel), README section \"Demo on a phone\""],
+    ["Gate retraining", "ml/train_gate_v2.py (runs on the CPU; datasets in D:/dl/gate; set GATE_FINAL=1 for the deployed version). Embedding caches and outputs are in ml/output/gate_v2 and are not committed; the previous gate is kept there as breast_gate_previous.npz"],
     ["This report", "scripts/build_report.py (numbers are read from the model metadata files)"],
 ], [4.0, 12.6], caption="Where things are")
 para("To rebuild a model: run ml/build_notebooks.py, push the notebook with the Kaggle command line, download its output, and copy the model files into backend/models/ "
@@ -1017,6 +1040,7 @@ bullets([
     "Vallez N. et al. BUS-UCLM: breast ultrasound lesion segmentation dataset. Scientific Data, 2025 (CC BY 4.0).",
     "Breast Cancer Surveillance Consortium Risk Estimation Dataset (Barlow et al., JNCI 2006). Required statement: \"Data collection and sharing was supported by the National Cancer Institute-funded Breast Cancer Surveillance Consortium (HHSN261201100031C).\"",
     "Kottarathil P. Polycystic ovary syndrome (PCOS) dataset, Kaggle.",
+    "Gate training and testing only (no model file contains these images): DDTI thyroid ultrasound (Kaggle dasmehdixtr/ddti-thyroid-ultrasound-images); Algerian thyroid ultrasound AUITD (azouzmaroua); fetal head ultrasound (ankit8467); kidney ultrasound with and without stones (gurjeetkaurmangat); Natural Images (prasunroy); COVID-19 chest X-ray train and test sets (khoongweihao); brain MRI (navoneel). Their licences were not individually checked, so they are used only locally for this experiment.",
     "Wolberg W. et al. Breast Cancer Wisconsin (Diagnostic) dataset, UCI Machine Learning Repository, 1993 (comparison only).",
     "He K. et al. Deep Residual Learning for Image Recognition (ResNet), CVPR 2016. Chen T., Guestrin C. XGBoost, KDD 2016. Chawla N. et al. SMOTE, JAIR 2002. Lundberg S., Lee S. SHAP, NeurIPS 2017. Guo C. et al. On Calibration of Modern Neural Networks (temperature scaling), ICML 2017.",
 ])
@@ -1032,6 +1056,7 @@ table(["Decision", "Reason"], [
     ["Age excluded from the PCOS model", "The narrow age range let the model learn a spurious rule"],
     ["Mammography deferred", "Different modality needing a new model; recorded as future work"],
     ["Free tunnel instead of paid hosting", "Hugging Face Docker Spaces require PRO; Vercel unsuitable"],
+    ["Retrain only the gate, with other-organ ultrasounds", "A non-breast ultrasound passed the old gate; changing only the gate leaves every classification unchanged. Kept the honest unseen-organ estimate (43% to 60% refused) separate from the deployed version's scores"],
     ["In-app server address setting", "The free tunnel address changes on each start"],
 ], [7.4, 9.2], caption="Decision log")
 
@@ -1047,6 +1072,10 @@ table(["Commit", "Date", "Change"], [
     ["6479090", "20 Sep 2026", "Add in-app server address setting and free-tunnel demo script"],
     ["8ca482f", "20 Sep 2026", "Fix tunnel path in README"],
     ["8b0caf7", "20 Sep 2026", "Add detailed project progress and technical report (Word)"],
+    ["493889f", "20 Sep 2026", "Update report: APK builds, verification and panel questions"],
+    ["70fd06a", "20 Sep 2026", "Record first real-phone run; clearer demo script prompt"],
+    ["79c81f6, 2397213, 0249b7b", "20 Sep 2026", "Report: phone test plans (ultrasound, questionnaires) and the informal web-image check"],
+    ["(next commit)", "20 Sep 2026", "Retrain the ultrasound gate to refuse other-organ ultrasounds (ml/train_gate_v2.py, new breast_gate.npz and metadata)"],
 ], [2.4, 3.0, 11.2], caption="Commits made during this period")
 
 H1("Appendix F. Questions a panel may ask")
@@ -1068,7 +1097,7 @@ qa = [
     ("Q8. What does calibration mean and how did you do it?",
      "A calibrated model's 80% confidence is right about 80% of the time. We fitted one temperature (1.14) on out-of-fold predictions and divide the logits by it; the expected calibration error on the test set fell from 0.0385 to 0.0289."),
     ("Q9. What if someone uploads a photo or an X-ray?",
-     "A colour check refuses colour images and Doppler scans, and an ultrasound gate refuses grayscale non-ultrasounds. Held-out tests: 99% of unseen colour photos, 98% of grayscale photos, 100% of chest X-rays and 94% of brain MRIs are refused; no real test ultrasound is wrongly refused. A few wrong images can still pass."),
+     "A colour check refuses colour images and Doppler scans, and an ultrasound gate refuses grayscale non-ultrasounds. Held-out tests of the updated gate: 99% of unseen photos, 100% of chest X-rays and 99% of brain MRIs are refused, as are 92% to 100% of other-organ ultrasounds it was trained on (thyroid, fetal head, kidney); only 0.3% of real breast test ultrasounds are wrongly refused. Ultrasounds of organs it has never seen are refused only about 43% to 60% of the time, so some wrong images can still pass."),
     ("Q10. Is this a medical diagnosis?",
      "No. Femora provides awareness and risk information, says so on every result, and always recommends seeing a doctor. It would need clinical validation and regulatory approval to be used as a diagnostic tool."),
     ("Q11. What data does the app store?",
