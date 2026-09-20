@@ -1,5 +1,4 @@
 {
-  "placeholder": "Trained on SYNTHETIC data only to test the pipeline. Retrain the breast_risk notebook on the real BCSC file.",
   "features": [
     "agegrp",
     "menopaus",
@@ -37,16 +36,16 @@
     "10": "80-84"
   },
   "age_average_risk": {
-    "1": 0.003095905676898337,
-    "2": 0.003332879746778357,
-    "3": 0.0036418185342705555,
-    "4": 0.004160336231466591,
-    "5": 0.004728069998757705,
-    "6": 0.005222839887002222,
-    "7": 0.0058961146074357085,
-    "8": 0.006208672460099309,
-    "9": 0.007076187103033768,
-    "10": 0.007810332648181982
+    "1": 0.0027599134670416763,
+    "2": 0.002598993880677934,
+    "3": 0.0033466963537278705,
+    "4": 0.004213844737069419,
+    "5": 0.005345599717152411,
+    "6": 0.005987794515878854,
+    "7": 0.006221616155572996,
+    "8": 0.006824915442046132,
+    "9": 0.006950363693243389,
+    "10": 0.0070615127590107785
   },
   "relative_risk_bands": {
     "low": [
@@ -63,84 +62,84 @@
     ]
   },
   "validation_metrics": {
-    "roc_auc": 0.6221,
-    "brier": 0.005117,
-    "expected_over_observed": 0.99
+    "roc_auc": 0.6416,
+    "brier": 0.004773,
+    "expected_over_observed": 1.014
   },
   "comparison": [
     {
       "model": "Age only (logistic regression)",
-      "roc_auc": 0.593,
-      "brier": 0.005119,
-      "expected_over_observed": 0.999
+      "roc_auc": 0.6027,
+      "brier": 0.004776,
+      "expected_over_observed": 1.01
     },
     {
       "model": "All questions (logistic regression, one-hot)",
-      "roc_auc": 0.6229,
-      "brier": 0.005117,
-      "expected_over_observed": 0.998
+      "roc_auc": 0.6403,
+      "brier": 0.004773,
+      "expected_over_observed": 1.02
     },
     {
       "model": "All questions (XGBoost, monotone) \u2014 deployed",
-      "roc_auc": 0.6221,
-      "brier": 0.005117,
-      "expected_over_observed": 0.99
+      "roc_auc": 0.6416,
+      "brier": 0.004773,
+      "expected_over_observed": 1.014
     }
   ],
   "band_validation": [
     {
       "band": "low",
-      "women": 1636546.0,
-      "cases": 7815.0,
-      "expected_at_age_average": 8375.17745664185,
-      "share_of_women": 0.9149416136622968,
-      "observed_per_1000": 4.775301152549333,
-      "observed_rr_vs_age_average": 0.9331145567312599
+      "women": 562003.0,
+      "cases": 2530.0,
+      "expected_at_age_average": 2730.883806129602,
+      "share_of_women": 0.9400259927507991,
+      "observed_per_1000": 4.501755328708209,
+      "observed_rr_vs_age_average": 0.9264400024348497
     },
     {
       "band": "medium",
-      "women": 149629.0,
-      "cases": 1345.0,
-      "expected_at_age_average": 751.8529361343647,
-      "share_of_women": 0.08365288767359781,
-      "observed_per_1000": 8.988899210714502,
-      "observed_rr_vs_age_average": 1.788913676277289
+      "women": 35648.0,
+      "cases": 336.0,
+      "expected_at_age_average": 179.32910116759248,
+      "share_of_women": 0.059626099130396966,
+      "observed_per_1000": 9.425493716337522,
+      "observed_rr_vs_age_average": 1.8736501650448263
     },
     {
       "band": "high",
-      "women": 2514.0,
-      "cases": 49.0,
-      "expected_at_age_average": 19.16894871456783,
-      "share_of_women": 0.0014054986641053866,
-      "observed_per_1000": 19.49085123309467,
-      "observed_rr_vs_age_average": 2.556217387277032
+      "women": 208.0,
+      "cases": 5.0,
+      "expected_at_age_average": 1.3174356767800361,
+      "share_of_women": 0.00034790811880393204,
+      "observed_per_1000": 24.03846153846154,
+      "observed_rr_vs_age_average": 3.7952517061178828
     }
   ],
   "feature_importance": {
-    "agegrp": 0.4755,
-    "nrelbc": 0.2526,
-    "brstproc": 0.1059,
-    "density": 0.0627,
-    "menopaus": 0.0306,
-    "bmi": 0.0218,
-    "hrt": 0.0176,
-    "agefirst": 0.0167,
-    "lastmamm": 0.01,
-    "surgmeno": 0.0065
+    "agegrp": 0.457,
+    "density": 0.2189,
+    "nrelbc": 0.0822,
+    "brstproc": 0.0696,
+    "lastmamm": 0.0445,
+    "bmi": 0.0371,
+    "hrt": 0.0354,
+    "surgmeno": 0.0325,
+    "agefirst": 0.0202,
+    "menopaus": 0.0027
   },
   "dataset": {
-    "name": "SYNTHETIC placeholder (not BCSC)",
+    "name": "BCSC Risk Estimation Dataset (Barlow et al., JNCI 2006)",
     "file": "risk.txt",
-    "combinations": 46308,
-    "mammograms": 6001084,
-    "cancers_1yr": 30887
+    "combinations": 280660,
+    "mammograms": 2392998,
+    "cancers_1yr": 11638
   },
   "wisconsin_reference": {
     "dataset": "Breast Cancer Wisconsin (Diagnostic), Wolberg et al. 1993 (n=569)",
     "cv": {
-      "accuracy": "0.965 \u00b1 0.018",
-      "f1": "0.952 \u00b1 0.026",
-      "recall": "0.939 \u00b1 0.051",
+      "accuracy": "0.965 \u00b1 0.016",
+      "f1": "0.952 \u00b1 0.022",
+      "recall": "0.939 \u00b1 0.041",
       "roc_auc": "0.994 \u00b1 0.005"
     },
     "test": {
@@ -149,7 +148,7 @@
       "precision": 1.0,
       "recall": 0.9048,
       "f1": 0.95,
-      "roc_auc": 0.994
+      "roc_auc": 0.9937
     },
     "note": "Inputs are cytology measurements from a biopsy, so it is not usable as a self-report questionnaire."
   }
