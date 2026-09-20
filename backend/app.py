@@ -17,10 +17,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image, ImageOps, UnidentifiedImageError
 from pydantic import BaseModel, Field
 
+import companion
+
 MODELS = Path(__file__).parent / "models"
 
-app = FastAPI(title="Femora API", version="0.1.0")
+app = FastAPI(title="Femora API", version="0.2.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+app.include_router(companion.router)   # AI companion: /chat, /voice/transcribe, /voice/speak
 
 pcos_meta = json.loads((MODELS / "pcos_meta.json").read_text())
 pcos_model = xgb.Booster()
@@ -156,7 +159,7 @@ def pcos_guidance(a: PcosAnswers, bmi: float, level: str) -> list[Guidance]:
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "models": ["pcos", "breast_scan", "breast_risk"]}
+    return {"status": "ok", "models": ["pcos", "breast_scan", "breast_risk"], "companion": companion.api_key() is not None}
 
 
 @app.post("/predict/pcos", response_model=PcosResult)
