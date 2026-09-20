@@ -57,3 +57,7 @@ backend/.venv/
 
 # Claude Code personal permissions
 .claude/settings.local.json
+
+# secrets
+backend/.env
+.env
