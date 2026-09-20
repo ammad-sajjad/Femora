@@ -45,6 +45,7 @@ CHAT_MODEL = os.environ.get("GEMINI_CHAT_MODEL", "gemini-3.1-flash-lite")
 CHAT_MODEL_BACKUP = os.environ.get("GEMINI_CHAT_MODEL_BACKUP", "gemini-3.6-flash")
 STT_MODEL = os.environ.get("GEMINI_STT_MODEL", "gemini-3.1-flash-lite")
 TTS_MODEL = os.environ.get("GEMINI_TTS_MODEL", "gemini-3.1-flash-tts-preview")
+TTS_MODEL_BACKUP = os.environ.get("GEMINI_TTS_MODEL_BACKUP", "gemini-2.5-flash-preview-tts")  # free tier allows about 10 voice requests a day per model
 TTS_VOICE = os.environ.get("GEMINI_TTS_VOICE", "Kore")
 
 MAX_MESSAGE_CHARS = 2000
@@ -268,14 +269,21 @@ def clean_for_speech(text: str) -> str:
 
 
 def gemini_speak(text: str) -> bytes:
+    """Tries each voice model in turn: every model has its own daily quota on the free tier."""
     body = {"contents": [{"parts": [{"text": clean_for_speech(text)}]}],
             "generationConfig": {"responseModalities": ["AUDIO"],
                                  "speechConfig": {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": TTS_VOICE}}}}}
-    d = _post(TTS_MODEL, body, timeout=60)
-    try:
-        return pcm_to_wav(base64.b64decode(d["candidates"][0]["content"]["parts"][0]["inlineData"]["data"]))
-    except (KeyError, IndexError, TypeError) as e:
-        raise GeminiError("no audio") from e
+    last: GeminiError | None = None
+    for model in dict.fromkeys([TTS_MODEL, TTS_MODEL_BACKUP]):
+        try:
+            d = _post(model, body, timeout=60)
+            return pcm_to_wav(base64.b64decode(d["candidates"][0]["content"]["parts"][0]["inlineData"]["data"]))
+        except GeminiError as e:
+            last = e
+        except (KeyError, IndexError, TypeError) as e:
+            last = GeminiError("no audio")
+            last.__cause__ = e
+    raise last or GeminiError("no audio")
 
 
 # ---------------------------------------------------------------- fallback (no key, no network, model refused)
@@ -384,6 +392,8 @@ def speak(req: SpeakRequest, request: Request):
         raise HTTPException(503, "Voice is not available on this server.")
     try:
         wav = gemini_speak(req.text)
-    except GeminiError:
+    except GeminiError as e:
+        if "429" in str(e):
+            raise HTTPException(429, "The AI voice has reached its daily limit. Please read the text instead.")
         raise HTTPException(502, "The voice service is busy. Please read the text instead.")
     return Response(content=wav, media_type="audio/wav")
