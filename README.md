@@ -35,7 +35,7 @@ The models run on the backend, so the phone needs to reach it. Hosting options w
 1. One-time: download `cloudflared` for Windows to `D:\dl\tunnel\cloudflared.exe` (or set the `CLOUDFLARED` environment variable to its path).
 2. Run `powershell -ExecutionPolicy Bypass -File scripts\start_demo.ps1`. It starts the backend and the tunnel, checks `/health`, and prints an address such as `https://xxxx.trycloudflare.com`. Press Enter in that window to stop both.
 3. In the app, **long-press the header** (the "femora" logo row on any main screen) → *Server address* → paste the address → Save. It is remembered on the phone, so a new tunnel address needs no rebuild. *Reset* restores the default.
-4. The PC must stay on and awake during the demo. The address changes every time the tunnel restarts.
+4. The PC must stay on and awake during the demo. The address changes every time the tunnel restarts. Do not type or paste anything in the script window (Enter there stops the server); paste the address into the phone app.
 
 The backend also has Docker files (`backend/Dockerfile`, `backend/requirements-space.txt`) for any Docker host (Railway, Render, Cloud Run, or a Hugging Face PRO Space); it listens on port 7860.
 

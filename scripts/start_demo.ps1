@@ -5,7 +5,7 @@ param([switch]$Test)
 $root = Split-Path -Parent $PSScriptRoot
 $cloudflared = if ($env:CLOUDFLARED) { $env:CLOUDFLARED } else { 'D:\dl\tunnel\cloudflared.exe' }
 $log = Join-Path $env:TEMP 'femora_tunnel.log'
-if (Test-Path -LiteralPath $log) { Remove-Item -LiteralPath $log -Force }
+try { Remove-Item -LiteralPath $log -Force -ErrorAction Stop } catch {}   # old log may not exist; short 8.3 temp paths can also fail harmlessly
 
 $api = Start-Process -PassThru -WindowStyle Hidden -WorkingDirectory "$root\backend" `
     -FilePath "$root\backend\.venv\Scripts\uvicorn.exe" -ArgumentList 'app:app', '--host', '127.0.0.1', '--port', '8000'
@@ -35,7 +35,8 @@ try {
     }
     if (-not $ok) { Write-Host "Health check FAILED: $err" }
     if ($Test) { return }
-    Read-Host 'Running. Press Enter to stop the server and the tunnel'
+    Write-Host 'Server is running. Do NOT type or paste anything in this window: the address above goes into the phone app.'
+    Read-Host 'Press Enter here ONLY when you want to stop the server and the tunnel'
 }
 finally {
     Stop-Process -Id $tunnel.Id, $api.Id -Force -ErrorAction SilentlyContinue
