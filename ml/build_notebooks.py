@@ -1395,7 +1395,81 @@ _edit(BREAST_ULTRASOUND_BUSBRA, '        "classes": CLASSES,', '        "version
 BREAST_ULTRASOUND_BUSBRA.insert(3, ("code", "V7_SPLIT_CSV = '''" + (Path(__file__).parent / "v7_split.csv").read_text(encoding="utf-8") + "'''"))
 
 
+# ---------------------------------------------------------------- + BUS-UCLM (a copy of the BUS-BRA notebook, edited)
+UCLM_LOAD = r"""
+# BUS-UCLM (Vallez et al., Scientific Data 2025, CC BY 4.0): Universidad de Castilla-La Mancha, Siemens ACUSON S2000, 38 patients.
+# Left out: colour Doppler / combined images (the app rejects colour uploads anyway) and images with on-screen measurement
+# marks. 144 of the 154 marked images show a lesion, so the marks would teach the model "marks = lesion".
+info_path = glob.glob(f"{INPUT}/**/INFO.csv", recursive=True)[0]
+uclm_dir = os.path.dirname(info_path)
+info = pd.read_csv(info_path, sep=";", encoding="utf-8-sig")
+keep = (info["Doppler"] == "No") & (info["Marks"] == "No") & (info["Combined"] == "No")
+print(f"BUS-UCLM: {int(keep.sum())} of {len(info)} images kept")
+for r in info[keep].itertuples():
+    rows.append({"path": f"{uclm_dir}/images/{r.Image}", "source": "BUS-UCLM", "label": r.Label.lower(), "masks": [],
+                 "case": "uclm_" + r.Image.split("_")[0], "device": "Siemens ACUSON S2000"})
+
+df = pd.DataFrame(rows)"""
+
+UCLM_SPLIT_LOGIC = r"""
+# ---- BUSI, BrEaST and BUS-BRA keep the exact split of the previous (BUS-BRA) notebook, so every test image is unchanged.
+# BUS-UCLM has only 38 patients, too few for a meaningful test set: it is used for training and validation only
+# (~20% of its patients in validation).
+PRIOR = pd.read_csv(io.StringIO(PRIOR_SPLIT_CSV))
+prior_split = dict(zip(PRIOR["source"] + "/" + PRIOR["file"], PRIOR["split"]))
+uclm = (df["source"] == "BUS-UCLM").values
+df["split"] = (df["source"] + "/" + df["path"].map(os.path.basename)).map(prior_split)
+df = df[uclm | df["split"].notna().values].reset_index(drop=True)   # the previous notebook dropped the others
+uclm = (df["source"] == "BUS-UCLM").values
+
+shared = df.groupby("group")["source"].transform(lambda s: bool((s == "BUS-UCLM").any() and (s != "BUS-UCLM").any()))
+print(f"{int((shared.values & uclm).sum())} BUS-UCLM images are near-duplicates of other datasets' images and are dropped")
+df = df[~(shared.values & uclm)].reset_index(drop=True)
+uclm = (df["source"] == "BUS-UCLM").values
+
+# One patient (BUS-BRA: both breasts) and any near-duplicate scans always stay together, in the split and in cross-validation
+has_case = df["case"].notna().values
+uf = {}
+def ufind(a):
+    uf.setdefault(a, a)
+    while uf[a] != a:
+        uf[a] = uf[uf[a]]
+        a = uf[a]
+    return a
+for case, grp in zip(df.loc[has_case, "case"], df.loc[has_case, "group"]):
+    uf[ufind(case)] = ufind(f"g{grp}")
+df.loc[has_case, "group"] = pd.factorize(pd.Series([ufind(c) for c in df.loc[has_case, "case"]]))[0] + 10**6
+
+units = np.sort(df.loc[uclm, "group"].unique())
+val_units = np.random.default_rng(SEED).permutation(units)[: max(1, round(0.2 * len(units)))]
+df.loc[uclm, "split"] = np.where(df.loc[uclm, "group"].isin(val_units), "val", "train")
+"""
+
+BREAST_ULTRASOUND_UCLM = list(BREAST_ULTRASOUND_BUSBRA)
+_edit(BREAST_ULTRASOUND_UCLM, "# Femora — Breast Ultrasound Classifier (ResNet50) + BUS-BRA", "# Femora — Breast Ultrasound Classifier (ResNet50) + BUS-BRA + BUS-UCLM")
+_edit(BREAST_ULTRASOUND_UCLM, "**Datasets (combined)**", """**Datasets (combined)**
+- **BUS-UCLM** (new in this version): 683 scans from 38 patients, Siemens ACUSON S2000, Spain (Vallez et al., Scientific Data 2025,
+  CC BY 4.0). It adds normal scans and a fourth scanner. Used for training/validation only: **the test set is exactly the
+  previous notebook's (BUSI + BrEaST + BUS-BRA), so the two models are directly comparable.**""")
+_edit(BREAST_ULTRASOUND_UCLM, 'SOURCES = ["BUSI", "BrEaST", "BUS-BRA"]', 'SOURCES = ["BUSI", "BrEaST", "BUS-BRA", "BUS-UCLM"]')
+_edit(BREAST_ULTRASOUND_UCLM, "## 1. Load the three datasets", "## 1. Load the four datasets")
+_edit(BREAST_ULTRASOUND_UCLM, "\ndf = pd.DataFrame(rows)", UCLM_LOAD)
+_edit(BREAST_ULTRASOUND_UCLM, BUSBRA_SPLIT_LOGIC.strip("\n"), UCLM_SPLIT_LOGIC.strip("\n"))
+_edit(BREAST_ULTRASOUND_UCLM, "BUSI and BrEaST keep v7's exact split. BUS-BRA is split by patient (both breasts of a patient stay together).",
+      "BUSI, BrEaST and BUS-BRA keep the previous notebook's exact split. BUS-UCLM (38 patients) is used for training and validation only.")
+_edit(BREAST_ULTRASOUND_UCLM, '"version": "busbra (v7 pipeline + BUS-BRA)"', '"version": "uclm (BUS-BRA notebook + BUS-UCLM)"')
+_edit(BREAST_ULTRASOUND_UCLM, '"BUS-BRA (Gómez-Flores et al., Medical Physics 2024)"],',
+      '"BUS-BRA (Gómez-Flores et al., Medical Physics 2024)",\n                    "BUS-UCLM (Vallez et al., Scientific Data 2025, CC BY 4.0)"],')
+_i = next(i for i, (_, src) in enumerate(BREAST_ULTRASOUND_UCLM) if src.startswith("V7_SPLIT_CSV"))
+BREAST_ULTRASOUND_UCLM[_i] = ("code", "PRIOR_SPLIT_CSV = '''" + (Path(__file__).parent / "busbra_split.csv").read_text(encoding="utf-8") + "'''")
+
+
 if __name__ == "__main__":
+    write("breast_ultrasound_uclm", "femora-breast-ultrasound-resnet50-uclm", "Femora Breast Ultrasound ResNet50 UCLM",
+          ["aryashah2k/breast-ultrasound-images-dataset", "orvile/bus-bra-a-breast-ultrasound-dataset",
+           "orvile/bus-uclm-breast-ultrasound-dataset", "prasunroy/natural-images",
+           "paultimothymooney/chest-xray-pneumonia", "navoneel/brain-mri-images-for-brain-tumor-detection"],
+          BREAST_ULTRASOUND_UCLM, gpu=True)
     write("breast_ultrasound_busbra", "femora-breast-ultrasound-resnet50-busbra", "Femora Breast Ultrasound ResNet50 BUSBRA",
           ["aryashah2k/breast-ultrasound-images-dataset", "orvile/bus-bra-a-breast-ultrasound-dataset", "prasunroy/natural-images",
            "paultimothymooney/chest-xray-pneumonia", "navoneel/brain-mri-images-for-brain-tumor-detection"],
