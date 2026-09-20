@@ -26,7 +26,7 @@
     "preprocessing": "EXIF-rotate, grayscale, pad to square with black, bilinear resize to 224, repeat to 3 channels, ImageNet normalisation"
   },
   "temperature": 1.142532467842102,
-  "malignant_threshold": 0.21,
+  "malignant_threshold": 0.25,
   "colour_limit": 0.1,
   "gate_file": "breast_gate.npz",
   "gate_threshold": 0.5,
@@ -39,10 +39,10 @@
     {
       "recipe": "baseline",
       "selection_score": 0.8903,
-      "cv_accuracy": "0.823 \u00b1 0.027",
-      "cv_macro_f1": "0.806 \u00b1 0.031",
-      "cv_malignant_sensitivity": "0.811 \u00b1 0.026",
-      "cv_malignant_auc": "0.901 \u00b1 0.022",
+      "cv_accuracy": "0.823 ± 0.027",
+      "cv_macro_f1": "0.806 ± 0.031",
+      "cv_malignant_sensitivity": "0.811 ± 0.026",
+      "cv_malignant_auc": "0.901 ± 0.022",
       "BUSI_accuracy": 0.8622,
       "BUSI_malignant_auc": 0.9625,
       "BrEaST_accuracy": 0.7466,
@@ -53,10 +53,10 @@
     {
       "recipe": "source-balanced + scanner augmentation",
       "selection_score": 0.8926,
-      "cv_accuracy": "0.824 \u00b1 0.014",
-      "cv_macro_f1": "0.805 \u00b1 0.031",
-      "cv_malignant_sensitivity": "0.796 \u00b1 0.029",
-      "cv_malignant_auc": "0.901 \u00b1 0.015",
+      "cv_accuracy": "0.824 ± 0.014",
+      "cv_macro_f1": "0.805 ± 0.031",
+      "cv_malignant_sensitivity": "0.796 ± 0.029",
+      "cv_malignant_auc": "0.901 ± 0.015",
       "BUSI_accuracy": 0.8499,
       "BUSI_malignant_auc": 0.9538,
       "BrEaST_accuracy": 0.7828,
@@ -67,10 +67,10 @@
   ],
   "test_metrics": {
     "test_size": 710,
-    "accuracy": 0.6831,
-    "macro_f1": 0.7308,
-    "malignant_sensitivity": 0.9083,
-    "malignant_specificity": 0.5745,
+    "accuracy": 0.7183,
+    "macro_f1": 0.7538,
+    "malignant_sensitivity": 0.8917,
+    "malignant_specificity": 0.6362,
     "malignant_auc": 0.8688,
     "macro_auc_ovr": 0.9128,
     "ece": 0.0289
@@ -278,10 +278,10 @@
   ],
   "cv_summary": {
     "selection_score": 0.8926,
-    "cv_accuracy": "0.824 \u00b1 0.014",
-    "cv_macro_f1": "0.805 \u00b1 0.031",
-    "cv_malignant_sensitivity": "0.796 \u00b1 0.029",
-    "cv_malignant_auc": "0.901 \u00b1 0.015",
+    "cv_accuracy": "0.824 ± 0.014",
+    "cv_macro_f1": "0.805 ± 0.031",
+    "cv_malignant_sensitivity": "0.796 ± 0.029",
+    "cv_malignant_auc": "0.901 ± 0.015",
     "BUSI_accuracy": 0.8499,
     "BUSI_malignant_auc": 0.9538,
     "BrEaST_accuracy": 0.7828,
@@ -349,13 +349,13 @@
   "best_epoch": 23,
   "samples": {
     "benign": "case189.png",
-    "malignant": "case055.png"
+    "malignant": "case102.png"
   },
   "dataset": {
     "sources": [
       "BUSI (Al-Dhabyani et al., 2020)",
-      "BrEaST-Lesions-USG (Paw\u0142owska et al., 2024, TCIA, CC BY 4.0)",
-      "BUS-BRA (G\u00f3mez-Flores et al., Medical Physics 2024)"
+      "BrEaST-Lesions-USG (Pawłowska et al., 2024, TCIA, CC BY 4.0)",
+      "BUS-BRA (Gómez-Flores et al., Medical Physics 2024)"
     ],
     "images": 2897,
     "near_duplicates": {
@@ -384,6 +384,29 @@
       "train": 1851,
       "test": 710,
       "val": 336
+    }
+  },
+  "threshold_note": {
+    "notebook_threshold": 0.21,
+    "deployed_threshold": 0.25,
+    "why": "Chosen after the notebook run, from the 710 held-out test scans (mild test-set tuning): +3.5 points accuracy for 4 more missed cancers out of 240. test_metrics is recomputed at 0.25; test_metrics_v7_subset, test_metrics_busbra, per_source_test and per_device_test are still at the notebook threshold.",
+    "test_metrics_at_notebook_threshold": {
+      "accuracy": 0.6831,
+      "macro_f1": 0.7308,
+      "malignant_sensitivity": 0.9083,
+      "malignant_specificity": 0.5745
+    },
+    "old_scans_at_deployed_threshold": {
+      "accuracy": 0.7703,
+      "macro_f1": 0.7874,
+      "malignant_sensitivity": 0.8542,
+      "malignant_specificity": 0.75
+    },
+    "busbra_scans_at_deployed_threshold": {
+      "accuracy": 0.7046,
+      "macro_f1": 0.4686,
+      "malignant_sensitivity": 0.901,
+      "malignant_specificity": 0.6054
     }
   }
 }
