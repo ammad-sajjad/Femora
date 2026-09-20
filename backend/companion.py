@@ -110,6 +110,9 @@ BREATH_CHEST = ["chest pain", "can't breathe", "cannot breathe", "short of breat
 HEAVY_BLEED = ["heavy bleeding", "soaking a pad", "soaking pads", "soaked through a pad", "bleeding a lot", "won't stop bleeding",
                "bahut zyada khoon", "bohat khoon", "khoon nahi ruk", "شدید خون", "بہت خون", "خون نہیں رک"]
 FAINT_SEIZURE = ["fainted", "passed out", "seizure", "convulsion", "unconscious", "behosh", "بے ہوش", "دورہ پڑ"]
+BLEED_WORDS = ["bleeding", "bleed", "blood", "khoon", "خون"]
+BLEED_INTENSITY = ["heavy", "a lot", "too much", "soaking", "flooding", "clots", "zyada", "zyadah", "bohat", "bohot", "bahut", "boht", "bahot",
+                   "شدید", "بہت", "زیادہ", "کافی"]
 PREGNANCY_WORDS = ["pregnan", "hamila", "hamilah", "حاملہ", "حمل", "expecting", "baby movement", "fetal movement", "baby is not moving"]
 PREGNANCY_DANGER = ["bleeding", "khoon", "خون", "severe headache", "swelling", "blurred vision", "not moving", "no movement", "reduced movement",
                     "convulsion", "seizure", "severe pain", "shadeed dard", "sar dard", "سر درد", "سوجن", "شدید درد", "حرکت نہیں", "حرکت کم"]
@@ -126,7 +129,8 @@ def detect_red_flags(text: str) -> str | None:
     t = text.lower()
     if _has(t, SELF_HARM):
         return "self_harm"
-    if _has(t, BREATH_CHEST) or _has(t, HEAVY_BLEED) or _has(t, FAINT_SEIZURE):
+    heavy_bleed = _has(t, HEAVY_BLEED) or (_has(t, BLEED_WORDS) and _has(t, BLEED_INTENSITY))  # "bohat zyada bleeding", "heavy blood loss"
+    if _has(t, BREATH_CHEST) or heavy_bleed or _has(t, FAINT_SEIZURE):
         return "emergency"
     if _has(t, PREGNANCY_WORDS) and _has(t, PREGNANCY_DANGER):
         return "emergency"

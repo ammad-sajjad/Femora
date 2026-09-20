@@ -415,7 +415,7 @@ table(["Item", "Detail"], [
 ], [3.6, 13.0], caption="App technology")
 H2("4.2 Screens")
 table(["Screen (bottom tab)", "What it does", "State"], [
-    ["Home dashboard", "Cycle ring, daily quick-log chips and summary cards", "Prototype: static values (for example cycle day 12); not yet wired to the health store"],
+    ["Home dashboard", "Health snapshot (PCOS, ultrasound, breast risk, self-exam), quick log, next-step card", "Working: reads the health store; the old fake cycle day, hormone cards and insight text were removed because there is no cycle prediction yet"],
     ["Cycle calendar", "Calendar, phase display, daily symptom, mood and notes log", "Log saved on the phone (one entry a day); no prediction yet"],
     ["PCOS assessment", "Questionnaire (four sections), risk gauge, factor tags, guidance cards", "Working: calls /predict/pcos"],
     ["Breast health", "Ultrasound upload and result with heatmap; risk questionnaire and result; self-exam guide and reminder", "Working: calls both breast endpoints"],
@@ -905,9 +905,9 @@ table(["What", "How", "Result"], [
     ["Wrong uploads", "Colour noise and a grayscale gradient", "Both refused with an explanatory message"],
     ["Threshold change", "Reran the model on all 710 test scans; first reproduced the notebook's 68.3% at 0.21", "Reproduced, then 71.8% at 0.25"],
     ["Risk questionnaire", "Eight profiles through the API", "Risk rises with each added factor; no placeholder warning"],
-    ["Flutter tests", "Breast flows, PCOS flow, server-address logic, health store, chat state, companion screen with a fake microphone, onboarding and app launch, report builder", "48 of 48 pass; flutter analyze reports no errors or warnings"],
-    ["Companion backend tests", "backend/tests/test_companion.py: safety detector, language detection, prompt building, request validation, rate limit, speech clean-up, fallback (Gemini calls are faked)", "46 of 46 pass"],
-    ["Live Gemini check", "Real calls with the developer's key: English and Urdu chat, red-flag questions, Urdu speech to text, text to speech", "Chat 1.5 to 3 s, speech synthesis 4 to 6 s; Urdu speech transcribed in Urdu script after a stricter prompt and an automatic retry"],
+    ["Flutter tests", "Breast flows, PCOS flow, server-address logic, health store, chat state, companion screen with a fake microphone, onboarding and app launch, report builder", "54 of 54 pass; flutter analyze reports no errors or warnings"],
+    ["Companion backend tests", "backend/tests/test_companion.py: safety detector, language detection, prompt building, request validation, rate limit, speech clean-up, fallback (Gemini calls are faked)", "50 of 50 pass"],
+    ["Live Gemini check", "Real calls with the developer's key against the running backend: English and Urdu chat with personal context, emergency and breast-lump wording, a prompt-injection attempt, Urdu speech to text, text to speech, both models, both demo scans and a colour photo", "Chat 1.5 to 3 s, speech synthesis 4 to 6 s; Urdu speech transcribed in Urdu script after a stricter prompt and an automatic retry"],
     ["Notebooks", "Every Kaggle notebook was run first as a tiny smoke test, then in full", "All stages ran; ONNX parity checks passed"],
     ["Backend boot", "Clean environment, pinned requirements, port 7860", "/health, scan, risk and /docs all answered"],
     ["Tunnel", "Script self-test", "Public HTTPS address reached the backend"],
@@ -992,10 +992,10 @@ H1("12. Remaining work and recommended order")
 table(["Order", "Item (scope ref.)", "What is needed"], [
     ["1", "Trend charts for the symptom and mood log (6.10)", "Basic saving is done (section 13); charts, sleep and stress inputs remain"],
     ["2", "Cycle tracking and prediction (6.2)", "Random Forest on the Fehring data, then an LSTM on the IEEE mcPHASES data; real calendar instead of hard-coded days"],
-    ["3", "Companion improvements (6.7)", "Grounded knowledge base (retrieval from NIH, CDC and MedlinePlus text), a question-set evaluation, clinician review of wording, Home screen wired to the health store"],
+    ["3", "Companion improvements (6.7)", "Grounded knowledge base (retrieval from NIH, CDC and MedlinePlus text), a question-set evaluation, clinician review of wording, trend charts on Home"],
     ["4", "Accounts (6.1)", "Authentication and cloud backup; the first-launch profile itself is done"],
     ["5", "Pregnancy mode, reminders, hormonal insights (6.5, 6.8, 6.6)", "Pregnancy tracking and warning signs; period, ovulation, medication and hydration reminders; phase-specific insights"],
-    ["6", "Report history and dashboard (6.9)", "The one-tap report exists; saved history, charts and a Home dashboard from real data remain"],
+    ["6", "Report history (6.9)", "The one-tap report and the Home snapshot exist; saved report history and charts remain"],
     ["7", "Hardening", "Run on a real phone, real hosting with authentication, optional lesion-focused ultrasound model, mammography (future work)"],
 ], [1.5, 5.6, 9.5], caption="Suggested plan")
 
@@ -1084,14 +1084,15 @@ para("Question-and-answer datasets (for example medical exam or consumer-health 
      "Both are recorded as the next step for the companion; neither is built yet.")
 H2("13.9 Tests")
 table(["Suite", "Count", "What it covers"], [
-    ["backend/tests/test_companion.py", "46", "Red-flag detector in three languages, language detection, prompt construction and injection wording, request limits, rate limit, speech clean-up, PCM to WAV, fallback replies, endpoints with a faked Gemini"],
-    ["test/health_store_test.dart", "part of 38 new", "Saving and loading, one log entry a day and a 60-entry cap, name-free context text, clear-all"],
-    ["test/chat_state_test.dart", "part of 38 new", "History rules, personalisation switch, retry of an unanswered message, persistence"],
-    ["test/companion_flow_test.dart", "part of 38 new", "Typing indicator, suggestion chips, failed message and Try again, urgent highlight, full voice flow with a fake microphone, missing permission, speaker button, Delete all my data"],
-    ["test/app_flow_test.dart", "part of 38 new", "First launch shows onboarding, skipping is remembered, form validation, editing a saved profile"],
-    ["test/report_service_test.dart", "part of 38 new", "Empty, sample and full reports build as valid PDFs; long logs spill onto more pages; report IDs"],
+    ["backend/tests/test_companion.py", "50", "Red-flag detector in three languages, language detection, prompt construction and injection wording, request limits, rate limit, speech clean-up, PCM to WAV, fallback replies, endpoints with a faked Gemini"],
+    ["test/health_store_test.dart", "part of 44 new", "Saving and loading, one log entry a day and a 60-entry cap, name-free context text, clear-all"],
+    ["test/chat_state_test.dart", "part of 44 new", "History rules, personalisation switch, retry of an unanswered message, persistence"],
+    ["test/companion_flow_test.dart", "part of 44 new", "Typing indicator, suggestion chips, failed message and Try again, urgent highlight, full voice flow with a fake microphone, missing permission, speaker button, Delete all my data"],
+    ["test/app_flow_test.dart", "part of 44 new", "First launch shows onboarding, skipping is remembered, form validation, editing a saved profile"],
+    ["test/home_flow_test.dart", "part of 44 new", "Home shows the real name and only real results, empty state, rows open the right tab, next-step rules, relative dates"],
+    ["test/report_service_test.dart", "part of 44 new", "Empty, sample and full reports build as valid PDFs; long logs spill onto more pages; report IDs"],
 ], [5.6, 2.6, 8.4], caption="New tests", size=8.5,
-    note="All 48 Flutter tests (10 earlier plus 38 new) and all 46 backend tests pass. The companion screen's real speech recognition and the real microphone are not covered by automatic tests because they need a phone.")
+    note="All 54 Flutter tests (10 earlier plus 44 new) and all 50 backend tests pass. The companion screen's real speech recognition and the real microphone are not covered by automatic tests because they need a phone.")
 H2("13.10 Defects found while building, and their fixes")
 table(["Problem", "Fix"], [
     ["A coloured card containing a switch tile threw a Material assertion (real UI bug caught by a test)", "Wrapped the tile in a transparent Material"],
@@ -1099,6 +1100,9 @@ table(["Problem", "Fix"], [
     ["Urdu speech was transcribed in Devanagari", "Stricter prompt and automatic retry"],
     ["Report watermark covered the text", "Much lighter colour"],
     ["The mock chat and a fake pre-selected symptom were still in the app", "Removed; the chat is real and symptoms start empty"],
+    ["Home tab greeted every user as Ayesha and showed a fake cycle day, stress, sleep and insight (found while checking the app in Chrome)", "Home rewritten to read the health store; fake values removed; six new tests"],
+    ["The emergency detector missed \"mujhe bohat zyada bleeding ho rahi hai aur chakkar aa rahe hain\" (found by the live check; the model advised a doctor, but no urgent flag was set)", "A bleeding word together with an intensity word (heavy, a lot, bohat, zyada, Urdu equivalents) now counts as an emergency; four new tests"],
+    ["An older backend process was still running on port 8000 without the companion (found while starting the check)", "Killed and restarted; the demo script and README stress restarting the server after updates"],
 ], [8.0, 8.6], caption="Issues and fixes", size=8.5)
 
 # ================================================================== 14 CONCLUSION
