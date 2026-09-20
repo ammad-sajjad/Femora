@@ -5,6 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/breast.dart';
+import '../models/chat_state.dart';
+import '../models/health_store.dart';
 import '../models/insights.dart';
 import '../models/models.dart';
 import '../models/self_exam.dart';
@@ -125,12 +127,13 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
         MaterialPageRoute(builder: (_) => const SelfExamGuideScreen()),
       );
 
+  /// Opens the AI companion and asks it about the result just shown (its context already includes that result).
   void _askAi(String question, String summary) {
-    context.read<AppState>().discussResult(
-          question: question,
-          answer: '$summary\n\nYou can ask me what these results mean, what happens at a follow-up appointment, '
-              'or how to do a self-exam.',
-        );
+    final chat = context.read<ChatState>();
+    final store = context.read<HealthStore>();
+    final lastExam = context.read<SelfExamState>().lastExam;
+    context.read<AppState>().setTab(4); // AI companion tab
+    chat.send(question, store: store, lastSelfExam: lastExam);
   }
 
   Future<void> _toggleReminder(bool on) async {
