@@ -3,10 +3,27 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart' show MediaType;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/breast.dart';
 import '../models/pcos.dart';
+
+class ChatReply {
+  final String reply;
+  final bool fromModel; // false when the server used its offline fallback
+  final String urgency; // none | soon | urgent
+  final String language; // en | ur
+
+  const ChatReply({required this.reply, required this.fromModel, required this.urgency, required this.language});
+
+  factory ChatReply.fromJson(Map<String, dynamic> json) => ChatReply(
+        reply: json['reply'] as String,
+        fromModel: json['source'] == 'gemini',
+        urgency: json['urgency'] as String,
+        language: json['language'] as String,
+      );
+}
 
 class ApiException implements Exception {
   final String message;
@@ -89,6 +106,45 @@ class ApiService {
     return _parse(() => BreastScanResult.fromJson(json));
   }
 
+  /// One turn with the AI companion. [context] is the compact, name-free summary of the user's own results.
+  Future<ChatReply> chat({required List<Map<String, String>> messages, String? context, String language = 'auto'}) async {
+    final json = await _post('/chat', {'messages': messages, 'context': context, 'language': language},
+        timeout: const Duration(seconds: 40));
+    return _parse(() => ChatReply.fromJson(json));
+  }
+
+  /// Speech to text: [wav] is a short recording (16 kHz mono WAV).
+  Future<String> transcribe(Uint8List wav, {String language = 'auto'}) async {
+    final json = await _send(
+      () async {
+        final request = http.MultipartRequest('POST', Uri.parse('$baseUrl/voice/transcribe'))
+          ..fields['language'] = language
+          ..files.add(http.MultipartFile.fromBytes('audio', wav, filename: 'recording.wav', contentType: MediaType('audio', 'wav')));
+        return http.Response.fromStream(await _client.send(request));
+      },
+      timeout: const Duration(seconds: 50),
+    );
+    return _parse(() => (json['text'] as String).trim());
+  }
+
+  /// Text to speech: returns a WAV file spoken by the server's voice.
+  Future<Uint8List> speak(String text, {String language = 'auto'}) async {
+    final http.Response response;
+    try {
+      response = await _client
+          .post(Uri.parse('$baseUrl/voice/speak'), headers: {'Content-Type': 'application/json'}, body: jsonEncode({'text': text, 'language': language}))
+          .timeout(const Duration(seconds: 70));
+    } on TimeoutException {
+      throw ApiException('The voice took too long. Please read the text instead.');
+    } catch (_) {
+      throw ApiException('Could not reach the Femora server. Check your connection and try again.');
+    }
+    if (response.statusCode != 200) {
+      throw ApiException(_detail(response) ?? 'Voice is not available right now.');
+    }
+    return response.bodyBytes;
+  }
+
   T _parse<T>(T Function() fromJson) {
     try {
       return fromJson();
@@ -97,13 +153,13 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> _post(String path, Map<String, dynamic> body) => _send(
+  Future<Map<String, dynamic>> _post(String path, Map<String, dynamic> body, {Duration timeout = const Duration(seconds: 15)}) => _send(
         () => _client.post(
           Uri.parse('$baseUrl$path'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode(body),
         ),
-        timeout: const Duration(seconds: 15),
+        timeout: timeout,
       );
 
   Future<Map<String, dynamic>> _send(Future<http.Response> Function() request, {required Duration timeout}) async {
@@ -116,7 +172,7 @@ class ApiService {
       throw ApiException('Could not reach the Femora server. Check your connection and try again.');
     }
 
-    if (response.statusCode == 413 || response.statusCode == 422) {
+    if (const {413, 422, 429, 502, 503}.contains(response.statusCode)) {
       // The server explains rejected uploads (e.g. "not an ultrasound") in `detail`;
       // form validation errors come back as a list instead.
       throw ApiException(_detail(response) ?? 'Some answers look invalid. Please review the form.');

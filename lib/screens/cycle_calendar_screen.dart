@@ -162,6 +162,48 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                     ),
                     const SizedBox(height: 22),
 
+                    // Mood
+                    const Text(
+                      'Mood',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        for (final (id, emoji, label) in moodOptions)
+                          GestureDetector(
+                            key: Key('mood_$id'),
+                            onTap: () => appState.setMood(id),
+                            child: Container(
+                              width: 58,
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
+                                color: appState.mood == id ? const Color(0xFFFFDFE8) : AppColors.cardWhite,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: appState.mood == id ? AppColors.primaryBerry : const Color(0xFFE8E4EE),
+                                  width: appState.mood == id ? 1.6 : 1,
+                                ),
+                              ),
+                              child: Column(
+                                children: [
+                                  Text(emoji, style: const TextStyle(fontSize: 22)),
+                                  const SizedBox(height: 2),
+                                  Text(label, style: const TextStyle(fontFamily: 'Inter', fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 22),
+
                     // Notes Section
                     const Text(
                       'Notes',

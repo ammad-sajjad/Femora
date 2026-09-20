@@ -96,7 +96,10 @@ class PcosResult {
 class PcosState extends ChangeNotifier {
   final ApiService _api;
 
-  PcosState({ApiService? api}) : _api = api ?? ApiService();
+  /// Called after each successful prediction (the health store records it).
+  final void Function(PcosResult result)? onResult;
+
+  PcosState({ApiService? api, this.onResult}) : _api = api ?? ApiService();
 
   PcosResult? _result;
   PcosResult? get result => _result;
@@ -114,6 +117,7 @@ class PcosState extends ChangeNotifier {
     try {
       _result = await _api.predictPcos(answers);
       _lastAnswers = answers;
+      onResult?.call(_result!);
       return null;
     } on ApiException catch (e) {
       return e.message;
