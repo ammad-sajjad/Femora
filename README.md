@@ -28,6 +28,17 @@ Check it at http://localhost:8000/docs.
 
 Find your computer's IP on macOS with `ipconfig getifaddr en0`.
 
+## Demo on a phone (free tunnel from your PC)
+
+The models run on the backend, so the phone needs to reach it. Hosting options were checked: Hugging Face Docker Spaces now need a paid PRO plan, so the demo uses a free Cloudflare quick tunnel to the backend on the PC.
+
+1. One-time: download `cloudflared` for Windows to `D:\dl	unnel\cloudflared.exe` (or set the `CLOUDFLARED` environment variable to its path).
+2. Run `powershell -ExecutionPolicy Bypass -File scripts\start_demo.ps1`. It starts the backend and the tunnel, checks `/health`, and prints an address such as `https://xxxx.trycloudflare.com`. Press Enter in that window to stop both.
+3. In the app, **long-press the header** (the "femora" logo row on any main screen) → *Server address* → paste the address → Save. It is remembered on the phone, so a new tunnel address needs no rebuild. *Reset* restores the default.
+4. The PC must stay on and awake during the demo. The address changes every time the tunnel restarts.
+
+The backend also has Docker files (`backend/Dockerfile`, `backend/requirements-space.txt`) for any Docker host (Railway, Render, Cloud Run, or a Hugging Face PRO Space); it listens on port 7860.
+
 ## Models
 
 | Model | Notebook | Status |
