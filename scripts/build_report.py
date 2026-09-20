@@ -904,6 +904,25 @@ table(["Test file", "Real label", "Expected in the app"], [
 para("**How to run the check:** (1) start the demo script and set the server address in the app; (2) copy the kit to the phone; (3) in the Breast tab choose Upload, then Choose from Gallery, and open each file in turn; "
      "(4) compare the title and percentage, check that the heatmap toggle appears for benign and malignant results only, that the guidance cards and the disclaimer show, and that the two wrong images are refused with a message; "
      "(5) also try the two built-in sample scans and an ordinary photo from the gallery (it should be refused).")
+H2("10.2 Checking the two questionnaires on a phone")
+para("A checklist file (femora-questionnaire-tests.txt, on the developer's Desktop) lists the exact answers to enter and the results the server gives. The expected values were produced by the running backend.")
+table(["Test", "Answers to enter (in short)", "Expected result"], [
+    ["PCOS P1", "24 y, 165 cm, 58 kg, regular cycles, no symptoms, exercises", "about 1%, Low, Healthy Habits"],
+    ["PCOS P2", "P1 plus acne", "about 1%, Low, tag Acne"],
+    ["PCOS P3", "P1 but irregular cycles, weight gain, 70 kg", "about 7%, Low, BMI 25.7"],
+    ["PCOS P4", "irregular, weight gain, hair growth, skin darkening, acne, fast food, no exercise", "about 99%, High, See a Specialist"],
+    ["PCOS P5", "P4 without waist and hip", "still about 99%, High"],
+    ["Risk R1", "45 y, no risk factors", "0.33% a year, 0.99 x, Low"],
+    ["Risk R2", "one close relative", "0.42%, 1.26 x, Low, Family History"],
+    ["Risk R3", "two or more relatives", "0.49%, 1.47 x, Medium"],
+    ["Risk R4", "two or more relatives, biopsy, density d", "0.67%, 2.02 x, Medium, three factors"],
+    ["Risk R5", "60 y, post-menopausal", "0.62%, 1.04 x, Low"],
+    ["Risk R6", "25 y", "0.23%, 0.83 x, Low, note about the 35 to 84 range"],
+    ["Risk R7", "45 y plus breast lump", "risk unchanged; red flag Breast Lump, urgent, See a Doctor Within 2 Weeks"],
+    ["Risk R8", "38 y plus nipple discharge", "red flag, soon (urgent only from age 50)"],
+    ["Risk R9", "45 y plus breast pain only", "no red flag"],
+], [2.6, 8.0, 6.0], caption="Phone test profiles for the questionnaires", size=8.5, first_bold=True,
+    note="Form checks: unanswered required questions block submission; out-of-range numbers show their allowed range; with the server stopped the app shows \"Could not reach the Femora server\" and keeps the form open.")
 
 # ================================================================== 11 LIMITS + ETHICS
 H1("11. Limitations, ethics and risks")
