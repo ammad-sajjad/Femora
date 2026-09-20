@@ -45,7 +45,7 @@ The AI tab is a personal companion: it chats in English and Urdu, listens (mic b
 
 **Backend setup (one time):** create `backend/.env` containing one line, `GEMINI_API_KEY=<your key>` (git-ignored and docker-ignored; never commit it). Restart the backend / `scripts\start_demo.ps1` so it loads the key and the new code. Without a key the companion still answers from a small offline rule set (`source: fallback`). Check `GET /health` → `"companion": true`.
 
-Endpoints (`backend/companion.py`): `GET /companion/status`, `POST /chat`, `POST /voice/transcribe`, `POST /voice/speak`. Models: chat and speech-to-text `gemini-3.1-flash-lite` (backup `gemini-3.6-flash`), text-to-speech `gemini-3.1-flash-tts-preview`. Emergency red flags are detected in code (English, Roman Urdu, Urdu), not by the model. Tests: `backend/.venv/Scripts/python -m pytest backend/tests` (46) and `flutter test` (48). The free Gemini tier may use submitted text to improve Google products; use a paid key before real users.
+Endpoints (`backend/companion.py`): `GET /companion/status`, `POST /chat`, `POST /voice/transcribe`, `POST /voice/speak`. Models: chat and speech-to-text `gemini-3.1-flash-lite` (backup `gemini-3.6-flash`), text-to-speech `gemini-3.1-flash-tts-preview`. Emergency red flags are detected in code (English, Roman Urdu, Urdu), not by the model. Tests: `backend/.venv/Scripts/python -m pytest backend/tests` (50) and `flutter test` (54). The free Gemini tier may use submitted text to improve Google products; use a paid key before real users.
 
 ## Project report
 
