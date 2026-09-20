@@ -693,7 +693,7 @@ bullets([
 rows = [[r["images"], r["n"], pct(r["rejected_colour"]), pct(r["rejected_gate"]), pct(r["rejected_total"])] for r in UB["ood_evaluation"]]
 table(["Uploaded images", "Count", "Rejected by colour", "Rejected by gate", "Rejected in total"], rows, [6.2, 1.6, 2.9, 2.9, 3.0],
       caption="Ultrasound gate (deployed model)", align_right_from=1,
-      note="Real test ultrasounds are never wrongly rejected. About 6% of unseen brain MRIs still pass, so a dark fan-shaped image of the wrong body part is not guaranteed to be refused.")
+      note="Real test ultrasounds are never wrongly rejected. About 6% of unseen brain MRIs still pass, so a dark fan-shaped image of the wrong body part is not guaranteed to be refused. Ultrasounds of other organs were not part of this test, and one such image passed (section 6.13).")
 figure("ml/output/breast_busbra/model/breast_gate.png", "Gate score distributions for ultrasounds and the other image types (log scale).", 12.5)
 H2("6.10 The screening threshold decision")
 para("The notebook fitted a threshold of 0.21 (at least 90% of cancers caught on out-of-fold predictions). After the results were in, the threshold "
@@ -721,7 +721,27 @@ bullets([
     "The Toshiba scanner, the BrEaST hospital and the U-Systems scanner remain weak; they need more scans from those machines.",
     "Telling benign from malignant on a single ultrasound image is hard even for radiologists, so further gains from retraining are expected to be small.",
     "All training hospitals are in Egypt, Poland and Brazil; none is in Pakistan.",
+    "**Ultrasounds of other body parts are not refused.** The gate was trained against photos and X-rays, not against ultrasounds of other organs, so a non-breast ultrasound passes and receives a breast verdict (section 6.13).",
 ])
+H2("6.13 Informal check with images from the web")
+para("Because users may try images found online, two experiments were run through the running server (20 September 2026). They are informal: two real web images are far too few to estimate accuracy.")
+H3("Real images from Wikipedia (free licences; descriptions give the label)")
+table(["Image", "Description", "App result"], [
+    ["Mamma ca 1.jpg (497 x 344 px)", "Breast carcinoma on ultrasound (malignant)", "Suspicious Finding, 93%: correct"],
+    ["Breast US Fibroadenoma (Nevit, 600 x 550 px)", "Fibroadenoma (benign)", "Suspicious Finding, 66%: a false alarm (malignant 66%, benign 29%)"],
+    ["Ultrasound Scan ND (800 x 600 px)", "Generic medical ultrasound, organ not stated (not a breast scan)", "Passed the gate and returned Likely Benign, 96%: should have been refused"],
+], [5.4, 5.6, 5.6], caption="Web images through the deployed model", size=8.5,
+    note="The images were taken from Wikipedia articles (the Wikimedia Commons site itself was not reachable from the development PC). The benign false alarm is consistent with the measured false-alarm rate (about a third of non-cancer scans).")
+H3("Web-style damage to the seven test-kit scans")
+table(["Change applied", "Same answer as the clean upload", "Refused by the checks", "Different answer"], [
+    ["Heavy JPEG compression (quality 30)", "7 of 7", "0", "0"],
+    ["Low resolution (shrunk to a quarter, enlarged back)", "7 of 7", "0", "0"],
+    ["Annotation marks and text (white line, yellow crosses, caption)", "7 of 7", "0", "0"],
+    ["Sepia colour tint", "4 of 7", "3", "0"],
+], [7.4, 3.8, 2.8, 2.6], caption="Robustness to typical web changes (7 scans)", size=8.5, align_right_from=1,
+    note="Confidence moved by up to about 35 points on one scan with annotation marks (79% to 44%), but the class did not change. Tinted images are often refused because the colour check treats them as photos or Doppler scans.")
+para("**Conclusion.** Compression, low resolution and on-screen marks do not change the answer. Colour-tinted or colour Doppler images are refused. Grayscale ultrasounds of other organs are wrongly accepted, and a benign lesion can still be flagged, so results on web images "
+     "should not be read as validation. A future improvement is to add ultrasounds of other organs (abdomen, thyroid, obstetric) as negatives when training the gate.")
 
 # ================================================================== 7 RISK
 H1("7. Breast cancer risk questionnaire (component B)")
@@ -892,6 +912,7 @@ table(["Failure", "Consequence", "Mitigation today", "Still needed"], [
     ["Cancer missed by the ultrasound model (about 11% of malignant scans)", "False reassurance", "Low screening threshold; every result advises a doctor; disclaimer", "Clinical validation; clear wording that a benign result is not a clearance"],
     ["Benign scan flagged suspicious (about 36% of non-cancer scans)", "Worry, an unneeded visit", "Wording \"suspicious, get it checked\"; guidance says most findings prove benign", "Explain real-world prevalence in the app"],
     ["Wrong image uploaded", "Meaningless prediction", "Colour check and ultrasound gate (about 6% of unseen brain MRIs still pass)", "A stronger out-of-distribution check"],
+    ["Ultrasound of another body part", "A breast verdict for a non-breast scan (observed once)", "None: the gate was not trained against other ultrasounds", "Add other-organ ultrasounds as gate negatives"],
     ["New scanner or hospital", "Lower accuracy than reported", "Trained on three hospitals and four scanners", "More local data; per-scanner monitoring"],
     ["Risk model on a different population", "Miscalibrated risk", "Relative-to-age wording", "Validation on local data"],
     ["Server unreachable", "No result", "Clear error messages, form stays open", "Real hosting; offline fallback"],
@@ -1067,6 +1088,8 @@ qa = [
      "Yes in practice: a second build from the same source produced a byte-for-byte identical file (same SHA-256), so the APK on the phone matches the code in the repository."),
     ("Q28. What is not finished?",
      "About two thirds of the scope: cycle tracking and prediction, symptom and mood logging, the AI companion and breast chatbot, onboarding, pregnancy mode, most reminders, reports. Section 12 gives the plan."),
+    ("Q29. Will it work on ultrasound images downloaded from the internet?",
+     "Often, with limits. In an informal check, compression, low resolution and annotation marks did not change the answer on 7 of 7 test scans; colour-tinted images were refused; a real carcinoma image was flagged (93%), a real fibroadenoma image was a false alarm (66% malignant), and a generic non-breast ultrasound was wrongly accepted. Two images cannot measure accuracy, so web images should be used only for demonstrations (section 6.13)."),
 ]
 table(["Question", "Answer"], [[q, a] for q, a in qa], [5.4, 11.2], caption="Anticipated questions", size=8.5, first_bold=True)
 
