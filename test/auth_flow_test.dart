@@ -1,7 +1,6 @@
 import 'package:femora/models/auth_state.dart';
 import 'package:femora/models/health_store.dart';
 import 'package:femora/screens/auth_screen.dart';
-import 'package:femora/services/auth_service.dart';
 import 'package:femora/widgets/companion_effects.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

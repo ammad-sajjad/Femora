@@ -1,0 +1,949 @@
+{
+ "data": {
+  "women": 159,
+  "cycles": 1665,
+  "predictions": 1665,
+  "cycle_length_mean": 29.3,
+  "cycle_length_sd": 3.89
+ },
+ "tau_mean": 1.08,
+ "length": {
+  "day one (0 cycles)": {
+   "pop_mean": {
+    "n": 159,
+    "mae": 3.08,
+    "within2": 0.509,
+    "within3": 0.673,
+    "within5": 0.862
+   },
+   "pop_median": {
+    "n": 159,
+    "mae": 3.14,
+    "within2": 0.503,
+    "within3": 0.648,
+    "within5": 0.843
+   },
+   "last": {
+    "n": 159,
+    "mae": 3.08,
+    "within2": 0.509,
+    "within3": 0.673,
+    "within5": 0.862
+   },
+   "user_mean": {
+    "n": 159,
+    "mae": 3.08,
+    "within2": 0.509,
+    "within3": 0.673,
+    "within5": 0.862
+   },
+   "user_ewma": {
+    "n": 159,
+    "mae": 3.08,
+    "within2": 0.509,
+    "within3": 0.673,
+    "within5": 0.862
+   },
+   "shrink": {
+    "n": 159,
+    "mae": 3.08,
+    "within2": 0.509,
+    "within3": 0.673,
+    "within5": 0.862
+   },
+   "rf_all": {
+    "n": 159,
+    "mae": 3.2,
+    "within2": 0.415,
+    "within3": 0.642,
+    "within5": 0.843
+   },
+   "rf_day1": {
+    "n": 159,
+    "mae": 3.19,
+    "within2": 0.453,
+    "within3": 0.642,
+    "within5": 0.855
+   }
+  },
+  "1 cycle": {
+   "pop_mean": {
+    "n": 148,
+    "mae": 2.88,
+    "within2": 0.547,
+    "within3": 0.709,
+    "within5": 0.885
+   },
+   "pop_median": {
+    "n": 148,
+    "mae": 2.88,
+    "within2": 0.561,
+    "within3": 0.689,
+    "within5": 0.892
+   },
+   "last": {
+    "n": 148,
+    "mae": 2.69,
+    "within2": 0.615,
+    "within3": 0.696,
+    "within5": 0.865
+   },
+   "user_mean": {
+    "n": 148,
+    "mae": 2.69,
+    "within2": 0.615,
+    "within3": 0.696,
+    "within5": 0.865
+   },
+   "user_ewma": {
+    "n": 148,
+    "mae": 2.69,
+    "within2": 0.615,
+    "within3": 0.696,
+    "within5": 0.865
+   },
+   "shrink": {
+    "n": 148,
+    "mae": 2.48,
+    "within2": 0.608,
+    "within3": 0.77,
+    "within5": 0.912
+   },
+   "rf_all": {
+    "n": 148,
+    "mae": 2.58,
+    "within2": 0.588,
+    "within3": 0.743,
+    "within5": 0.905
+   },
+   "rf_day1": {
+    "n": 148,
+    "mae": 2.96,
+    "within2": 0.527,
+    "within3": 0.655,
+    "within5": 0.872
+   }
+  },
+  "2 cycles": {
+   "pop_mean": {
+    "n": 135,
+    "mae": 2.92,
+    "within2": 0.526,
+    "within3": 0.748,
+    "within5": 0.896
+   },
+   "pop_median": {
+    "n": 135,
+    "mae": 2.96,
+    "within2": 0.541,
+    "within3": 0.711,
+    "within5": 0.889
+   },
+   "last": {
+    "n": 135,
+    "mae": 2.81,
+    "within2": 0.563,
+    "within3": 0.726,
+    "within5": 0.881
+   },
+   "user_mean": {
+    "n": 135,
+    "mae": 2.31,
+    "within2": 0.696,
+    "within3": 0.807,
+    "within5": 0.904
+   },
+   "user_ewma": {
+    "n": 135,
+    "mae": 2.31,
+    "within2": 0.696,
+    "within3": 0.8,
+    "within5": 0.904
+   },
+   "shrink": {
+    "n": 135,
+    "mae": 2.2,
+    "within2": 0.696,
+    "within3": 0.822,
+    "within5": 0.904
+   },
+   "rf_all": {
+    "n": 135,
+    "mae": 2.26,
+    "within2": 0.696,
+    "within3": 0.822,
+    "within5": 0.889
+   },
+   "rf_day1": {
+    "n": 135,
+    "mae": 2.88,
+    "within2": 0.57,
+    "within3": 0.704,
+    "within5": 0.889
+   }
+  },
+  "3 to 5 cycles": {
+   "pop_mean": {
+    "n": 362,
+    "mae": 2.96,
+    "within2": 0.514,
+    "within3": 0.699,
+    "within5": 0.878
+   },
+   "pop_median": {
+    "n": 362,
+    "mae": 2.98,
+    "within2": 0.522,
+    "within3": 0.688,
+    "within5": 0.867
+   },
+   "last": {
+    "n": 362,
+    "mae": 2.79,
+    "within2": 0.599,
+    "within3": 0.71,
+    "within5": 0.854
+   },
+   "user_mean": {
+    "n": 362,
+    "mae": 2.27,
+    "within2": 0.677,
+    "within3": 0.807,
+    "within5": 0.925
+   },
+   "user_ewma": {
+    "n": 362,
+    "mae": 2.3,
+    "within2": 0.688,
+    "within3": 0.79,
+    "within5": 0.914
+   },
+   "shrink": {
+    "n": 362,
+    "mae": 2.26,
+    "within2": 0.688,
+    "within3": 0.798,
+    "within5": 0.925
+   },
+   "rf_all": {
+    "n": 362,
+    "mae": 2.3,
+    "within2": 0.677,
+    "within3": 0.796,
+    "within5": 0.928
+   },
+   "rf_day1": {
+    "n": 362,
+    "mae": 3.0,
+    "within2": 0.555,
+    "within3": 0.674,
+    "within5": 0.843
+   }
+  },
+  "6 or more": {
+   "pop_mean": {
+    "n": 861,
+    "mae": 2.94,
+    "within2": 0.563,
+    "within3": 0.734,
+    "within5": 0.891
+   },
+   "pop_median": {
+    "n": 861,
+    "mae": 2.88,
+    "within2": 0.549,
+    "within3": 0.717,
+    "within5": 0.885
+   },
+   "last": {
+    "n": 861,
+    "mae": 2.76,
+    "within2": 0.624,
+    "within3": 0.738,
+    "within5": 0.866
+   },
+   "user_mean": {
+    "n": 861,
+    "mae": 2.08,
+    "within2": 0.699,
+    "within3": 0.822,
+    "within5": 0.942
+   },
+   "user_ewma": {
+    "n": 861,
+    "mae": 2.16,
+    "within2": 0.695,
+    "within3": 0.807,
+    "within5": 0.927
+   },
+   "shrink": {
+    "n": 861,
+    "mae": 2.06,
+    "within2": 0.695,
+    "within3": 0.83,
+    "within5": 0.94
+   },
+   "rf_all": {
+    "n": 861,
+    "mae": 2.14,
+    "within2": 0.706,
+    "within3": 0.814,
+    "within5": 0.931
+   },
+   "rf_day1": {
+    "n": 861,
+    "mae": 2.97,
+    "within2": 0.532,
+    "within3": 0.698,
+    "within5": 0.879
+   }
+  },
+  "all": {
+   "pop_mean": {
+    "n": 1665,
+    "mae": 2.95,
+    "within2": 0.543,
+    "within3": 0.72,
+    "within5": 0.885
+   },
+   "pop_median": {
+    "n": 1665,
+    "mae": 2.93,
+    "within2": 0.539,
+    "within3": 0.701,
+    "within5": 0.878
+   },
+   "last": {
+    "n": 1665,
+    "mae": 2.79,
+    "within2": 0.602,
+    "within3": 0.721,
+    "within5": 0.864
+   },
+   "user_mean": {
+    "n": 1665,
+    "mae": 2.29,
+    "within2": 0.668,
+    "within3": 0.792,
+    "within5": 0.921
+   },
+   "user_ewma": {
+    "n": 1665,
+    "mae": 2.33,
+    "within2": 0.668,
+    "within3": 0.78,
+    "within5": 0.911
+   },
+   "shrink": {
+    "n": 1665,
+    "mae": 2.25,
+    "within2": 0.668,
+    "within3": 0.802,
+    "within5": 0.924
+   },
+   "rf_all": {
+    "n": 1665,
+    "mae": 2.33,
+    "within2": 0.661,
+    "within3": 0.788,
+    "within5": 0.917
+   },
+   "rf_day1": {
+    "n": 1665,
+    "mae": 2.99,
+    "within2": 0.532,
+    "within3": 0.684,
+    "within5": 0.869
+   }
+  },
+  "3 or more": {
+   "pop_mean": {
+    "n": 1223,
+    "mae": 2.94,
+    "within2": 0.549,
+    "within3": 0.724,
+    "within5": 0.887
+   },
+   "pop_median": {
+    "n": 1223,
+    "mae": 2.91,
+    "within2": 0.541,
+    "within3": 0.708,
+    "within5": 0.88
+   },
+   "last": {
+    "n": 1223,
+    "mae": 2.77,
+    "within2": 0.617,
+    "within3": 0.729,
+    "within5": 0.863
+   },
+   "user_mean": {
+    "n": 1223,
+    "mae": 2.13,
+    "within2": 0.693,
+    "within3": 0.818,
+    "within5": 0.937
+   },
+   "user_ewma": {
+    "n": 1223,
+    "mae": 2.2,
+    "within2": 0.693,
+    "within3": 0.802,
+    "within5": 0.923
+   },
+   "shrink": {
+    "n": 1223,
+    "mae": 2.12,
+    "within2": 0.693,
+    "within3": 0.821,
+    "within5": 0.935
+   },
+   "rf_all": {
+    "n": 1223,
+    "mae": 2.19,
+    "within2": 0.697,
+    "within3": 0.809,
+    "within5": 0.93
+   },
+   "rf_day1": {
+    "n": 1223,
+    "mae": 2.98,
+    "within2": 0.539,
+    "within3": 0.691,
+    "within5": 0.868
+   }
+  }
+ },
+ "menses": {
+  "day one (0 cycles)": {
+   "menses_pop": {
+    "n": 159,
+    "mae": 0.99,
+    "within2": 0.918,
+    "within3": 0.975,
+    "within5": 0.994
+   },
+   "menses_user": {
+    "n": 159,
+    "mae": 0.99,
+    "within2": 0.918,
+    "within3": 0.975,
+    "within5": 0.994
+   },
+   "menses_shrink": {
+    "n": 159,
+    "mae": 0.99,
+    "within2": 0.918,
+    "within3": 0.975,
+    "within5": 0.994
+   },
+   "menses_rf": {
+    "n": 159,
+    "mae": 1.04,
+    "within2": 0.918,
+    "within3": 0.975,
+    "within5": 0.994
+   }
+  },
+  "1 cycle": {
+   "menses_pop": {
+    "n": 148,
+    "mae": 0.97,
+    "within2": 0.939,
+    "within3": 0.953,
+    "within5": 1.0
+   },
+   "menses_user": {
+    "n": 148,
+    "mae": 0.66,
+    "within2": 0.966,
+    "within3": 0.986,
+    "within5": 0.993
+   },
+   "menses_shrink": {
+    "n": 148,
+    "mae": 0.74,
+    "within2": 0.966,
+    "within3": 0.986,
+    "within5": 1.0
+   },
+   "menses_rf": {
+    "n": 148,
+    "mae": 0.75,
+    "within2": 0.966,
+    "within3": 0.993,
+    "within5": 1.0
+   }
+  },
+  "2 cycles": {
+   "menses_pop": {
+    "n": 135,
+    "mae": 0.94,
+    "within2": 0.948,
+    "within3": 0.993,
+    "within5": 1.0
+   },
+   "menses_user": {
+    "n": 135,
+    "mae": 0.69,
+    "within2": 0.97,
+    "within3": 0.985,
+    "within5": 0.993
+   },
+   "menses_shrink": {
+    "n": 135,
+    "mae": 0.73,
+    "within2": 0.985,
+    "within3": 0.985,
+    "within5": 1.0
+   },
+   "menses_rf": {
+    "n": 135,
+    "mae": 0.72,
+    "within2": 0.985,
+    "within3": 0.993,
+    "within5": 1.0
+   }
+  },
+  "3 to 5 cycles": {
+   "menses_pop": {
+    "n": 362,
+    "mae": 0.96,
+    "within2": 0.95,
+    "within3": 0.983,
+    "within5": 1.0
+   },
+   "menses_user": {
+    "n": 362,
+    "mae": 0.71,
+    "within2": 0.97,
+    "within3": 0.994,
+    "within5": 0.997
+   },
+   "menses_shrink": {
+    "n": 362,
+    "mae": 0.71,
+    "within2": 0.97,
+    "within3": 0.994,
+    "within5": 1.0
+   },
+   "menses_rf": {
+    "n": 362,
+    "mae": 0.74,
+    "within2": 0.97,
+    "within3": 0.994,
+    "within5": 1.0
+   }
+  },
+  "6 or more": {
+   "menses_pop": {
+    "n": 857,
+    "mae": 0.95,
+    "within2": 0.952,
+    "within3": 0.991,
+    "within5": 0.999
+   },
+   "menses_user": {
+    "n": 857,
+    "mae": 0.59,
+    "within2": 0.989,
+    "within3": 0.996,
+    "within5": 1.0
+   },
+   "menses_shrink": {
+    "n": 857,
+    "mae": 0.6,
+    "within2": 0.991,
+    "within3": 0.995,
+    "within5": 1.0
+   },
+   "menses_rf": {
+    "n": 857,
+    "mae": 0.65,
+    "within2": 0.987,
+    "within3": 0.993,
+    "within5": 1.0
+   }
+  },
+  "all": {
+   "menses_pop": {
+    "n": 1661,
+    "mae": 0.96,
+    "within2": 0.947,
+    "within3": 0.984,
+    "within5": 0.999
+   },
+   "menses_user": {
+    "n": 1661,
+    "mae": 0.67,
+    "within2": 0.975,
+    "within3": 0.992,
+    "within5": 0.998
+   },
+   "menses_shrink": {
+    "n": 1661,
+    "mae": 0.69,
+    "within2": 0.977,
+    "within3": 0.992,
+    "within5": 0.999
+   },
+   "menses_rf": {
+    "n": 1661,
+    "mae": 0.72,
+    "within2": 0.975,
+    "within3": 0.992,
+    "within5": 0.999
+   }
+  },
+  "3 or more": {
+   "menses_pop": {
+    "n": 1219,
+    "mae": 0.95,
+    "within2": 0.952,
+    "within3": 0.989,
+    "within5": 0.999
+   },
+   "menses_user": {
+    "n": 1219,
+    "mae": 0.63,
+    "within2": 0.984,
+    "within3": 0.996,
+    "within5": 0.999
+   },
+   "menses_shrink": {
+    "n": 1219,
+    "mae": 0.64,
+    "within2": 0.984,
+    "within3": 0.995,
+    "within5": 1.0
+   },
+   "menses_rf": {
+    "n": 1219,
+    "mae": 0.67,
+    "within2": 0.982,
+    "within3": 0.993,
+    "within5": 1.0
+   }
+  }
+ },
+ "ovulation": {
+  "day one (0 cycles)": {
+   "ov_day14": {
+    "n": 144,
+    "mae": 3.67,
+    "within2": 0.514,
+    "within3": 0.59,
+    "within5": 0.764
+   },
+   "ov_len_minus_pop": {
+    "n": 144,
+    "mae": 3.24,
+    "within2": 0.451,
+    "within3": 0.632,
+    "within5": 0.84
+   },
+   "ov_len_minus_user": {
+    "n": 144,
+    "mae": 3.24,
+    "within2": 0.451,
+    "within3": 0.632,
+    "within5": 0.84
+   },
+   "ov_rf": {
+    "n": 144,
+    "mae": 3.3,
+    "within2": 0.438,
+    "within3": 0.604,
+    "within5": 0.847
+   }
+  },
+  "1 cycle": {
+   "ov_day14": {
+    "n": 133,
+    "mae": 3.32,
+    "within2": 0.474,
+    "within3": 0.602,
+    "within5": 0.812
+   },
+   "ov_len_minus_pop": {
+    "n": 133,
+    "mae": 2.53,
+    "within2": 0.594,
+    "within3": 0.767,
+    "within5": 0.91
+   },
+   "ov_len_minus_user": {
+    "n": 133,
+    "mae": 2.39,
+    "within2": 0.632,
+    "within3": 0.812,
+    "within5": 0.925
+   },
+   "ov_rf": {
+    "n": 133,
+    "mae": 2.49,
+    "within2": 0.602,
+    "within3": 0.759,
+    "within5": 0.925
+   }
+  },
+  "2 cycles": {
+   "ov_day14": {
+    "n": 125,
+    "mae": 2.88,
+    "within2": 0.536,
+    "within3": 0.696,
+    "within5": 0.872
+   },
+   "ov_len_minus_pop": {
+    "n": 125,
+    "mae": 2.05,
+    "within2": 0.72,
+    "within3": 0.832,
+    "within5": 0.96
+   },
+   "ov_len_minus_user": {
+    "n": 125,
+    "mae": 1.79,
+    "within2": 0.752,
+    "within3": 0.872,
+    "within5": 0.952
+   },
+   "ov_rf": {
+    "n": 125,
+    "mae": 1.83,
+    "within2": 0.8,
+    "within3": 0.856,
+    "within5": 0.944
+   }
+  },
+  "3 to 5 cycles": {
+   "ov_day14": {
+    "n": 338,
+    "mae": 3.1,
+    "within2": 0.559,
+    "within3": 0.66,
+    "within5": 0.828
+   },
+   "ov_len_minus_pop": {
+    "n": 338,
+    "mae": 2.42,
+    "within2": 0.612,
+    "within3": 0.778,
+    "within5": 0.923
+   },
+   "ov_len_minus_user": {
+    "n": 338,
+    "mae": 2.12,
+    "within2": 0.704,
+    "within3": 0.822,
+    "within5": 0.953
+   },
+   "ov_rf": {
+    "n": 338,
+    "mae": 2.14,
+    "within2": 0.683,
+    "within3": 0.796,
+    "within5": 0.929
+   }
+  },
+  "6 or more": {
+   "ov_day14": {
+    "n": 775,
+    "mae": 2.59,
+    "within2": 0.631,
+    "within3": 0.738,
+    "within5": 0.885
+   },
+   "ov_len_minus_pop": {
+    "n": 775,
+    "mae": 2.09,
+    "within2": 0.686,
+    "within3": 0.831,
+    "within5": 0.951
+   },
+   "ov_len_minus_user": {
+    "n": 775,
+    "mae": 1.72,
+    "within2": 0.769,
+    "within3": 0.883,
+    "within5": 0.973
+   },
+   "ov_rf": {
+    "n": 775,
+    "mae": 1.81,
+    "within2": 0.745,
+    "within3": 0.871,
+    "within5": 0.957
+   }
+  },
+  "all": {
+   "ov_day14": {
+    "n": 1515,
+    "mae": 2.89,
+    "within2": 0.582,
+    "within3": 0.691,
+    "within5": 0.853
+   },
+   "ov_len_minus_pop": {
+    "n": 1515,
+    "mae": 2.31,
+    "within2": 0.642,
+    "within3": 0.795,
+    "within5": 0.931
+   },
+   "ov_len_minus_user": {
+    "n": 1515,
+    "mae": 2.02,
+    "within2": 0.711,
+    "within3": 0.838,
+    "within5": 0.95
+   },
+   "ov_rf": {
+    "n": 1515,
+    "mae": 2.09,
+    "within2": 0.694,
+    "within3": 0.818,
+    "within5": 0.937
+   }
+  },
+  "3 or more": {
+   "ov_day14": {
+    "n": 1113,
+    "mae": 2.74,
+    "within2": 0.609,
+    "within3": 0.714,
+    "within5": 0.868
+   },
+   "ov_len_minus_pop": {
+    "n": 1113,
+    "mae": 2.19,
+    "within2": 0.664,
+    "within3": 0.815,
+    "within5": 0.942
+   },
+   "ov_len_minus_user": {
+    "n": 1113,
+    "mae": 1.84,
+    "within2": 0.749,
+    "within3": 0.864,
+    "within5": 0.967
+   },
+   "ov_rf": {
+    "n": 1113,
+    "mae": 1.91,
+    "within2": 0.726,
+    "within3": 0.848,
+    "within5": 0.949
+   }
+  }
+ },
+ "ci_within3_3plus": {
+  "pop_mean": [
+   0.675,
+   0.764
+  ],
+  "shrink": [
+   0.782,
+   0.857
+  ],
+  "rf_all": [
+   0.77,
+   0.843
+  ],
+  "user_mean": [
+   0.777,
+   0.854
+  ]
+ },
+ "ci_within3_day1": {
+  "pop_mean": [
+   0.597,
+   0.748
+  ],
+  "rf_day1": [
+   0.566,
+   0.711
+  ]
+ },
+ "irregular_share": {
+  "outside_21_35": 0.074,
+  "jump_over_7_days": 0.059
+ },
+ "population": {
+  "length_mean": 29.3,
+  "menses_mean": 5.24,
+  "luteal_median": 13.0,
+  "luteal_mean": 13.27,
+  "ovulation_day_mean": 15.96
+ },
+ "window": {
+  "1.0": {
+   "day one": {
+    "coverage": 0.792,
+    "mean_half_width": 4.0
+   },
+   "1 to 2 cycles": {
+    "coverage": 0.834,
+    "mean_half_width": 3.63
+   },
+   "3 or more": {
+    "coverage": 0.845,
+    "mean_half_width": 3.13
+   },
+   "all": {
+    "coverage": 0.838,
+    "mean_half_width": 3.3
+   }
+  },
+  "1.28": {
+   "day one": {
+    "coverage": 0.792,
+    "mean_half_width": 4.0
+   },
+   "1 to 2 cycles": {
+    "coverage": 0.866,
+    "mean_half_width": 4.11
+   },
+   "3 or more": {
+    "coverage": 0.899,
+    "mean_half_width": 3.89
+   },
+   "all": {
+    "coverage": 0.883,
+    "mean_half_width": 3.94
+   }
+  },
+  "1.64": {
+   "day one": {
+    "coverage": 0.862,
+    "mean_half_width": 5.0
+   },
+   "1 to 2 cycles": {
+    "coverage": 0.912,
+    "mean_half_width": 5.13
+   },
+   "3 or more": {
+    "coverage": 0.945,
+    "mean_half_width": 4.81
+   },
+   "all": {
+    "coverage": 0.932,
+    "mean_half_width": 4.89
+   }
+  }
+ },
+ "params": {
+  "source": "Fehring et al. 2013, Marquette University, 159 women, 1665 cycles",
+  "length_mean": 29.3,
+  "tau": 1.07,
+  "within_sd": 3.01,
+  "sd_weight": 3,
+  "menses_mean": 5.24,
+  "menses_weight": 2,
+  "luteal_median": 13.0,
+  "luteal_mean": 13.27,
+  "window_z": 1.28
+ }
+}

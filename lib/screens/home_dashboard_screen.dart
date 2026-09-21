@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/cycle_engine.dart';
 import '../models/health_store.dart';
 import '../models/models.dart';
 import '../models/self_exam.dart';
 import '../theme/app_theme.dart';
+import '../widgets/cycle_ring_widget.dart';
+import '../widgets/cycle_widgets.dart';
 import '../widgets/femora_header.dart';
 
 /// Home: everything here comes from what the user has actually done in the app (the on-device [HealthStore]).
@@ -31,6 +34,8 @@ class HomeDashboardScreen extends StatelessWidget {
     if (store.scan?.prediction == 'malignant') {
       return 'Your ultrasound screening was flagged as suspicious. This is not a diagnosis, but please book a breast specialist visit.';
     }
+    final cycleFlag = CycleEngine(store.periods, now).flags.where((f) => f.seeDoctor).toList();
+    if (cycleFlag.isNotEmpty) return cycleFlag.first.text;
     if (store.pcos?.level == 'high') {
       return 'Your PCOS screening was high. A gynaecologist can confirm it; ask your companion what tests to expect.';
     }
@@ -38,6 +43,7 @@ class HomeDashboardScreen extends StatelessWidget {
     final loggedToday = store.logs.any((l) => DateTime(l.date.year, l.date.month, l.date.day) == today);
     if (!loggedToday) return 'Log how you feel today (symptoms and mood) so your companion and your report stay up to date.';
     if (lastExam == null || now.difference(lastExam).inDays >= 30) return 'It is time for your monthly breast self-exam. The Breast tab has a step-by-step guide.';
+    if (store.periods.isEmpty) return 'Log the first day of your last period in the Cycle tab so Femora can predict your next one.';
     if (store.pcos == null && store.breastRisk == null && store.scan == null) return 'Take a first check: PCOS risk or the breast questionnaire takes about two minutes.';
     return 'You are all caught up. Ask your companion anything about your results.';
   }
@@ -77,6 +83,8 @@ class HomeDashboardScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 18),
+              _cycleCard(context, CycleEngine(store.periods, now)),
+              const SizedBox(height: 14),
               _snapshotCard(context, store, lastExam, now, done),
               const SizedBox(height: 24),
               const Padding(
@@ -100,6 +108,65 @@ class HomeDashboardScreen extends StatelessWidget {
               _nextStepCard(context, nextStep(store, lastExam, now)),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _cycleCard(BuildContext context, CycleEngine e) {
+    const white = Colors.white;
+    final until = e.daysUntilNext;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: InkWell(
+        key: const Key('home_cycle'),
+        borderRadius: BorderRadius.circular(24),
+        onTap: () => context.read<AppState>().setTab(1),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+          decoration: BoxDecoration(
+            gradient: AppColors.heroGradient,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [BoxShadow(color: AppColors.primaryBerry.withValues(alpha: 0.3), blurRadius: 22, offset: const Offset(0, 8))],
+          ),
+          child: e.hasHistory
+              ? Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            e.periodOngoing ? 'Period day ${e.cycleDay}' : 'Cycle day ${e.cycleDay}',
+                            key: const Key('home_cycle_title'),
+                            style: const TextStyle(fontFamily: 'Inter', fontSize: 20, fontWeight: FontWeight.w700, color: white),
+                          ),
+                          const SizedBox(height: 4),
+                          if (e.phase != null) Text(e.phase!.label, style: TextStyle(fontFamily: 'Inter', fontSize: 13, color: white.withValues(alpha: 0.9))),
+                          const SizedBox(height: 10),
+                          Text(
+                            e.isLate ? 'Period expected ${plural(-until!, 'day')} ago' : 'Next period ${fmtDay(e.nextStart!)}',
+                            key: const Key('home_cycle_next'),
+                            style: const TextStyle(fontFamily: 'Inter', fontSize: 13.5, fontWeight: FontWeight.w700, color: white),
+                          ),
+                          if (!e.isLate)
+                            Text('Fertile window ${fmtDay(e.fertileStart!)} to ${fmtDay(e.fertileEnd!)}', style: TextStyle(fontFamily: 'Inter', fontSize: 12, color: white.withValues(alpha: 0.85))),
+                        ],
+                      ),
+                    ),
+                    CycleRingWidget(days: e.isLate ? '${-until!}' : '$until', label: e.isLate ? 'DAYS LATE' : (until == 1 ? 'DAY TO GO' : 'DAYS TO GO')),
+                  ],
+                )
+              : const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Track your cycle', style: TextStyle(fontFamily: 'Inter', fontSize: 20, fontWeight: FontWeight.w700, color: white)),
+                    SizedBox(height: 6),
+                    Text('Log the first day of your last period and Femora will predict your next one. Tap here to start.',
+                        key: Key('home_cycle_empty'), style: TextStyle(fontFamily: 'Inter', fontSize: 13, color: white, height: 1.4)),
+                  ],
+                ),
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:femora/models/cycle_engine.dart';
 import 'package:femora/models/health_store.dart';
 import 'package:femora/services/report_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -88,6 +89,31 @@ void main() {
       generated: _now,
     );
     expect(_isPdf(await buildReport(data)), isTrue);
+  });
+
+  test('cycle data adds a panel: the report with periods is bigger than the same report without', () async {
+    final s = ReportData.sample(now: _now);
+    expect(s.periods, hasLength(5));
+    final without = ReportData(profile: s.profile, pcos: s.pcos, scan: s.scan, scanImage: null, breastRisk: s.breastRisk, lastSelfExam: s.lastSelfExam, logs: s.logs, generated: _now);
+    final withCycle = ReportData(profile: s.profile, pcos: s.pcos, scan: s.scan, scanImage: null, breastRisk: s.breastRisk, lastSelfExam: s.lastSelfExam, logs: s.logs, periods: s.periods, generated: _now);
+    final a = await buildReport(without);
+    final b = await buildReport(withCycle);
+    expect(_isPdf(b), isTrue);
+    expect(b.length, greaterThan(a.length));
+  });
+
+  test('late, irregular and one-period cycle histories all build', () async {
+    final s = ReportData.sample(now: _now);
+    ReportData with_(List<PeriodEntry> ps) => ReportData(profile: s.profile, pcos: s.pcos, scan: null, scanImage: null, breastRisk: null, lastSelfExam: null, logs: const [], periods: ps, generated: _now);
+    DateTime ago(int n) => _now.subtract(Duration(days: n));
+    for (final ps in [
+      [for (final n in [100, 72, 44]) PeriodEntry(start: ago(n), end: ago(n - 4))], // 12+ days late
+      [for (final n in [155, 131, 95, 68, 30]) PeriodEntry(start: ago(n), end: ago(n - 5))], // irregular
+      [PeriodEntry(start: ago(3))], // first period, still ongoing
+      [PeriodEntry(start: ago(40), end: ago(28))], // 13-day period
+    ]) {
+      expect(_isPdf(await buildReport(with_(ps))), isTrue);
+    }
   });
 
   test('report ids look like lab report numbers and differ between patients', () {

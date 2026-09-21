@@ -1,3 +1,4 @@
+import 'package:femora/models/cycle_engine.dart';
 import 'package:femora/models/health_store.dart';
 import 'package:femora/models/models.dart';
 import 'package:femora/models/self_exam.dart';
@@ -30,7 +31,7 @@ void _tallScreen(WidgetTester tester) {
   addTearDown(tester.view.reset);
 }
 
-HealthStore _storeWith({bool pcos = false, bool scan = false, bool risk = false, List<SymptomLog> logs = const []}) {
+HealthStore _storeWith({bool pcos = false, bool scan = false, bool risk = false, bool cycle = false, List<SymptomLog> logs = const []}) {
   final s = HealthStore()..profile = HealthProfile(name: 'Ayesha Khan', onboarded: true);
   if (pcos) s.pcos = PcosSummary(date: _now.subtract(const Duration(days: 2)), percent: 71, level: 'high', bmi: 25.9, factors: const ['Acne']);
   if (scan) {
@@ -39,6 +40,7 @@ HealthStore _storeWith({bool pcos = false, bool scan = false, bool risk = false,
   if (risk) {
     s.breastRisk = BreastRiskSummary(date: _now, probability: 0.0062, average: 0.0042, relativeRisk: 1.66, level: 'medium', ageGroup: '50-54', factors: const [], redFlags: const []);
   }
+  if (cycle) s.periods = [PeriodEntry(start: _now.subtract(const Duration(days: 8)), end: _now.subtract(const Duration(days: 4)))];
   s.logs = logs;
   return s;
 }
@@ -79,6 +81,37 @@ void main() {
     expect(app.currentTabIndex, 4);
   });
 
+  testWidgets('with no periods logged Home invites her to start tracking, and tapping opens the Cycle tab', (tester) async {
+    _tallScreen(tester);
+    final app = AppState()..now = () => _now;
+    await tester.pumpWidget(_home(_storeWith(), app));
+    expect(find.byKey(const Key('home_cycle_empty')), findsOneWidget);
+    expect(find.textContaining('Cycle day'), findsNothing); // nothing made up
+    await tester.tap(find.byKey(const Key('home_cycle')));
+    expect(app.currentTabIndex, 1);
+  });
+
+  testWidgets('with periods logged Home shows the real cycle day and the next period', (tester) async {
+    _tallScreen(tester);
+    final store = _storeWith();
+    store.periods = [for (final ago in [92, 64, 36, 8]) PeriodEntry(start: _now.subtract(Duration(days: ago)), end: _now.subtract(Duration(days: ago - 4)))];
+    await tester.pumpWidget(_home(store, AppState()..now = () => _now));
+    expect(find.text('Cycle day 9'), findsOneWidget);
+    expect(find.text('Next period 10 Oct'), findsOneWidget);
+    expect(find.textContaining('Fertile window'), findsOneWidget);
+    expect(find.text('DAYS TO GO'), findsOneWidget);
+  });
+
+  testWidgets('a late period is shown as late, with no predictions', (tester) async {
+    _tallScreen(tester);
+    final store = _storeWith();
+    store.periods = [for (final ago in [100, 72, 44]) PeriodEntry(start: _now.subtract(Duration(days: ago)), end: _now.subtract(Duration(days: ago - 4)))];
+    await tester.pumpWidget(_home(store, AppState()..now = () => _now));
+    expect(find.text('DAYS LATE'), findsOneWidget);
+    expect(find.textContaining('Fertile window'), findsNothing);
+    expect(find.textContaining('expected'), findsWidgets);
+  });
+
   testWidgets('greeting follows the time of day and an unnamed user is not given a name', (tester) async {
     _tallScreen(tester);
     final store = HealthStore()..profile = HealthProfile(onboarded: true);
@@ -97,8 +130,14 @@ void main() {
     expect(HomeDashboardScreen.nextStep(_storeWith(pcos: true, logs: today), exam, _now), contains('gynaecologist'));
     expect(HomeDashboardScreen.nextStep(_storeWith(scan: true), exam, _now), contains('Log how you feel'));
     expect(HomeDashboardScreen.nextStep(_storeWith(scan: true, logs: today), null, _now), contains('self-exam'));
-    expect(HomeDashboardScreen.nextStep(_storeWith(logs: today), exam, _now), contains('first check'));
-    expect(HomeDashboardScreen.nextStep(_storeWith(scan: true, logs: today), exam, _now), contains('all caught up'));
+    expect(HomeDashboardScreen.nextStep(_storeWith(scan: true, logs: today), exam, _now), contains('first day of your last period'));
+    expect(HomeDashboardScreen.nextStep(_storeWith(logs: today, cycle: true), exam, _now), contains('first check'));
+    expect(HomeDashboardScreen.nextStep(_storeWith(scan: true, logs: today, cycle: true), exam, _now), contains('all caught up'));
+
+    // a period more than two weeks late outranks a high PCOS result
+    final late = _storeWith(pcos: true, logs: today);
+    late.periods = [for (final ago in [100, 72, 44]) PeriodEntry(start: _now.subtract(Duration(days: ago)), end: _now.subtract(Duration(days: ago - 4)))];
+    expect(HomeDashboardScreen.nextStep(late, exam, _now), contains('later than expected'));
 
     final suspicious = _storeWith(logs: today);
     suspicious.scan = ScanSummary(date: _now, prediction: 'malignant', title: 'Suspicious Finding', confidence: 0.9, probabilities: const {'normal': 0.0, 'benign': 0.1, 'malignant': 0.9}, modelAccuracy: 0.718);

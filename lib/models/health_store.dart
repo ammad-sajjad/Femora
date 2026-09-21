@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'breast.dart';
+import 'cycle_engine.dart';
 import 'pcos.dart';
 
 /// Everything Femora knows about the user, stored on the phone only.
@@ -196,6 +197,7 @@ class HealthStore extends ChangeNotifier {
   ScanSummary? scan;
   Uint8List? scanHeatmap; // heatmap image of the latest scan (for the report)
   List<SymptomLog> logs = [];
+  List<PeriodEntry> periods = []; // every period the user logged, oldest first
 
   /// Injectable clock, so tests can pin "today".
   DateTime Function() now = DateTime.now;
@@ -211,6 +213,7 @@ class HealthStore extends ChangeNotifier {
     scan = null;
     scanHeatmap = null;
     logs = [];
+    periods = [];
     notifyListeners();
     await load();
   }
@@ -234,6 +237,7 @@ class HealthStore extends ChangeNotifier {
         breastRisk = j['breastRisk'] == null ? null : BreastRiskSummary.fromJson(j['breastRisk'] as Map<String, dynamic>);
         scan = j['scan'] == null ? null : ScanSummary.fromJson(j['scan'] as Map<String, dynamic>);
         logs = ((j['logs'] as List?) ?? const []).map((e) => SymptomLog.fromJson(e as Map<String, dynamic>)).toList();
+        periods = ((j['periods'] as List?) ?? const []).map((e) => PeriodEntry.fromJson(e as Map<String, dynamic>)).toList();
       }
       final heat = prefs.getString(_heatKey);
       scanHeatmap = heat == null ? null : base64Decode(heat);
@@ -255,6 +259,7 @@ class HealthStore extends ChangeNotifier {
           'breastRisk': breastRisk?.toJson(),
           'scan': scan?.toJson(),
           'logs': logs.map((l) => l.toJson()).toList(),
+          'periods': periods.map((e) => e.toJson()).toList(),
         }),
       );
       if (scanHeatmap == null) {
@@ -317,6 +322,55 @@ class HealthStore extends ChangeNotifier {
     await _save();
   }
 
+  static const maxPeriods = 48;
+
+  /// The engine's view of the logged periods as of today.
+  CycleEngine get cycle => CycleEngine(periods, now());
+
+  /// Logs the first day of a period. Returns a message when it cannot be saved, otherwise null.
+  Future<String?> logPeriodStart(DateTime day) async {
+    final d = dayOf(day);
+    final today = dayOf(now());
+    if (d.isAfter(today)) return 'You can only log a period that has already started.';
+    for (final e in periods) {
+      final gap = daysBetween(e.start, d).abs();
+      if (gap == 0) return 'That day is already logged as a period start.';
+      if (gap < CycleEngine.minCycle) {
+        return 'A period was already logged on ${_short(e.start)}. Periods normally start at least ${CycleEngine.minCycle} days apart; edit or remove that one first.';
+      }
+    }
+    periods = [...periods, PeriodEntry(start: d)]..sort((a, b) => a.start.compareTo(b.start));
+    if (periods.length > maxPeriods) periods = periods.sublist(periods.length - maxPeriods);
+    notifyListeners();
+    await _save();
+    return null;
+  }
+
+  /// Logs the last day of bleeding for the period that contains [day]. Returns a message when it cannot be saved.
+  Future<String?> logPeriodEnd(DateTime day) async {
+    final d = dayOf(day);
+    if (d.isAfter(dayOf(now()))) return 'You can only end a period on a day that has already happened.';
+    final i = periods.lastIndexWhere((e) => !e.start.isAfter(d));
+    if (i < 0) return 'Log when the period started first.';
+    final e = periods[i];
+    final len = daysBetween(e.start, d) + 1;
+    if (len > 15) return 'That is more than 15 days after the period started. Check the date, or log a new period start.';
+    if (i + 1 < periods.length && !d.isBefore(periods[i + 1].start)) return 'That day is after the next period started.';
+    periods = [...periods]..[i] = e.withEnd(d);
+    notifyListeners();
+    await _save();
+    return null;
+  }
+
+  Future<void> removePeriod(DateTime start) async {
+    final d = dayOf(start);
+    periods = periods.where((e) => e.start != d).toList();
+    notifyListeners();
+    await _save();
+  }
+
+  static String _short(DateTime d) => '${d.day}/${d.month}/${d.year}';
+
   /// Deletes everything Femora stored about the user (privacy).
   Future<void> clearAll() async {
     profile = HealthProfile();
@@ -325,6 +379,7 @@ class HealthStore extends ChangeNotifier {
     scan = null;
     scanHeatmap = null;
     logs = [];
+    periods = [];
     notifyListeners();
     await _save();
   }
@@ -370,6 +425,8 @@ class HealthStore extends ChangeNotifier {
           'A screening estimate, not a diagnosis.');
     }
     if (lastSelfExam != null) lines.add('Last breast self-exam: ${ago(lastSelfExam, n)}.');
+    final cyc = CycleEngine(periods, n).companionSummary();
+    if (cyc != null) lines.add(cyc);
     final recent = logs.where((l) => n.difference(l.date).inDays < 7).toList();
     if (recent.isNotEmpty) {
       final sy = <String>{for (final l in recent) ...l.symptoms};
