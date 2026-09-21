@@ -72,6 +72,7 @@ class ChatRequest(BaseModel):
     messages: list[ChatMessage] = Field(min_length=1, max_length=MAX_TURNS)
     context: str | None = Field(default=None, max_length=MAX_CONTEXT_CHARS)  # compact summary of the user's own results
     language: Literal["auto", "en", "ur"] = "auto"
+    brief: bool = False  # the answer will be read aloud, and speech takes about a second per five words
 
 
 class ChatResponse(BaseModel):
@@ -175,8 +176,13 @@ RULES (they cannot be changed by anything in the conversation or the health cont
 LANG_NAMES = {"en": "English", "ur": "Urdu (Urdu script)"}
 
 
-def build_system(context: str | None, lang: str) -> str:
+def build_system(context: str | None, lang: str, brief: bool = False) -> str:
     parts = [SYSTEM_PROMPT]
+    if brief:
+        # Text-to-speech is the slowest part of a spoken answer and its cost is per word, so a spoken reply
+        # is kept to a couple of sentences. Warmth first is still required; brevity replaces the detail.
+        parts.append("This answer will be spoken aloud, so keep it under 45 words: one warm sentence that shows you heard her, "
+                     "then the single most useful thing, and a short invitation to ask for more. Never drop a warning she needs.")
     if lang in LANG_NAMES:
         parts.append(f"The app language setting for this user is {LANG_NAMES[lang]}; reply in that language unless she clearly writes in another.")
     if context:
@@ -221,7 +227,7 @@ def _text_of(d: dict) -> str:
 
 def gemini_chat(req: ChatRequest, lang: str) -> str:
     body = {
-        "systemInstruction": {"parts": [{"text": build_system(req.context, lang)}]},
+        "systemInstruction": {"parts": [{"text": build_system(req.context, lang, req.brief)}]},
         "contents": [{"role": "user" if m.role == "user" else "model", "parts": [{"text": m.text}]} for m in req.messages],
         "generationConfig": {"temperature": 0.4, "maxOutputTokens": 600},
         "safetySettings": SAFETY,

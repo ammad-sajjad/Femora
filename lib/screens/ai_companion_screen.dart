@@ -53,9 +53,11 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
     final lastExam = context.read<SelfExamState>().lastExam;
     _controller.clear();
     if (spoken) voice.readAloud = true; // a spoken question gets a spoken answer
-    final reply = await chat.send(t, store: store, lastSelfExam: lastExam);
+    final willSpeak = voice.readAloud || spoken;
+    final reply = await chat.send(t, store: store, lastSelfExam: lastExam, willBeSpoken: willSpeak);
     if (reply != null && voice.readAloud) {
-      await voice.speak(reply, language: 'auto');
+      // The phone's own voice starts immediately; the AI voice would keep her waiting many seconds.
+      await voice.speak(reply, language: 'auto', natural: false);
     }
   }
 
@@ -227,7 +229,7 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
                   contentPadding: EdgeInsets.zero,
                   activeColor: AppColors.primaryBerry,
                   title: const Text('Read answers aloud'),
-                  subtitle: const Text('Uses a natural voice, in Urdu or English.'),
+                  subtitle: const Text("Answers straight away in the phone's voice. Tap the speaker on a message for the AI voice."),
                   value: voice.readAloud,
                   onChanged: voice.setReadAloud,
                 ),

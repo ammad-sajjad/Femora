@@ -261,12 +261,52 @@ void main() {
     await tester.pumpAndSettle();
 
     final paths = h.requests.map((r) => r.url.path).toList();
-    expect(paths, containsAllInOrder(['/voice/transcribe', '/chat', '/voice/speak']));
+    expect(paths, containsAllInOrder(['/voice/transcribe', '/chat', '/voice/speak'])); // this fake phone has no voice of its own
     expect(find.text('What is PCOS?'), findsOneWidget); // the transcript became the user's message
     expect(find.text('Here is a careful answer.'), findsOneWidget);
     expect(h.device.played, hasLength(1)); // the answer was spoken
     expect(h.voice.readAloud, isTrue);
     expect(h.voice.phase, VoicePhase.speaking);
+  });
+
+  testWidgets('a spoken answer uses the phone voice and asks the server to keep it short', (tester) async {
+    _tallScreen(tester);
+    final h = _Harness();
+    h.device.phoneVoiceAvailable = true;
+    h.voice.setReadAloud(true);
+    await tester.pumpWidget(h.widget);
+
+    await _type(tester, 'Why are my periods irregular?');
+    await tester.pumpAndSettle();
+
+    // The AI voice takes 5 to 16 seconds to generate, so an answer read out automatically never asks for it.
+    expect(h.requests.map((r) => r.url.path), isNot(contains('/voice/speak')));
+    expect(h.device.spokenLocally, hasLength(1));
+    expect(h.device.played, isEmpty);
+
+    final body = jsonDecode(h.requests.firstWhere((r) => r.url.path == '/chat').body) as Map<String, dynamic>;
+    expect(body['brief'], isTrue); // a shorter answer is quicker to speak
+
+    // The speaker button is the deliberate way to hear the nicer AI voice (once the phone voice has finished,
+    // while it is still speaking the same button stops it).
+    h.device.finishSpeaking();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(Key('speak_${h.chat.messages.last.id}')));
+    await tester.pumpAndSettle();
+    expect(h.requests.map((r) => r.url.path), contains('/voice/speak'));
+    expect(h.device.played, hasLength(1));
+  });
+
+  testWidgets('a typed answer that will not be spoken asks for the full-length reply', (tester) async {
+    _tallScreen(tester);
+    final h = _Harness();
+    await tester.pumpWidget(h.widget);
+
+    await _type(tester, 'What foods help with PCOS?');
+    await tester.pumpAndSettle();
+
+    final body = jsonDecode(h.requests.firstWhere((r) => r.url.path == '/chat').body) as Map<String, dynamic>;
+    expect(body['brief'], isFalse);
   });
 
   testWidgets('without microphone permission the app explains and keeps typing available', (tester) async {
