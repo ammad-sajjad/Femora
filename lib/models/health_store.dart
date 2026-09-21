@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'breast.dart';
 import 'cycle_engine.dart';
+import 'hormone_insights.dart';
 import 'pcos.dart';
 
 /// Everything Femora knows about the user, stored on the phone only.
@@ -451,8 +452,11 @@ class HealthStore extends ChangeNotifier {
           'A screening estimate, not a diagnosis.');
     }
     if (lastSelfExam != null) lines.add('Last breast self-exam: ${ago(lastSelfExam, n)}.');
-    final cyc = CycleEngine(periods, n).companionSummary();
+    final engine = CycleEngine(periods, n);
+    final cyc = engine.companionSummary();
     if (cyc != null) lines.add(cyc);
+    final hormones = HormoneInsights(engine, logs, n).companionSummary();
+    if (hormones != null) lines.add(hormones);
     final recent = logs.where((l) => n.difference(l.date).inDays < 7).toList();
     if (recent.isNotEmpty) {
       final sy = <String>{for (final l in recent) ...l.symptoms};
