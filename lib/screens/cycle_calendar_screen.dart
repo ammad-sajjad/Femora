@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/cycle_engine.dart';
+import '../models/health_store.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
+import '../widgets/cycle_widgets.dart';
 import '../widgets/femora_header.dart';
 
 class CycleCalendarScreen extends StatefulWidget {
@@ -13,6 +16,7 @@ class CycleCalendarScreen extends StatefulWidget {
 
 class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
   final TextEditingController _notesController = TextEditingController();
+  DateTime? _month; // month shown in the calendar; today's month until she browses
 
   @override
   void dispose() {
@@ -23,6 +27,9 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
+    final store = context.watch<HealthStore>();
+    final engine = store.cycle;
+    final month = _month ?? DateTime(engine.today.year, engine.today.month);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -36,50 +43,26 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
               const FemoraHeader(isCalendarStyle: true),
               const SizedBox(height: 8),
 
-              // Calendar Title and Month
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Text(
-                      'Calendar',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textDark,
-                      ),
-                    ),
-                    Text(
-                      'May 2024',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF6E5970),
-                      ),
-                    ),
-                  ],
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24.0),
+                child: Text(
+                  'My Cycle',
+                  style: TextStyle(fontFamily: 'Inter', fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.textDark),
                 ),
               ),
-              const SizedBox(height: 16),
-
-              // Weekly Day Strip
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildDayItem('MON', 6, isSelected: appState.selectedCalendarDay == 6),
-                    _buildDayItem('TUE', 7, isSelected: appState.selectedCalendarDay == 7),
-                    _buildDayItem('WED', 8, isSelected: appState.selectedCalendarDay == 8),
-                    _buildDayItem('THU', 9, isSelected: appState.selectedCalendarDay == 9),
-                    _buildDayItem('FRI', 10, isSelected: appState.selectedCalendarDay == 10),
-                    _buildDayItem('SAT', 11, isSelected: appState.selectedCalendarDay == 11),
-                  ],
-                ),
+              const SizedBox(height: 14),
+              CycleSummaryCard(engine: engine),
+              const SizedBox(height: 10),
+              PeriodLogRow(engine: engine),
+              const SizedBox(height: 4),
+              MonthCalendar(
+                engine: engine,
+                month: month,
+                onMonth: (m) => setState(() => _month = DateTime(m.year, m.month)),
+                onDay: (d) => showDayActions(context, d),
               ),
+              CycleFlagsCard(engine: engine),
+              CycleHistory(engine: engine),
               const SizedBox(height: 22),
 
               // Logger Card
@@ -108,8 +91,8 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                     const SizedBox(height: 20),
 
                     // Header Info
-                    const Text(
-                      'Today • Cycle Day 12',
+                    Text(
+                      engine.hasHistory ? 'Today • ${engine.periodOngoing ? 'Period day' : 'Cycle day'} ${engine.cycleDay}' : 'Today',
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 18,
@@ -118,8 +101,8 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
-                      'Follicular Phase - Estrogen is rising. You might feel more energetic.',
+                    Text(
+                      engine.phase?.tip ?? 'Log how you feel today. Your symptoms and mood are shared with your AI companion and your report.',
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 13,
@@ -297,56 +280,6 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildDayItem(String dayName, int dayNumber, {required bool isSelected}) {
-    return GestureDetector(
-      onTap: () {
-        context.read<AppState>().selectCalendarDay(dayNumber);
-      },
-      child: Column(
-        children: [
-          Text(
-            dayName,
-            style: const TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 11.5,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF6E5970),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: isSelected ? AppColors.primaryBerry : const Color(0xFFDCEBFF),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                '$dayNumber',
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: isSelected ? Colors.white : const Color(0xFF334E68),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Container(
-            width: 24,
-            height: 3,
-            decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFFFF487E) : const Color(0xFFE4C9E8),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-        ],
       ),
     );
   }
