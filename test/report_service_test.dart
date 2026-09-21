@@ -127,6 +127,35 @@ void main() {
     expect(b.length, greaterThan(a.length));
   });
 
+  test('charts appear in the report once there is enough to draw', () async {
+    final s = ReportData.sample(now: _now);
+    DateTime ago(int n) => _now.subtract(Duration(days: n));
+    ReportData with_(List<PeriodEntry> ps, List<SymptomLog> logs) => ReportData(profile: s.profile, pcos: null, scan: null, scanImage: null, breastRisk: null, lastSelfExam: null, logs: logs, periods: ps, generated: _now);
+    PeriodEntry per(int n) => PeriodEntry(start: ago(n), end: ago(n - 4));
+    final none = await buildReport(with_([per(10)], const []));
+    final chart = await buildReport(with_([per(90), per(62), per(34), per(6)], const [])); // 3 cycles: bar chart and prediction check
+    final logs = [for (var i = 0; i < 8; i++) SymptomLog(date: ago(i), symptoms: const [], mood: 'good', sleepHours: 7, energy: 4)];
+    final more = await buildReport(with_([per(90), per(62), per(34), per(6)], logs)); // plus the mood, energy and sleep charts
+    expect(_isPdf(chart), isTrue);
+    expect(chart.length, greaterThan(none.length));
+    expect(more.length, greaterThan(chart.length));
+  });
+
+  test('sparse or odd data never breaks the charts', () async {
+    final s = ReportData.sample(now: _now);
+    DateTime ago(int n) => _now.subtract(Duration(days: n));
+    ReportData with_(List<PeriodEntry> ps, List<SymptomLog> logs) => ReportData(profile: s.profile, pcos: null, scan: null, scanImage: null, breastRisk: null, lastSelfExam: null, logs: logs, periods: ps, generated: _now);
+    final logsOutsideWindow = [for (var i = 40; i < 50; i++) SymptomLog(date: ago(i), symptoms: const [], mood: 'low', sleepHours: 5)];
+    for (final ps in [
+      <PeriodEntry>[],
+      [PeriodEntry(start: ago(5))],
+      [PeriodEntry(start: ago(200)), PeriodEntry(start: ago(20))], // a gap that is a missed log
+      [for (var i = 0; i < 20; i++) PeriodEntry(start: ago(20 + i * 28), end: ago(16 + i * 28))], // long history
+    ]) {
+      expect(_isPdf(await buildReport(with_(ps, logsOutsideWindow))), isTrue);
+    }
+  });
+
   test('report ids look like lab report numbers and differ between patients', () {
     final a = reportId(ReportData.sample(now: _now));
     expect(RegExp(r'^FEM-260920-[0-9A-Z]{6}$').hasMatch(a), isTrue, reason: a);

@@ -1,6 +1,7 @@
 import 'package:femora/models/cycle_engine.dart';
 import 'package:femora/models/health_store.dart';
 import 'package:femora/models/models.dart';
+import 'package:femora/models/reminders.dart';
 import 'package:femora/models/self_exam.dart';
 import 'package:femora/screens/home_dashboard_screen.dart';
 import 'package:femora/services/reminder_service.dart';
@@ -121,6 +122,24 @@ void main() {
     await tester.tap(find.byKey(const Key('home_trends')));
     await tester.pumpAndSettle();
     expect(find.text('My trends'), findsOneWidget);
+  });
+
+  testWidgets('the dashboard card opens the health dashboard', (tester) async {
+    _tallScreen(tester);
+    await tester.pumpWidget(MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: AppState()..now = (() => _now)),
+        ChangeNotifierProvider.value(value: _storeWith(cycle: true)),
+        ChangeNotifierProvider.value(value: SelfExamState(reminders: _NoReminders())),
+        ChangeNotifierProvider.value(value: RemindersState(service: _NoReminders())),
+      ],
+      child: const MaterialApp(home: HomeDashboardScreen()),
+    ));
+    await tester.ensureVisible(find.byKey(const Key('home_dashboard')));
+    await tester.tap(find.byKey(const Key('home_dashboard')));
+    await tester.pumpAndSettle();
+    expect(find.text('Health dashboard'), findsWidgets);
+    expect(find.byKey(const Key('dash_glance')), findsOneWidget);
   });
 
   testWidgets('greeting follows the time of day and an unnamed user is not given a name', (tester) async {
