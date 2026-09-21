@@ -15,7 +15,7 @@ from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT = ROOT / "scope doument" / "Femora - Project Progress and Technical Report.docx"
+OUT = Path(__import__("os").environ["REPORT_OUT"]) if "REPORT_OUT" in __import__("os").environ else ROOT / "scope doument" / "Femora - Project Progress and Technical Report.docx"
 BERRY, DEEP, PINK, GREY = RGBColor(0x9E, 0x1B, 0x46), RGBColor(0x5A, 0x0F, 0x2A), "FBE9EF", RGBColor(0x55, 0x55, 0x55)
 
 load = lambda p: json.loads((ROOT / p).read_text(encoding="utf-8"))
@@ -265,7 +265,7 @@ table(["Module (scope ref.)", "Status", "Evidence"], [
     ["Breast risk questionnaire (6.3B)", "Done", "XGBoost trained on 2.39 million real mammograms (BCSC): AUC 0.64, calibration 1.01"],
     ["Breast self-exam guide and reminder (6.3)", "Done", "Guide, logging and a monthly notification"],
     ["Breast AI chatbot (6.3C)", "Done (prototype)", "The AI companion answers about the user's own ultrasound and questionnaire results; the Breast tab has \"Discuss with AI\" buttons"],
-    ["Cycle tracking and prediction (6.2)", "Prototype UI", "Static screens, hard-coded cycle day. No Random Forest or LSTM yet"],
+    ["Cycle tracking and prediction (6.2)", "Done (first version, not tried on a phone)", "Period logging, calendar with phases, predicted next period, ovulation and fertile window, lateness and irregularity notes. Personal average blended with a study average, chosen after comparing it with a Random Forest (section 14)"],
     ["Symptom and mood tracker (6.10)", "Basic version", "Symptoms, mood and notes are saved on the phone (one entry a day) and reach the report and the AI companion; no trend charts yet"],
     ["AI healthcare companion (6.7)", "Done (prototype)", "Gemini chat with Urdu and English voice in and out, safety rules, personal context from the on-device health store (section 13)"],
     ["Health report (6.9)", "Done (first version)", "One tap makes a lab-style PDF with one panel per test (section 13.6)"],
@@ -283,7 +283,8 @@ bullets([
     "**The ultrasound gate was strengthened.** A real non-breast ultrasound had slipped through, so the gate was retrained with other-organ ultrasounds. It now refuses the organs it saw and about 43% to 60% of unseen ones, and wrongly refuses 0.3% of real breast scans; classifications did not change.",
     "**The app now has a personal AI companion.** It uses Google Gemini through the backend, understands and speaks Urdu and English, and knows the user's own results (without their name) because the whole app now saves to one on-device health store. Safety rules run on the server, not in the model (section 13).",
     "**A one-tap report.** The health report is a lab-style PDF (one panel per test, reference ranges, flags, QR code, report number) that can be shared or printed, with a sample-data mode for demonstrations.",
-    "**About 60% of the scope is working** (an estimate). The largest gaps are cycle prediction, trend charts, pregnancy mode, hormonal insights and most reminders.",
+    "**Cycle prediction was measured, not assumed.** On the Fehring data (159 women, 1,665 cycles) the next period is predicted within 3 days about 67% of the time on day one and about 82% once three cycles are logged. A Random Forest did no better than a woman's own average, so the simpler model is used (section 14).",
+    "**About 70% of the scope is working** (an estimate). The largest gaps are trend charts, pregnancy mode, hormonal insights and most reminders.",
 ])
 
 # ================================================================== 2 BACKGROUND
@@ -390,7 +391,7 @@ bullets([
 ])
 H2("3.5 Repository layout")
 table(["Path", "Contents"], [
-    ["lib/", "Flutter app: main.dart, screens/ (12, incl. sign-in, onboarding and report), models/ (state, health store, chat), services/ (API, reminders, voice, report), widgets/ (12), theme/"],
+    ["lib/", "Flutter app: main.dart, screens/ (12, incl. sign-in, onboarding and report), models/ (state, health store, chat, cycle engine), services/ (API, reminders, voice, report), widgets/ (12), theme/"],
     ["backend/", "app.py (API), companion.py (Gemini chat, voice, safety), .env (API key, not committed), models/ (ONNX, XGBoost, metadata, gate), Dockerfile, requirements files"],
     ["ml/", "build_notebooks.py (writes the Kaggle notebooks), notebooks/, v7_split.csv and busbra_split.csv (pinned splits)"],
     ["test/", "Flutter tests (breast flow, PCOS flow, server address, health store, chat, companion, onboarding, report)"],
@@ -416,7 +417,7 @@ table(["Item", "Detail"], [
 H2("4.2 Screens")
 table(["Screen (bottom tab)", "What it does", "State"], [
     ["Home dashboard", "Health snapshot (PCOS, ultrasound, breast risk, self-exam), quick log, next-step card", "Working: reads the health store; the old fake cycle day, hormone cards and insight text were removed because there is no cycle prediction yet"],
-    ["Cycle calendar", "Calendar, phase display, daily symptom, mood and notes log", "Log saved on the phone (one entry a day); no prediction yet"],
+    ["Cycle calendar", "Cycle summary, period logging, month calendar with phases and predictions, notes on irregular or late cycles, cycle history, daily symptom, mood and notes log", "Working: predictions from the logged periods (section 14); symptom log saved on the phone"],
     ["PCOS assessment", "Questionnaire (four sections), risk gauge, factor tags, guidance cards", "Working: calls /predict/pcos"],
     ["Breast health", "Ultrasound upload and result with heatmap; risk questionnaire and result; self-exam guide and reminder", "Working: calls both breast endpoints"],
     ["AI companion", "Personal chat with Gemini, voice in and out (Urdu and English), settings, health report", "Working: calls /chat and /voice endpoints (section 13)"],
@@ -938,7 +939,7 @@ table(["What", "How", "Result"], [
     ["Wrong uploads", "Colour noise and a grayscale gradient", "Both refused with an explanatory message"],
     ["Threshold change", "Reran the model on all 710 test scans; first reproduced the notebook's 68.3% at 0.21", "Reproduced, then 71.8% at 0.25"],
     ["Risk questionnaire", "Eight profiles through the API", "Risk rises with each added factor; no placeholder warning"],
-    ["Flutter tests", "Breast flows, PCOS flow, server-address logic, health store, chat state, companion screen with a fake microphone, onboarding and app launch, report builder", "69 of 69 pass; flutter analyze reports no errors and one warning (an unused import in a test file)"],
+    ["Flutter tests", "Breast flows, PCOS flow, server-address logic, health store, chat state, companion screen with a fake microphone, onboarding and app launch, report builder", "118 of 118 pass; flutter analyze reports no errors and no warnings"],
     ["Companion backend tests", "backend/tests/test_companion.py: safety detector, language detection, prompt building, request validation, rate limit, speech clean-up, fallback (Gemini calls are faked)", "53 of 53 pass"],
     ["Live Gemini check", "Real calls with the developer's key against the running backend: English and Urdu chat with personal context, emergency and breast-lump wording, a prompt-injection attempt, Urdu speech to text, text to speech, both models, both demo scans and a colour photo", "Chat 1.5 to 3 s, speech synthesis 4 to 6 s; Urdu speech transcribed in Urdu script after a stricter prompt and an automatic retry"],
     ["Notebooks", "Every Kaggle notebook was run first as a tiny smoke test, then in full", "All stages ran; ONNX parity checks passed"],
@@ -1001,6 +1002,7 @@ table(["Failure", "Consequence", "Mitigation today", "Still needed"], [
     ["Risk model on a different population", "Miscalibrated risk", "Relative-to-age wording", "Validation on local data"],
     ["Server unreachable", "No result", "Clear error messages, form stays open", "Real hosting; offline fallback"],
     ["User treats output as a diagnosis", "Harm from delay or overreaction", "Disclaimers on every result; onboarding states the limits", "Clinical review of the wording"],
+    ["Cycle prediction wrong, especially with irregular cycles", "Surprise period; an unreliable fertile window used as contraception", "Prediction shown as a window (about 90% right with 3+ cycles), wording says estimate and not a way to prevent pregnancy, notes for late or irregular cycles", "Validation on local data; personal hormone data"],
     ["AI companion gives unsafe or wrong advice", "Harm, false reassurance", "Server-side red-flag detector, no-diagnosis and no-dose rules, short plain answers, offline rule-based fallback", "Review by a clinician; grounded knowledge base (section 13.8)"],
 ], [4.4, 3.2, 5.0, 4.0], caption="Failure modes", size=8.5)
 H2("11.2 Ethical and legal points")
@@ -1016,7 +1018,7 @@ bullets([
     "**Test-set tuning.** The 0.25 threshold was chosen after seeing the test results.",
     "**Small subgroups.** BrEaST (35 test scans), the normal class (22 test scans) and U-Systems (a few scans) cannot support firm conclusions.",
     "**Demo hosting.** The tunnel exposes a development server; it is suitable for a demonstration, not for real users.",
-    "**Scope.** About 40% of the scope, mainly cycle prediction, trend charts, pregnancy, hormonal insights and most reminders, is not built.",
+    "**Scope.** About 30% of the scope, mainly trend charts, pregnancy, hormonal insights and most reminders, is not built.",
     "**Companion privacy.** The free Gemini tier may use submitted text to improve Google products; a paid key with a data-use opt-out is needed for real users (section 13.7).",
 ])
 
@@ -1024,7 +1026,7 @@ bullets([
 H1("12. Remaining work and recommended order")
 table(["Order", "Item (scope ref.)", "What is needed"], [
     ["1", "Trend charts for the symptom and mood log (6.10)", "Basic saving is done (section 13); charts, sleep and stress inputs remain"],
-    ["2", "Cycle tracking and prediction (6.2)", "Random Forest on the Fehring data, then an LSTM on the IEEE mcPHASES data; real calendar instead of hard-coded days"],
+    ["2", "Cycle tracking follow-up (6.2)", "Try it with real users on a phone; daily hormone and symptom data (mcPHASES) could sharpen the ovulation estimate; validate on local data"],
     ["3", "Companion improvements (6.7)", "Grounded knowledge base (retrieval from NIH, CDC and MedlinePlus text), a question-set evaluation, clinician review of wording, trend charts on Home"],
     ["4", "Accounts follow-up (6.1)", "Sign-in exists (section 13.12). Still needed: try Google and phone sign-in on a phone and register the signing fingerprint in Firebase if they fail; optional cloud backup of results"],
     ["5", "Pregnancy mode, reminders, hormonal insights (6.5, 6.8, 6.6)", "Pregnancy tracking and warning signs; period, ovulation, medication and hydration reminders; phase-specific insights"],
@@ -1128,15 +1130,18 @@ para("Question-and-answer datasets (for example medical exam or consumer-health 
 H2("13.9 Tests")
 table(["Suite", "Count", "What it covers"], [
     ["backend/tests/test_companion.py", "53", "Red-flag detector in three languages, language detection, prompt construction and injection wording, request limits, rate limit, speech clean-up, PCM to WAV, fallback replies, endpoints with a faked Gemini"],
-    ["test/health_store_test.dart", "part of 59 new", "Saving and loading, one log entry a day and a 60-entry cap, name-free context text, clear-all"],
-    ["test/chat_state_test.dart", "part of 59 new", "History rules, personalisation switch, retry of an unanswered message, persistence"],
-    ["test/companion_flow_test.dart", "part of 59 new", "Typing indicator, suggestion chips, failed message and Try again, urgent highlight, full voice flow with a fake microphone, missing permission, speaker button, Delete all my data"],
-    ["test/app_flow_test.dart", "part of 59 new", "First launch shows onboarding, skipping is remembered, form validation, editing a saved profile"],
-    ["test/home_flow_test.dart", "part of 59 new", "Home shows the real name and only real results, empty state, rows open the right tab, next-step rules, relative dates"],
-    ["test/auth_flow_test.dart (with test/fake_auth.dart)", "part of 59 new", "Sign-in, registration, a refused password, guest mode, the phone code, and two accounts not seeing each other's results"],
-    ["test/report_service_test.dart", "part of 59 new", "Empty, sample and full reports build as valid PDFs; long logs spill onto more pages; report IDs"],
+    ["test/health_store_test.dart", "part of 108 new", "Saving and loading, one log entry a day and a 60-entry cap, name-free context text, clear-all"],
+    ["test/chat_state_test.dart", "part of 108 new", "History rules, personalisation switch, retry of an unanswered message, persistence"],
+    ["test/companion_flow_test.dart", "part of 108 new", "Typing indicator, suggestion chips, failed message and Try again, urgent highlight, full voice flow with a fake microphone, missing permission, speaker button, Delete all my data"],
+    ["test/app_flow_test.dart", "part of 108 new", "First launch shows onboarding, skipping is remembered, form validation, editing a saved profile"],
+    ["test/home_flow_test.dart", "part of 108 new", "Home shows the real name and only real results, empty state, rows open the right tab, next-step rules, relative dates"],
+    ["test/auth_flow_test.dart (with test/fake_auth.dart)", "part of 108 new", "Sign-in, registration, a refused password, guest mode, the phone code, and two accounts not seeing each other's results"],
+    ["test/cycle_engine_test.dart", "part of 108 new", "22 tests: no history, day one, personalising, missed logs, ovulation and fertile window, phases, unfinished period, late and irregular cycles, date maths"],
+    ["test/period_store_test.dart", "part of 108 new", "11 tests: saving and reloading periods, ending a period, refused logs with reasons, separate accounts, deleting all data, companion context, older saved data"],
+    ["test/cycle_screen_test.dart", "part of 108 new", "11 tests: first log, tracking display, month browsing, ending a period, refused log message, late and irregular notes, day menu, future days, symptom log"],
+    ["test/report_service_test.dart", "part of 108 new", "Empty, sample and full reports build as valid PDFs; long logs spill onto more pages; report IDs"],
 ], [5.6, 2.6, 8.4], caption="New tests", size=8.5,
-    note="All 69 Flutter tests (10 earlier plus 59 new) and all 53 backend tests pass. The companion screen's real speech recognition and the real microphone are not covered by automatic tests because they need a phone.")
+    note="All 118 Flutter tests (10 earlier plus 108 new) and all 53 backend tests pass. The companion screen's real speech recognition and the real microphone are not covered by automatic tests because they need a phone.")
 H2("13.10 Defects found while building, and their fixes")
 table(["Problem", "Fix"], [
     ["A coloured card containing a switch tile threw a Material assertion (real UI bug caught by a test)", "Wrapped the tile in a transparent Material"],
@@ -1171,12 +1176,95 @@ bullets([
     "**Not verified.** Sign-in has not been tried on a phone. Google and phone sign-in typically also need the app's signing-key fingerprint registered in the Firebase console, and the release APKs so far are signed with the debug key; if they fail this is the first thing to check. Email and guest sign-in do not depend on it.",
 ])
 
-# ================================================================== 14 CONCLUSION
-H1("14. Conclusion")
+# ================================================================== 14 CYCLE
+CYC = json.load(open(ROOT / "ml" / "cycle_results.json", encoding="utf-8"))
+pc0 = lambda x: f"{x * 100:.0f}%"
+H1("14. Menstrual cycle tracking and prediction")
+para("This chapter covers scope item 6.2: logging periods and predicting the next period, ovulation and the fertile window, with notes on late or irregular cycles. "
+     "It was built on 21 September 2026 (commit 388032f). The study behind it is ml/cycle_eval.py; its results are stored in ml/cycle_results.json, from which the tables below are read.")
+H2("14.1 What the user gets")
+bullets([
+    "**Logging.** One tap for My period started today, and My period ended today once it is under way; a date picker or a tap on any past calendar day covers earlier dates. Impossible entries are refused with the reason (a future date, a start less than 15 days from another period, an end more than 15 days after the start).",
+    "**Cycle summary.** Cycle day and phase (menstrual, follicular, ovulation window, luteal), the expected next period with a likely window of days, the estimated ovulation day and fertile window, and one sentence saying what the prediction is based on.",
+    "**Month calendar.** Logged period days, expected period days for the next three cycles, the fertile window and the ovulation day, each in its own colour.",
+    "**Notes.** A period later than expected (advice stronger after two weeks and after three months), a last cycle shorter than 21 or longer than 35 days, recent cycles that vary by more than 7 days (with a pointer to the PCOS check), and a period lasting more than 7 days. They are worded as things worth knowing, never as a diagnosis.",
+    "**Connected to the rest of the app.** The Home tab shows the real cycle day and days to the next period; the AI companion is told about the cycle (counts and regularity, no dates) and offers a question chip; the health report has a Panel 4 for the cycle; everything is stored on the phone, separately for each account, and is erased by Delete all my data.",
+])
+H2("14.2 The study: what can honestly be predicted")
+para("**Data.** The Fehring data (Marquette University, 2013) has 159 women and 1,665 cycles, with cycle length, period length, luteal phase and the estimated day of ovulation from fertility monitoring. Cycles average %.1f days (spread %.1f); %s of cycles fall outside 21 to 35 days. Age and body mass index are recorded once per woman and are known for only about 8 in 10 women, so they were spread over her cycles. About 87 women have 12 or more cycles." % (CYC["data"]["cycle_length_mean"], CYC["data"]["cycle_length_sd"], pc0(CYC["irregular_share"]["outside_21_35"])))
+para("**Method.** For every cycle, only the same woman's earlier cycles are used as history, and every model is fitted on other women (5-fold cross-validation grouped by woman), so nothing about the tested woman leaks into training. Predictions are rounded to whole days, as the app shows them. Confidence intervals come from resampling women 1,000 times.")
+para("**Models compared.** (1) The population average. (2) The woman's own average. (3) Her own average blended with the population average, weighted by how many cycles she has logged (the weight comes from the data: her own cycles count as %.2f population cycles). (4) A Random Forest (300 trees) on her last cycle lengths, their mean, spread, minimum and maximum, earlier period and luteal lengths, age and BMI. (5) On day one, a Random Forest on age and BMI only." % CYC["tau_mean"], keep=True)
+order = ["day one (0 cycles)", "1 cycle", "2 cycles", "3 to 5 cycles", "6 or more", "all"]
+rows = []
+for b in order:
+    L = CYC["length"][b]
+    cell = lambda k: f"{pc0(L[k]['within3'])} ({L[k]['mae']:.1f} d)"
+    rows.append([b.replace(" (0 cycles)", ""), str(L["pop_mean"]["n"]), cell("pop_mean"), cell("user_mean"), cell("shrink"), cell("rf_day1" if b.startswith("day one") else "rf_all")])
+table(["Cycles already logged", "Predictions", "Population average", "Her own average", "Blended (used in the app)", "Random Forest"], rows,
+      [3.4, 2.0, 2.8, 2.8, 3.0, 2.6], caption="Next cycle length: share within 3 days (and average error in days)", size=8.5,
+      note="Day one: the Random Forest uses age and BMI only. Later rows: the Random Forest uses the whole history. In the last row every prediction is counted, so it mixes all stages.")
+ci3 = CYC["ci_within3_3plus"]
+ci1 = CYC["ci_within3_day1"]
+para("**Reading the table.** On day one nothing beats the population average: within 3 days %s of the time (95%% interval %s to %s), and the Random Forest that also knows age and BMI is no better (%s to %s). "
+     "With three or more cycles a woman's own average is right within 3 days %s of the time (blended %s, interval %s to %s) against %s for the population average (%s to %s), and the Random Forest (%s to %s) is statistically the same as the simple averages. "
+     "The simpler blended model was therefore chosen: it is explainable, works offline on the phone and needs no server." % (
+         pc0(CYC["length"]["day one (0 cycles)"]["pop_mean"]["within3"]), pc0(ci1["pop_mean"][0]), pc0(ci1["pop_mean"][1]), pc0(ci1["rf_day1"][0]), pc0(ci1["rf_day1"][1]),
+         pc0(CYC["length"]["3 or more"]["user_mean"]["within3"]), pc0(CYC["length"]["3 or more"]["shrink"]["within3"]), pc0(ci3["shrink"][0]), pc0(ci3["shrink"][1]),
+         pc0(CYC["length"]["3 or more"]["pop_mean"]["within3"]), pc0(ci3["pop_mean"][0]), pc0(ci3["pop_mean"][1]), pc0(ci3["rf_all"][0]), pc0(ci3["rf_all"][1])))
+mrows = []
+for b in ["day one (0 cycles)", "3 or more", "all"]:
+    M = CYC["menses"][b]
+    cellm = lambda k: f"{pc0(M[k]['within2'])} ({M[k]['mae']:.1f} d)"
+    mrows.append([b.replace(" (0 cycles)", ""), cellm("menses_pop"), cellm("menses_user"), cellm("menses_shrink"), cellm("menses_rf")])
+table(["Cycles already logged", "Population average", "Her own average", "Blended", "Random Forest"], mrows, [3.6, 3.2, 3.2, 3.2, 3.4],
+      caption="Period length: share within 2 days (and average error in days)", size=8.5,
+      note="Period length varies little: it is predicted within 2 days about nine times in ten from day one and about 98 times in 100 once her own periods are logged.")
+orows = []
+for b in ["day one (0 cycles)", "3 or more", "all"]:
+    O = CYC["ovulation"][b]
+    cello = lambda k: f"{pc0(O[k]['within2'])} / {pc0(O[k]['within3'])} ({O[k]['mae']:.1f} d)"
+    orows.append([b.replace(" (0 cycles)", ""), cello("ov_day14"), cello("ov_len_minus_pop"), cello("ov_len_minus_user"), cello("ov_rf")])
+table(["Cycles already logged", "Always day 14", "Expected period minus 13 days (used)", "Same, with her own luteal length", "Random Forest"], orows, [3.0, 3.0, 3.8, 3.6, 3.2],
+      caption="Ovulation day: share within 2 / within 3 days (and average error in days)", size=8.5,
+      note="The 'own luteal length' column needs hormone or fertility-monitor data that the app does not have, so it is shown only to explain how much a hormone-based method could add (about 9 points within 2 days). The reference here is the ovulation day estimated in the Fehring study, not a laboratory measurement.")
+wrows = []
+W = CYC["window"]["1.28"]
+for b in ["day one", "1 to 2 cycles", "3 or more"]:
+    wrows.append([b, pc0(W[b]["coverage"]), f"{W[b]['mean_half_width']:.1f} days"])
+table(["Cycles already logged", "Real period start inside the window", "Average half-width"], wrows, [4.6, 6.0, 5.0],
+      caption="The 'likely between' window shown in the app", size=8.5,
+      note="The window is the prediction plus or minus 1.28 standard deviations of her (blended) cycle spread, at least 2 days. With three or more cycles the real start fell inside it about 9 times in 10.")
+H2("14.3 Comparison with the scope document")
+table(["Scope statement", "What was measured", "Conclusion"], [
+    ["General model (Random Forest, Fehring) predicts the next cycle from day one, about 70% accuracy", "%s within 3 days on day one, 95%% interval %s to %s. The population average achieves this; the Random Forest with age and BMI does not improve on it" % (pc0(CYC["length"]["day one (0 cycles)"]["pop_mean"]["within3"]), pc0(ci1["pop_mean"][0]), pc0(ci1["pop_mean"][1])), "Consistent with the scope if accuracy means within 3 days; no Random Forest is needed"],
+    ["Personalised LSTM after 3+ cycles, 85 to 90% accuracy", "%s within 3 days with 3+ cycles (interval %s to %s) using her own average blended with the study average" % (pc0(CYC["length"]["3 or more"]["shrink"]["within3"]), pc0(ci3["shrink"][0]), pc0(ci3["shrink"][1])), "The 85 to 90% target is at or above the top of the interval and was not reached. An LSTM was not built: with 3 to 12 cycles per woman a neural network cannot learn more than her average, and the Random Forest on the same history showed no gain"],
+    ["Detect delayed or irregular cycles and give lifestyle-based insights", "Rules from standard cycle ranges (21 to 35 days, 7 days of variation, periods up to 7 days) and lateness against the prediction window", "Done as rules with plain wording; no lifestyle inputs (sleep, stress) are collected yet"],
+], [5.4, 6.2, 5.0], caption="Scope 6.2 against the measured results", size=8.5)
+para("**Why the ceiling is not higher.** %s of cycles fall outside 21 to 35 days and %s of cycles differ from the woman's previous one by more than 7 days; these jumps cannot be predicted from cycle lengths alone." % (pc0(CYC["irregular_share"]["outside_21_35"]), pc0(CYC["irregular_share"]["jump_over_7_days"])))
+H2("14.4 How the prediction works in the app")
+bullets([
+    "**Cycle length.** Her average of the cycles between logged period starts (gaps under 15 days are treated as duplicates and over 60 days as missed logs, and are not averaged), blended with the study average of 29.3 days: estimate = (n x her average + 1.07 x 29.3) / (n + 1.07) for n cycles. The result is rounded to whole days.",
+    "**Next period** = last period start + predicted length; the likely window is plus or minus 1.28 of her blended spread, at least 2 days.",
+    "**Period length** = her average period length blended with 5.2 days (the study average counts as two of her own periods).",
+    "**Ovulation** = expected next period minus 13 days (the median luteal phase); the fertile window runs from 5 days before to 1 day after. It is an estimate from cycle length, not a measurement.",
+    "**Late** = the expected date has passed with no new period; no new predictions are drawn until she logs one. After more than the window, a note appears; after 14 days it advises seeing a doctor, and after 90 days it says so more firmly.",
+    "**Constants.** They are generated into lib/models/cycle_params.dart by ml/cycle_eval.py so the study and the app cannot drift apart.",
+])
+H2("14.5 Limitations")
+bullets([
+    "**Different population.** The women in the Fehring data used fertility-awareness charting, are aged about 21 to 43 and are not from Pakistan; the average and spread may differ for the app's users. Validation on local data is needed.",
+    "**Day one is a rough guess.** About one prediction in three misses by more than 3 days before she has logged a full cycle, and the app says so on screen.",
+    "**Irregular cycles are the hard case,** and they are the women who need the app most (as the scope notes). For them the window is wide and the notes matter more than the date.",
+    "**Not contraception.** The fertile window is an estimate; the app states that it must not be used to avoid pregnancy.",
+    "**Not tried on a phone yet.** The logic and screens are covered by 44 automatic tests (engine, store and screen), and the screen was checked as a rendered image, but nobody has used it on a phone.",
+])
+
+# ================================================================== 15 CONCLUSION
+H1("15. Conclusion")
 para("The breast module now consists of two models backed by measured evidence and an honest account of their limits. The most valuable result of this "
      "period was not a higher accuracy figure but a truthful one: testing on a hospital the model had never seen exposed a large gap, adding the right data "
      "closed most of it, and a further experiment that did not help was documented and rejected. The app can be shown on a phone today and now includes a voice-enabled, personalised AI companion and a one-tap "
-     "health report, and accounts. About 40% of the scope, mainly cycle prediction, trend charts, pregnancy, hormonal insights and most reminders, remains to be built.")
+     "health report, and accounts. About 30% of the scope, mainly trend charts, pregnancy, hormonal insights and most reminders, remains to be built.")
 
 # ================================================================== APPENDICES
 H1("Appendix A. Metric glossary", new_page=True)
@@ -1247,6 +1335,9 @@ table(["Decision", "Reason"], [
     ["Rename the package to pk.edu.au.femora before adding Firebase", "Firebase stores the package name and the Play Store refuses com.example names; renaming later would repeat the setup"],
     ["Keep the health store and chat history per account", "Two women sharing a phone must not see each other's results"],
     ["Phone voice for automatic spoken answers, AI voice on request", "The AI voice took 25 to 30 s for a typical answer; the phone voice starts at once and has no quota"],
+    ["Blend her own cycle average with the study average instead of a Random Forest or LSTM", "Measured on 1,665 cycles: the Random Forest and the LSTM-style history model gave no gain over her own average; the blended model is simple, explainable and works offline"],
+    ["Run cycle prediction on the phone, not the server", "It is a few lines of arithmetic; it then works offline, stays private and needs no tunnel"],
+    ["Ovulation estimated as expected period minus 13 days, labelled an estimate", "The app has no hormone data; the measured error (about 2 days) is stated instead of implied precision"],
     ["Do not add more normal scans to the ultrasound model for now", "Normal scans are about 5% of the non-cancer test scans and the errors are benign versus malignant, so more normals cannot move the accuracy much; see Q37"],
     ["Phone voice as the fallback for the AI voice", "The free AI voice quota is small (10 a day per model); the phone's own voice is instant and unlimited, so speech never depends on a quota"],
     ["gemini-3.1-flash-lite for chat and speech recognition", "Fastest model available to a new key (1.5 to 3 s); 2.5-flash was closed to new users and 3.8-flash returned 503 under load; 3.6-flash kept as backup"],
@@ -1285,6 +1376,8 @@ table(["Commit", "Date", "Change"], [
     ["e3e1dd2", "21 Sep 2026", "Voice: answer out loud in about a second"],
     ["d38ab9a", "21 Sep 2026", "Companion: moderate replies; the three effects redrawn in Flutter"],
     ["d354fb2", "21 Sep 2026", "Accounts: sign in with email, Google, phone or as a guest (Firebase)"],
+    ["0692b15, 8d70906, eddc190", "21 Sep 2026", "Report and handoff updates; dataset search and BUSI-WHU external check; breast module improvement closed"],
+    ["388032f", "21 Sep 2026", "Cycle tracking and prediction: period logging, calendar, predictions, notes, Home card, report panel, ml/cycle_eval.py"],
 ], [2.4, 3.0, 11.2], caption="Commits made during this period")
 
 H1("Appendix F. Questions a panel may ask")
@@ -1338,19 +1431,25 @@ qa = [
     ("Q24. How would you deploy this for real users?",
      "Package the backend in Docker (files are ready), host it on a paid or institutional service with HTTPS, add authentication and rate limits, restrict CORS, log without storing images, and monitor performance. Then validate on local data."),
     ("Q25. What would you do with more time?",
-     "Build the missing modules (cycle prediction, trend charts, pregnancy mode), add a grounded knowledge base to the companion, try a lesion-focused two-step ultrasound model, collect local scans, add mammography, and consider on-device inference."),
+     "Build the missing modules (trend charts, pregnancy mode, hormonal insights), add a grounded knowledge base to the companion, try a lesion-focused two-step ultrasound model, collect local scans, add mammography, and consider on-device inference."),
     ("Q26. Which phones can run the APK?",
      "The release build targets 64-bit ARM Android phones (arm64-v8a), which covers nearly all phones made in recent years, and uses Flutter's default minimum Android version. A phone that only supports 32-bit ARM would need a different build. It is 19 MB and is installed directly (not through the Play Store), so Android asks to allow installs from unknown sources."),
     ("Q27. Is the APK build reproducible?",
      "Yes in practice: a second build from the same source produced a byte-for-byte identical file (same SHA-256), so the APK on the phone matches the code in the repository."),
     ("Q28. What is not finished?",
-     "About 40% of the scope: cycle prediction, trend charts, pregnancy mode, hormonal insights and most reminders. Section 12 gives the plan."),
+     "About 30% of the scope: trend charts, pregnancy mode, hormonal insights and most reminders. Section 12 gives the plan."),
     ("Q36. Where are accounts and passwords stored?",
      "Femora stores no passwords and has no account database. Firebase Authentication (a Google service) holds the account, with four ways in: email, Google, a phone code or guest. Results, scans, logs and the conversation stay on the phone, kept separately for each account, so two women sharing a phone do not see each other's data."),
     ("Q37. Would training the ultrasound model on more normal scans improve accuracy?",
      "Not much, and it is not worth it now. Normal scans are only 135 of the 2,897 scans (BUSI 131, BrEaST 4; BUS-BRA has none) and 22 of the 470 non-cancer test scans, about 5%. The errors that matter are benign lesions flagged as suspicious and a few missed cancers, not normal scans, so even perfect normals could change the non-cancer-cleared figure by at most about 5 percentage points. The one test we ran with mostly normal scans (BUS-UCLM) gave no gain: AUC 0.868 against 0.869, with fewer cancers caught. There is also a shortcut risk: if the normals come from one hospital or scanner, the model can learn the scanner instead of the disease, the same problem that made version 7 fail on new hospitals. And with only 22 normal test scans we could not measure a small gain reliably anyway. More useful: benign and malignant scans from new hospitals (ideally local ones) and a lesion-focused two-step model."),
     ("Q38. Have you tested the ultrasound model on another hospital's data?",
      "Partly. We downloaded BUSI-WHU (927 scans, Wuhan, CC BY 4.0), but its public release has masks and no benign or malignant labels, so accuracy could not be measured. Without labels we saw that the model flagged 58.6% of the scans, close to the 57.3% its own test results predict, and that the ultrasound gate wrongly refused 4.3% of these genuine scans, which is a weakness to fix. A labelled outside test set, ideally from a Pakistani hospital, is the most important next step."),
+    ("Q39. How accurate is the next-period prediction?",
+     "We measured it on 1,665 real cycles from 159 women, testing only on women the model never saw. The next period date is right within 3 days about 67% of the time on day one (95% interval 60% to 75%), and about 82% of the time once three cycles are logged (78% to 86%). The app shows a likely window, and with three or more cycles the real start fell inside it about 90% of the time. Irregular cycles are harder."),
+    ("Q40. Why not an LSTM, as the scope says?",
+     "A woman has 3 to 12 cycles, far too few to train a neural network for her. We tested the alternative that matters: a Random Forest that sees her whole history did no better than simply averaging her own cycles (interval overlap of 77% to 84% against 78% to 86%). So we use her own average blended with the study average. It is simpler, explainable, works offline and is just as accurate. The measured gap to the scope's 85 to 90% target is reported honestly."),
+    ("Q41. Can the fertile window be used to avoid pregnancy?",
+     "No, and the app says so. Ovulation is estimated as the expected period minus 13 days, and is right within 2 days about 66% of the time with three or more cycles; hormone tests or a fertility monitor would be needed for more. It is meant to help women understand their cycle, not as contraception."),
     ("Q29. Will it work on ultrasound images downloaded from the internet?",
      "Often, with limits. In an informal check, compression, low resolution and annotation marks did not change the answer on 7 of 7 test scans; colour-tinted images were refused; a real carcinoma image was flagged (93%), a real fibroadenoma image was a false alarm (66% malignant), and a generic non-breast ultrasound was wrongly accepted. Two images cannot measure accuracy, so web images should be used only for demonstrations (section 6.13)."),
     ("Q30. How does the AI companion know about me?",
