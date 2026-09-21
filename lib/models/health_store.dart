@@ -7,6 +7,7 @@ import 'breast.dart';
 import 'cycle_engine.dart';
 import 'hormone_insights.dart';
 import 'pcos.dart';
+import 'report_reader.dart';
 
 /// Everything Femora knows about the user, stored on the phone only.
 /// The AI companion and the health report both read from here, which is what makes the app feel like one product.
@@ -19,6 +20,7 @@ class HealthProfile {
   String language; // en | ur
   bool personalize; // share a name-free summary with the AI companion
   bool onboarded;
+  bool reportReaderConsent; // agreed that a report photo may be sent to the AI reader
 
   HealthProfile({
     this.name = '',
@@ -29,6 +31,7 @@ class HealthProfile {
     this.language = 'en',
     this.personalize = true,
     this.onboarded = false,
+    this.reportReaderConsent = false,
   }) : concerns = concerns ?? <String>{};
 
   double? get bmi => (heightCm != null && weightKg != null && heightCm! > 0) ? weightKg! / ((heightCm! / 100) * (heightCm! / 100)) : null;
@@ -44,6 +47,7 @@ class HealthProfile {
         'language': language,
         'personalize': personalize,
         'onboarded': onboarded,
+        'reportReaderConsent': reportReaderConsent,
       };
 
   factory HealthProfile.fromJson(Map<String, dynamic> j) => HealthProfile(
@@ -55,6 +59,7 @@ class HealthProfile {
         language: (j['language'] as String?) ?? 'en',
         personalize: (j['personalize'] as bool?) ?? true,
         onboarded: (j['onboarded'] as bool?) ?? false,
+        reportReaderConsent: (j['reportReaderConsent'] as bool?) ?? false,
       );
 }
 
@@ -216,6 +221,7 @@ class HealthStore extends ChangeNotifier {
   Uint8List? scanHeatmap; // heatmap image of the latest scan (for the report)
   List<SymptomLog> logs = [];
   List<PeriodEntry> periods = []; // every period the user logged, oldest first
+  List<ExplainedReport> reports = []; // medical reports explained from photos, newest first (text only, never the photo)
 
   /// Called whenever the period history may have changed (reminders are recalculated from it).
   void Function()? onCycleChanged;
@@ -238,6 +244,7 @@ class HealthStore extends ChangeNotifier {
     scanHeatmap = null;
     logs = [];
     periods = [];
+    reports = [];
     notifyListeners();
     await load();
   }
@@ -262,6 +269,7 @@ class HealthStore extends ChangeNotifier {
         scan = j['scan'] == null ? null : ScanSummary.fromJson(j['scan'] as Map<String, dynamic>);
         logs = ((j['logs'] as List?) ?? const []).map((e) => SymptomLog.fromJson(e as Map<String, dynamic>)).toList();
         periods = ((j['periods'] as List?) ?? const []).map((e) => PeriodEntry.fromJson(e as Map<String, dynamic>)).toList();
+        reports = ((j['reports'] as List?) ?? const []).map((e) => ExplainedReport.fromJson(e as Map<String, dynamic>)).toList();
       }
       final heat = prefs.getString(_heatKey);
       scanHeatmap = heat == null ? null : base64Decode(heat);
@@ -285,6 +293,7 @@ class HealthStore extends ChangeNotifier {
           'scan': scan?.toJson(),
           'logs': logs.map((l) => l.toJson()).toList(),
           'periods': periods.map((e) => e.toJson()).toList(),
+          'reports': reports.map((e) => e.toJson()).toList(),
         }),
       );
       if (scanHeatmap == null) {
@@ -408,6 +417,27 @@ class HealthStore extends ChangeNotifier {
     return null;
   }
 
+  static const maxReports = 5;
+
+  /// Keeps the text of an explained report (newest first, at most [maxReports]). The photo is never kept.
+  void recordReport(ExplainedReport r) {
+    reports = [r, ...reports].take(maxReports).toList();
+    notifyListeners();
+    _save();
+  }
+
+  void removeReport(ExplainedReport r) {
+    reports = [for (final x in reports) if (!identical(x, r) && x.date != r.date) x];
+    notifyListeners();
+    _save();
+  }
+
+  Future<void> setReportReaderConsent(bool value) async {
+    profile.reportReaderConsent = value;
+    notifyListeners();
+    await _save();
+  }
+
   /// Deletes everything Femora stored about the user (privacy).
   Future<void> clearAll() async {
     profile = HealthProfile();
@@ -417,6 +447,7 @@ class HealthStore extends ChangeNotifier {
     scanHeatmap = null;
     logs = [];
     periods = [];
+    reports = [];
     notifyListeners();
     await _save();
     onCycleChanged?.call();
@@ -463,6 +494,7 @@ class HealthStore extends ChangeNotifier {
       lines.add('Breast ultrasound screening (${ago(sc.date, n)}): ${sc.title}, ${(sc.confidence * 100).round()}% confidence. '
           'A screening estimate, not a diagnosis.');
     }
+    if (reports.isNotEmpty) lines.add(reports.first.companionLine(n));
     if (lastSelfExam != null) lines.add('Last breast self-exam: ${ago(lastSelfExam, n)}.');
     final engine = CycleEngine(periods, n);
     final cyc = engine.companionSummary();
