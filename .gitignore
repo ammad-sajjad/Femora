@@ -61,3 +61,6 @@ backend/.venv/
 # secrets
 backend/.env
 .env
+
+# Word lock files
+~$*
