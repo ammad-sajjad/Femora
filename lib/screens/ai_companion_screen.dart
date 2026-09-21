@@ -534,69 +534,93 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
             : phase == VoicePhase.speaking
                 ? 'Speaking… tap to stop'
                 : 'Ask anything…';
+    // The box shows what it is doing: colour rises from the bottom while she speaks, sweeps while the
+    // answer is prepared, and a beam rides the border whenever the companion is busy with her.
+    final working = recording || busy || chat.sending;
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 4, 20, 96),
-      padding: const EdgeInsets.fromLTRB(6, 6, 8, 6),
-      decoration: BoxDecoration(
-        color: recording ? const Color(0xFFFDEEF2) : AppColors.cardWhite,
-        borderRadius: BorderRadius.circular(30),
-        border: recording ? Border.all(color: AppColors.accentPink, width: 1.5) : null,
-        boxShadow: AppTheme.softShadow,
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            key: const Key('mic_button'),
-            onTap: busy ? null : _toggleMic,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(color: recording ? AppColors.accentPink : const Color(0xFFFFDFE8), shape: BoxShape.circle),
-              child: busy
-                  ? const Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator(strokeWidth: 2.4, color: AppColors.primaryBerry))
-                  : Icon(
-                      recording
-                          ? Icons.stop_rounded
-                          : phase == VoicePhase.speaking
-                              ? Icons.volume_off_rounded
-                              : Icons.mic_rounded,
-                      color: recording ? Colors.white : AppColors.primaryBerry,
-                      size: 24,
-                    ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              key: const Key('chat_input'),
-              controller: _controller,
-              enabled: !recording && !busy,
-              minLines: 1,
-              maxLines: 3,
-              maxLength: 1000,
-              textInputAction: TextInputAction.send,
-              onSubmitted: (v) => _send(v),
-              buildCounter: (_, {required currentLength, required isFocused, maxLength}) => null,
-              decoration: InputDecoration(
-                hintText: hint,
-                hintStyle: const TextStyle(fontFamily: 'Inter', fontSize: 14, color: Color(0xFF9E9CA8)),
-                border: InputBorder.none,
-                isDense: true,
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(30), boxShadow: AppTheme.softShadow),
+      child: BorderBeam(
+        radius: 30,
+        active: working,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(30),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: ColoredBox(color: recording ? const Color(0xFFFDEEF2) : AppColors.cardWhite),
               ),
-            ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Opacity(
+                  opacity: 0.30,
+                  child: VoiceGlow(height: 34, rising: recording, sweeping: busy || chat.sending),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(6, 6, 8, 6),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      key: const Key('mic_button'),
+                      onTap: busy ? null : _toggleMic,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(color: recording ? AppColors.accentPink : const Color(0xFFFFDFE8), shape: BoxShape.circle),
+                        child: busy
+                            ? const Padding(
+                                padding: EdgeInsets.all(12), child: CircularProgressIndicator(strokeWidth: 2.4, color: AppColors.primaryBerry))
+                            : Icon(
+                                recording
+                                    ? Icons.stop_rounded
+                                    : phase == VoicePhase.speaking
+                                        ? Icons.volume_off_rounded
+                                        : Icons.mic_rounded,
+                                color: recording ? Colors.white : AppColors.primaryBerry,
+                                size: 24,
+                              ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        key: const Key('chat_input'),
+                        controller: _controller,
+                        enabled: !recording && !busy,
+                        minLines: 1,
+                        maxLines: 3,
+                        maxLength: 1000,
+                        textInputAction: TextInputAction.send,
+                        onSubmitted: (v) => _send(v),
+                        buildCounter: (_, {required currentLength, required isFocused, maxLength}) => null,
+                        decoration: InputDecoration(
+                          hintText: hint,
+                          hintStyle: const TextStyle(fontFamily: 'Inter', fontSize: 14, color: Color(0xFF9E9CA8)),
+                          border: InputBorder.none,
+                          isDense: true,
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      key: const Key('send_button'),
+                      onTap: chat.sending ? null : () => _send(_controller.text),
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(color: chat.sending ? const Color(0xFFD9C3CC) : AppColors.primaryBerry, shape: BoxShape.circle),
+                        child: const Icon(Icons.arrow_upward_rounded, color: Colors.white, size: 21),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          GestureDetector(
-            key: const Key('send_button'),
-            onTap: chat.sending ? null : () => _send(_controller.text),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(color: chat.sending ? const Color(0xFFD9C3CC) : AppColors.primaryBerry, shape: BoxShape.circle),
-              child: const Icon(Icons.arrow_upward_rounded, color: Colors.white, size: 21),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
