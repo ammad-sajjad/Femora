@@ -47,7 +47,28 @@ Home tab showed a fake "Ayesha" and fake cycle data; emergency detector missed R
 - Never repeat keys in output. `backend/.env` is committed by the owner's explicit choice (free key); do not add other secrets to the repo.
 
 ## Report (Word) status
-`scripts/build_report.py` is current, including APK build 5 and section 13.5a (voice quota). The `.docx` in git was last regenerated before the build 5 row was added: Word held a lock on the file at the end of the session. On the home PC close the docx everywhere, run the build script, then refresh via Word COM. The script is the source of truth; the docx is generated from it. A stray lock file (`~$...docx`) had been committed once and is now removed and ignored.
+Current as of 21 September 2026: the `.docx` in git was regenerated from `scripts/build_report.py` and now contains the
+APK build 5 row and section 13.5a (voice quota). 46 pages, 18,060 words, 6 figures; the table of contents was refreshed
+through Word. The script is the source of truth; the docx is generated from it. A stray lock file (`~$...docx`) had been
+committed once and is now removed and ignored.
+
+### Rebuilding the report on a fresh clone
+`ml/output/` is in `.gitignore`, so the files the report reads are **not** in git and must be restored first, or the
+build either crashes on a missing figure or silently prints numbers from whatever stale run is still on disk (this
+happened on 21 Sep: a leftover v6 folder quietly replaced four version-7 numbers in table 28 — always diff the rebuilt
+docx against the committed one and expect only the rows you meant to change).
+
+1. Restore the Kaggle outputs (account `ammad0`, token in `~/.kaggle/access_token`, CLI at `ml/.venv/Scripts/kaggle.exe`):
+   - `kernels output ammad0/femora-breast-ultrasound-resnet50 -p ml/output/breast_ultrasound` (version 7)
+   - `kernels output ammad0/femora-breast-ultrasound-resnet50-busbra -p ml/output/breast_busbra` (deployed model, figures)
+   - `kernels output ammad0/femora-breast-ultrasound-resnet50-uclm -p ml/output/breast_uclm` (the rejected experiment)
+   - `kernels output ammad0/femora-breast-risk-xgboost -p ml/output/breast_risk` (questionnaire figures)
+2. Start the backend and run `python scripts/make_report_examples.py` (writes `ml/output/report_examples.json`, the real
+   API request/answer pairs printed in section 3.3).
+3. Close the docx everywhere, then `python scripts/build_report.py` and `python scripts/refresh_toc.py` (Word COM fills
+   the table of contents and page numbers; python-docx leaves the field empty).
+Both scripts need `python-docx`, `pywin32` and Word installed; neither venv had them, so they were added to `ml/.venv`
+with `VIRTUAL_ENV=ml/.venv uv pip install python-docx pywin32` (the venvs are uv-made and have no `pip`).
 
 ## Open items and ideas
 1. Real-phone check (task #7).
