@@ -101,6 +101,9 @@ class PcosState extends ChangeNotifier {
 
   PcosState({ApiService? api, this.onResult}) : _api = api ?? ApiService();
 
+  /// The same client the questionnaire uses (so the server address setting applies to the what-if card too).
+  ApiService get api => _api;
+
   PcosResult? _result;
   PcosResult? get result => _result;
 

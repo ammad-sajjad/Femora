@@ -162,11 +162,11 @@ def health():
     return {"status": "ok", "models": ["pcos", "breast_scan", "breast_risk"], "companion": companion.api_key() is not None}
 
 
-@app.post("/predict/pcos", response_model=PcosResult)
-def predict_pcos(a: PcosAnswers):
+def pcos_values(a: PcosAnswers) -> dict[str, float]:
+    """The model's inputs for one set of answers."""
     bmi = a.weight_kg / (a.height_cm / 100) ** 2
     waist_hip = a.waist_in / a.hip_in if a.waist_in and a.hip_in else DEFAULT_WAIST_HIP
-    values = {
+    return {
         "bmi": bmi,
         "irregular_cycle": int(a.irregular_cycle),
         "period_days": a.period_days,
@@ -179,8 +179,19 @@ def predict_pcos(a: PcosAnswers):
         "fast_food": int(a.fast_food),
         "regular_exercise": int(a.regular_exercise),
     }
+
+
+def pcos_matrix(values: dict[str, float]) -> "xgb.DMatrix":
     features = pcos_meta["features"]
-    dm = xgb.DMatrix(np.array([[values[f] for f in features]], dtype=float), feature_names=features)
+    return xgb.DMatrix(np.array([[values[f] for f in features]], dtype=float), feature_names=features)
+
+
+@app.post("/predict/pcos", response_model=PcosResult)
+def predict_pcos(a: PcosAnswers):
+    values = pcos_values(a)
+    bmi = values["bmi"]
+    features = pcos_meta["features"]
+    dm = pcos_matrix(values)
     p = float(pcos_model.predict(dm)[0])
 
     # Per-answer contributions (SHAP values) — the answers pushing risk up become the result tags
@@ -199,6 +210,62 @@ def predict_pcos(a: PcosAnswers):
         guidance=pcos_guidance(a, bmi, level),
         disclaimer=DISCLAIMER,
     )
+
+
+# ---------------------------------------------------------------- PCOS "what if"
+
+class WhatIfChange(BaseModel):
+    """One scenario: the things a person can influence, changed. Anything left out stays as answered."""
+    label: str = Field(min_length=1, max_length=60)
+    weight_kg: float | None = Field(default=None, ge=25, le=200)
+    waist_in: float | None = Field(default=None, ge=15, le=70)
+    regular_exercise: bool | None = None
+    fast_food: bool | None = None
+
+
+class WhatIfRequest(BaseModel):
+    answers: PcosAnswers
+    scenarios: list[WhatIfChange] = Field(min_length=1, max_length=8)
+
+
+class WhatIfOutcome(BaseModel):
+    label: str
+    probability: float
+    risk_level: str
+    bmi: float
+    change_points: float  # percentage points against the answers as given (negative = lower)
+
+
+class WhatIfResult(BaseModel):
+    baseline_probability: float
+    baseline_risk_level: str
+    outcomes: list[WhatIfOutcome]
+    note: str
+
+
+WHATIF_NOTE = (
+    "This shows what the model would estimate if those answers were different. It comes from a small study of 541 women and "
+    "describes patterns, not what will happen to you. Please do not change your diet, exercise or weight because of it without asking your doctor."
+)
+
+
+@app.post("/predict/pcos/whatif", response_model=WhatIfResult)
+def predict_pcos_whatif(req: WhatIfRequest):
+    a = req.answers
+    base_p = float(pcos_model.predict(pcos_matrix(pcos_values(a)))[0])
+    outcomes = []
+    for sc in req.scenarios:
+        changed = a.model_copy(update={k: v for k, v in {
+            "weight_kg": sc.weight_kg,
+            "waist_in": sc.waist_in,
+            "regular_exercise": sc.regular_exercise,
+            "fast_food": sc.fast_food,
+        }.items() if v is not None})
+        values = pcos_values(changed)
+        p = float(pcos_model.predict(pcos_matrix(values))[0])
+        outcomes.append(WhatIfOutcome(label=sc.label, probability=round(p, 4), risk_level=risk_level(p), bmi=round(values["bmi"], 1),
+                                      change_points=round((p - base_p) * 100, 1)))
+    return WhatIfResult(baseline_probability=round(base_p, 4), baseline_risk_level=risk_level(base_p), outcomes=outcomes, note=WHATIF_NOTE)
 
 
 # ---------------------------------------------------------------- Breast ultrasound (Module A)
