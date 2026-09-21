@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import '../models/cycle_engine.dart';
 import '../models/health_store.dart';
 
 /// Everything the report shows, gathered in one place (from the on-device store, or sample data for demos).
@@ -15,6 +16,7 @@ class ReportData {
   final BreastRiskSummary? breastRisk;
   final DateTime? lastSelfExam;
   final List<SymptomLog> logs;
+  final List<PeriodEntry> periods;
   final DateTime generated;
   final bool isSample;
 
@@ -27,6 +29,7 @@ class ReportData {
     required this.lastSelfExam,
     required this.logs,
     required this.generated,
+    this.periods = const [],
     this.isSample = false,
   });
 
@@ -38,6 +41,7 @@ class ReportData {
         breastRisk: store.breastRisk,
         lastSelfExam: lastSelfExam,
         logs: store.logs,
+        periods: store.periods,
         generated: now ?? DateTime.now(),
       );
 
@@ -76,6 +80,7 @@ class ReportData {
             mood: const ['okay', 'low', 'good', 'okay', 'low', 'okay', 'good'][i],
           ),
       ],
+      periods: [for (final ago in [118, 90, 62, 34, 6]) PeriodEntry(start: day.subtract(Duration(days: ago)), end: day.subtract(Duration(days: ago - 4)))],
       generated: n,
       isSample: true,
     );
@@ -138,6 +143,7 @@ Future<Uint8List> buildReport(ReportData d) async {
         _pcosPanel(d),
         _scanPanel(d),
         _riskPanel(d),
+        _cyclePanel(d),
         _wellnessPanel(d),
         _nextSteps(d),
         pw.SizedBox(height: 14),
@@ -254,6 +260,7 @@ pw.Widget _summaryBox(ReportData d) {
     if (d.scan != null) 'Breast ultrasound screening: ${d.scan!.title} (${(d.scan!.confidence * 100).round()}% model confidence).',
     if (d.breastRisk != null) 'Breast cancer risk: ${d.breastRisk!.relativeRisk.toStringAsFixed(2)} x the age average (${_levelStyle(d.breastRisk!.level).label}).',
     if (d.breastRisk != null && d.breastRisk!.redFlags.isNotEmpty) 'Reported symptoms needing a doctor: ${d.breastRisk!.redFlags.join(', ')}.',
+    if (d.periods.isNotEmpty) _cycleSummaryLine(CycleEngine(d.periods, d.generated)),
   ];
   return pw.Container(
     width: double.infinity,
@@ -406,8 +413,53 @@ pw.Widget _riskPanel(ReportData d) {
   );
 }
 
+String _cycleSummaryLine(CycleEngine e) {
+  final avg = e.averageLength == null ? '' : ', average cycle ${e.averageLength!.toStringAsFixed(1)} days (${e.regularity})';
+  return 'Menstrual cycle: ${e.n} cycle${e.n == 1 ? '' : 's'} logged$avg.';
+}
+
+List<String> _cycleSteps(ReportData d) {
+  if (d.periods.isEmpty) return const [];
+  final e = CycleEngine(d.periods, d.generated);
+  return [for (final f in e.flags) if (f.seeDoctor) f.text];
+}
+
+pw.Widget _cyclePanel(ReportData d) {
+  const title = 'PANEL 4: MENSTRUAL CYCLE';
+  if (d.periods.isEmpty) return _pending(title, 'No periods have been logged. Use the Cycle tab in the app to log the first day of your last period.');
+  final e = CycleEngine(d.periods, d.generated);
+  String date(DateTime x) => DateFormat('d MMM yyyy').format(x);
+  final avg = e.averageLength;
+  final per = e.averagePeriod;
+  final avgFlag = avg == null ? ('-', _muted) : (avg < 21 || avg > 35) ? ('REVIEW', _amber) : ('NORMAL', _green);
+  final regFlag = e.regularity == 'irregular' ? ('REVIEW', _amber) : e.regularity == 'regular' ? ('REGULAR', _green) : ('-', _muted);
+  final perFlag = per == null ? ('-', _muted) : per > 7 ? ('REVIEW', _amber) : ('NORMAL', _green);
+  final late = e.isLate;
+  return pw.Column(
+    crossAxisAlignment: pw.CrossAxisAlignment.start,
+    children: [
+      _panelTitle(title, date(e.lastStart!)),
+      _resultTable([
+        (test: 'Cycles logged (complete)', result: '${e.n}', reference: 'At least 3 give a personal prediction', flag: '-', colour: _muted),
+        (test: 'Average cycle length', result: avg == null ? 'Not enough data' : '${avg.toStringAsFixed(1)} days', reference: '21 - 35 days', flag: avgFlag.$1, colour: avgFlag.$2),
+        (test: 'Cycle regularity', result: e.regularity, reference: e.spread == null ? 'Longest minus shortest of recent cycles: 7 days or less' : 'Recent cycles differ by ${e.spread} days (regular: 7 or less)', flag: regFlag.$1, colour: regFlag.$2),
+        (test: 'Average period length', result: per == null ? 'Not logged' : '${per.toStringAsFixed(1)} days', reference: '2 - 7 days', flag: perFlag.$1, colour: perFlag.$2),
+        (test: 'Last period started', result: date(e.lastStart!), reference: e.periodOngoing ? 'Period ongoing: day ${e.cycleDay}' : 'Today is cycle day ${e.cycleDay}', flag: '-', colour: _muted),
+        if (late)
+          (test: 'Next period', result: 'Late by ${-e.daysUntilNext!} days', reference: 'Expected ${date(e.nextStart!)}', flag: 'LATE', colour: _amber)
+        else ...[
+          (test: 'Next period (predicted)', result: date(e.nextStart!), reference: 'Likely between ${DateFormat('d MMM').format(e.nextStartEarliest!)} and ${DateFormat('d MMM').format(e.nextStartLatest!)}', flag: '-', colour: _muted),
+          (test: 'Ovulation (estimate)', result: DateFormat('d MMM').format(e.ovulation!), reference: 'Fertile window ${DateFormat('d MMM').format(e.fertileStart!)} to ${DateFormat('d MMM').format(e.fertileEnd!)}', flag: '-', colour: _muted),
+        ],
+      ]),
+      _note('Interpretation: ${e.basis} Ovulation and the fertile window are estimates from cycle length, not measurements, and must not be used to avoid pregnancy.'),
+      for (final f in e.flags) _note('Note: ${f.text}'),
+    ],
+  );
+}
+
 pw.Widget _wellnessPanel(ReportData d) {
-  const title = 'PANEL 4: SELF-EXAMINATION AND WELLNESS LOG';
+  const title = 'PANEL 5: SELF-EXAMINATION AND WELLNESS LOG';
   final now = d.generated;
   final recent = d.logs.where((l) => now.difference(l.date).inDays < 30).toList();
   final counts = <String, int>{};
@@ -461,6 +513,7 @@ pw.Widget _nextSteps(ReportData d) {
     if (d.breastRisk != null && d.breastRisk!.redFlags.isNotEmpty) 'See a doctor about the reported breast symptoms (${d.breastRisk!.redFlags.join(', ')}), ideally within two weeks.',
     if (d.scan != null && d.scan!.prediction == 'malignant') 'Show the ultrasound and this report to a breast specialist soon; a biopsy is the only way to be sure.',
     if (d.pcos != null && d.pcos!.level != 'low') 'Book a gynecologist visit to discuss the PCOS screening; ask about an ultrasound and hormone blood tests.',
+    ..._cycleSteps(d),
     if (d.pcos != null && d.pcos!.bmi >= 25) 'Ask about nutrition and activity plans; even modest weight change can help cycles.',
     if (d.breastRisk != null && d.breastRisk!.level != 'low') 'Ask your doctor when to start mammograms and how often, given your risk factors.',
     'Do a breast self-exam every month and keep logging your symptoms, mood and cycle in Femora.',

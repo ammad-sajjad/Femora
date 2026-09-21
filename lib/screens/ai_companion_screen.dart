@@ -89,6 +89,7 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
       if (store.pcos != null) ur ? 'میرے PCOS کے نتیجے کا کیا مطلب ہے؟' : 'What does my PCOS result mean?',
       if (store.scan != null) ur ? 'میرے الٹراساؤنڈ کا نتیجہ سمجھائیں' : 'Explain my ultrasound result',
       if (store.breastRisk != null) ur ? 'میرے بریسٹ رسک کا کیا مطلب ہے؟' : 'What does my breast risk mean?',
+      if (store.periods.isNotEmpty) ur ? 'میرا اگلا پیریڈ کب آئے گا؟' : 'When is my next period, and how sure is that?',
       ur ? 'میرے پیریڈز بے قاعدہ کیوں ہیں؟' : 'Why might my periods be irregular?',
       ur ? 'بریسٹ سیلف ایگزام کیسے کریں؟' : 'How do I do a breast self-exam?',
       ur ? 'PCOS میں کیا کھانا چاہیے؟' : 'What foods help with PCOS?',
