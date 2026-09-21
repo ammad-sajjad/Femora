@@ -107,8 +107,10 @@ class ApiService {
   }
 
   /// One turn with the AI companion. [context] is the compact, name-free summary of the user's own results.
-  Future<ChatReply> chat({required List<Map<String, String>> messages, String? context, String language = 'auto'}) async {
-    final json = await _post('/chat', {'messages': messages, 'context': context, 'language': language},
+  /// [brief] asks for a much shorter answer because it will be read aloud; speaking is the slow part.
+  Future<ChatReply> chat(
+      {required List<Map<String, String>> messages, String? context, String language = 'auto', bool brief = false}) async {
+    final json = await _post('/chat', {'messages': messages, 'context': context, 'language': language, 'brief': brief},
         timeout: const Duration(seconds: 40));
     return _parse(() => ChatReply.fromJson(json));
   }

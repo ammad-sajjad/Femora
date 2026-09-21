@@ -80,7 +80,7 @@ class ChatState extends ChangeNotifier {
   }
 
   /// Sends [text] to the companion. Returns the reply text on success, or null on failure ([error] then says why).
-  Future<String?> send(String text, {required HealthStore store, DateTime? lastSelfExam}) async {
+  Future<String?> send(String text, {required HealthStore store, DateTime? lastSelfExam, bool willBeSpoken = false}) async {
     final question = text.trim();
     if (question.isEmpty || _sending) return null;
     _error = null;
@@ -105,7 +105,8 @@ class ChatState extends ChangeNotifier {
     String? reply;
     try {
       final context = store.profile.personalize ? store.companionContext(lastSelfExam: lastSelfExam) : null;
-      final r = await _api.chat(messages: wire, context: (context == null || context.isEmpty) ? null : context);
+      final r = await _api.chat(
+          messages: wire, context: (context == null || context.isEmpty) ? null : context, brief: willBeSpoken);
       _messages = [..._messages, ChatMsg(id: _nextId(), text: r.reply, isUser: false, time: DateTime.now(), urgent: r.urgency == 'urgent', offline: !r.fromModel)];
       reply = r.reply;
     } on ApiException catch (e) {
