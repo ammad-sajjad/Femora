@@ -269,8 +269,8 @@ table(["Module (scope ref.)", "Status", "Evidence"], [
     ["Symptom and mood tracker (6.10)", "Basic version", "Symptoms, mood and notes are saved on the phone (one entry a day) and reach the report and the AI companion; no trend charts yet"],
     ["AI healthcare companion (6.7)", "Done (prototype)", "Gemini chat with Urdu and English voice in and out, safety rules, personal context from the on-device health store (section 13)"],
     ["Health report (6.9)", "Done (first version)", "One tap makes a lab-style PDF with one panel per test (section 13.6)"],
-    ["Onboarding (6.1)", "Basic version", "First-launch profile (no accounts or login)"],
-    ["Accounts and login (6.1), pregnancy care (6.5), hormonal insights (6.6), reminders (6.8, only self-exam exists)", "Not started", "See section 12"],
+    ["Onboarding and accounts (6.1)", "Done (not tried on a phone)", "First-launch profile plus sign-in with email, Google, a phone code or as a guest (Firebase Authentication); results stay on the phone, kept per account (section 13.12)"],
+    ["Pregnancy care (6.5), hormonal insights (6.6), reminders (6.8, only self-exam exists)", "Not started", "See section 12"],
 ], [5.6, 2.4, 8.6], caption="Status of the scope modules")
 H3("Key findings")
 bullets([
@@ -283,7 +283,7 @@ bullets([
     "**The ultrasound gate was strengthened.** A real non-breast ultrasound had slipped through, so the gate was retrained with other-organ ultrasounds. It now refuses the organs it saw and about 43% to 60% of unseen ones, and wrongly refuses 0.3% of real breast scans; classifications did not change.",
     "**The app now has a personal AI companion.** It uses Google Gemini through the backend, understands and speaks Urdu and English, and knows the user's own results (without their name) because the whole app now saves to one on-device health store. Safety rules run on the server, not in the model (section 13).",
     "**A one-tap report.** The health report is a lab-style PDF (one panel per test, reference ranges, flags, QR code, report number) that can be shared or printed, with a sample-data mode for demonstrations.",
-    "**About half of the scope is working.** The largest gaps are cycle prediction, trend charts, accounts, pregnancy mode and hormonal insights.",
+    "**About 60% of the scope is working** (an estimate). The largest gaps are cycle prediction, trend charts, pregnancy mode, hormonal insights and most reminders.",
 ])
 
 # ================================================================== 2 BACKGROUND
@@ -383,14 +383,14 @@ table(["HTTP status", "When", "What the app tells the user"], [
 ], [2.6, 7.2, 6.8], caption="Errors and how the app reports them")
 H2("3.4 Privacy, safety and security design")
 bullets([
-    "Uploaded scans are read into memory, classified and discarded; the server code never writes them to disk. The server stores no personal data and there are no accounts yet.",
+    "Uploaded scans are read into memory, classified and discarded; the server code never writes them to disk. The server stores no personal data and it has no accounts: when the user signs in, the account is held by Firebase Authentication (Google), not by the Femora server.",
     "Uploads are limited to 10 MB, and images that are not grayscale ultrasounds are refused before any prediction is made (section 6.9).",
     "Every result carries a disclaimer and advises seeing a doctor. Result wording says \"suspicious\" or \"likely\", never \"you have\".",
     "**Known gaps for a real launch:** the server allows requests from any origin (CORS set to *), has no authentication or rate limiting, and the Android app allows plain-http traffic (a development convenience). The demo tunnel terminates TLS at Cloudflare, so Cloudflare can technically see traffic. These are acceptable for a demonstration and must be fixed before real users.",
 ])
 H2("3.5 Repository layout")
 table(["Path", "Contents"], [
-    ["lib/", "Flutter app: main.dart, screens/ (12, incl. onboarding and report), models/ (state, health store, chat), services/ (API, reminders, voice, report), widgets/ (12), theme/"],
+    ["lib/", "Flutter app: main.dart, screens/ (12, incl. sign-in, onboarding and report), models/ (state, health store, chat), services/ (API, reminders, voice, report), widgets/ (12), theme/"],
     ["backend/", "app.py (API), companion.py (Gemini chat, voice, safety), .env (API key, not committed), models/ (ONNX, XGBoost, metadata, gate), Dockerfile, requirements files"],
     ["ml/", "build_notebooks.py (writes the Kaggle notebooks), notebooks/, v7_split.csv and busbra_split.csv (pinned splits)"],
     ["test/", "Flutter tests (breast flow, PCOS flow, server address, health store, chat, companion, onboarding, report)"],
@@ -897,6 +897,7 @@ table(["Build", "Source state", "Result"], [
     ["3 (20 Sep 2026)", "Commit 8c5eb71 (AI companion, voice, health store, report)", "app-release.apk, 20.9 MB (21,892,133 bytes), arm64-v8a; adds the RECORD_AUDIO permission. A first attempt crashed the Gradle JVM for lack of memory on the 8 GB PC and succeeded when nothing else was running"],
     ["4 (20 Sep 2026)", "Commit 72ecf4b (Home wired to the health store, heavy-bleeding detector fix)", "app-release.apk, 20.9 MB (21,891,981 bytes), arm64-v8a, RECORD_AUDIO present; SHA-256 starts 2ef1b6e6094741c2. Two earlier attempts of this build were stopped by low memory on the 8 GB PC; it succeeded once other programs used less memory"],
     ["5 (20 Sep 2026)", "Commit 0c4c007 (phone-voice fallback, backup voice model, audio played from a file)", "app-release.apk, 20.9 MB (21,892,173 bytes), arm64-v8a, RECORD_AUDIO present; SHA-256 starts c8e0d945cb6a6be6"],
+    ["(not built yet)", "Commit d354fb2 (accounts, package rename, companion look, faster voice)", "No APK has been built from this code. The package name is now pk.edu.au.femora, so a new APK installs as a separate app; the earlier one should be uninstalled"],
 ], [3.0, 5.6, 8.0], caption="Release APK builds", size=8.5,
     note="Both builds pass apksigner verification and request INTERNET, POST_NOTIFICATIONS, RECEIVE_BOOT_COMPLETED and VIBRATE (build 3 also RECORD_AUDIO). The file is copied to the user's Desktop as femora-release-arm64.apk. Build 1 was installed and run on the developer's phone on 20 September 2026 (section 10).")
 
@@ -907,7 +908,7 @@ table(["What", "How", "Result"], [
     ["Wrong uploads", "Colour noise and a grayscale gradient", "Both refused with an explanatory message"],
     ["Threshold change", "Reran the model on all 710 test scans; first reproduced the notebook's 68.3% at 0.21", "Reproduced, then 71.8% at 0.25"],
     ["Risk questionnaire", "Eight profiles through the API", "Risk rises with each added factor; no placeholder warning"],
-    ["Flutter tests", "Breast flows, PCOS flow, server-address logic, health store, chat state, companion screen with a fake microphone, onboarding and app launch, report builder", "58 of 58 pass; flutter analyze reports no errors or warnings"],
+    ["Flutter tests", "Breast flows, PCOS flow, server-address logic, health store, chat state, companion screen with a fake microphone, onboarding and app launch, report builder", "69 of 69 pass; flutter analyze reports no errors and one warning (an unused import in a test file)"],
     ["Companion backend tests", "backend/tests/test_companion.py: safety detector, language detection, prompt building, request validation, rate limit, speech clean-up, fallback (Gemini calls are faked)", "53 of 53 pass"],
     ["Live Gemini check", "Real calls with the developer's key against the running backend: English and Urdu chat with personal context, emergency and breast-lump wording, a prompt-injection attempt, Urdu speech to text, text to speech, both models, both demo scans and a colour photo", "Chat 1.5 to 3 s, speech synthesis 4 to 6 s; Urdu speech transcribed in Urdu script after a stricter prompt and an automatic retry"],
     ["Notebooks", "Every Kaggle notebook was run first as a tiny smoke test, then in full", "All stages ran; ONNX parity checks passed"],
@@ -985,7 +986,7 @@ bullets([
     "**Test-set tuning.** The 0.25 threshold was chosen after seeing the test results.",
     "**Small subgroups.** BrEaST (35 test scans), the normal class (22 test scans) and U-Systems (a few scans) cannot support firm conclusions.",
     "**Demo hosting.** The tunnel exposes a development server; it is suitable for a demonstration, not for real users.",
-    "**Scope.** About half of the scope, mainly cycle prediction, trend charts, accounts, pregnancy and hormonal insights, is not built.",
+    "**Scope.** About 40% of the scope, mainly cycle prediction, trend charts, pregnancy, hormonal insights and most reminders, is not built.",
     "**Companion privacy.** The free Gemini tier may use submitted text to improve Google products; a paid key with a data-use opt-out is needed for real users (section 13.7).",
 ])
 
@@ -995,7 +996,7 @@ table(["Order", "Item (scope ref.)", "What is needed"], [
     ["1", "Trend charts for the symptom and mood log (6.10)", "Basic saving is done (section 13); charts, sleep and stress inputs remain"],
     ["2", "Cycle tracking and prediction (6.2)", "Random Forest on the Fehring data, then an LSTM on the IEEE mcPHASES data; real calendar instead of hard-coded days"],
     ["3", "Companion improvements (6.7)", "Grounded knowledge base (retrieval from NIH, CDC and MedlinePlus text), a question-set evaluation, clinician review of wording, trend charts on Home"],
-    ["4", "Accounts (6.1)", "Authentication and cloud backup; the first-launch profile itself is done"],
+    ["4", "Accounts follow-up (6.1)", "Sign-in exists (section 13.12). Still needed: try Google and phone sign-in on a phone and register the signing fingerprint in Firebase if they fail; optional cloud backup of results"],
     ["5", "Pregnancy mode, reminders, hormonal insights (6.5, 6.8, 6.6)", "Pregnancy tracking and warning signs; period, ovulation, medication and hydration reminders; phase-specific insights"],
     ["6", "Report history (6.9)", "The one-tap report and the Home snapshot exist; saved report history and charts remain"],
     ["7", "Hardening", "Run on a real phone, real hosting with authentication, optional lesion-focused ultrasound model, mammography (future work)"],
@@ -1003,9 +1004,9 @@ table(["Order", "Item (scope ref.)", "What is needed"], [
 
 # ================================================================== 13 COMPANION
 H1("13. AI companion, personal health store and health report")
-para("This chapter covers the work added on 20 September 2026: a Gemini-based AI companion that understands and speaks Urdu and English, "
+para("This chapter covers the work added on 20 and 21 September 2026: a Gemini-based AI companion that understands and speaks Urdu and English, "
      "the on-device health store that connects every part of the app to it, first-launch onboarding, and a one-tap lab-style health report. "
-     "All of it is in commits b098f85 (backend) and 8c5eb71 (app).")
+     "It is in commits b098f85 (backend) and 8c5eb71 (app); sections 13.11 and 13.12 cover the refinements and the accounts added afterwards.")
 H2("13.1 What the user gets")
 bullets([
     "**Personal companion.** The AI tab greets the user by first name, lists what it knows (for example \"PCOS high 71%\", the last ultrasound, the last self-exam) and answers with that context.",
@@ -1088,7 +1089,7 @@ bullets([
     "The user's name is never sent to Gemini; only a short summary such as \"PCOS screening (today): 71% = high risk\" is sent, and only if Personalise is on.",
     "Delete all my data (in the companion menu) clears the profile, results, log and conversation on the phone.",
     "**Caveat.** With a free Gemini key, Google may use submitted text to improve its products. A paid key with data-use opt-out (or an institutional agreement) is needed before real users are given the app.",
-    "**Secrets.** The Gemini key lives only in backend/.env, which is excluded from Git and from the Docker build. The key and a Hugging Face token were pasted into a chat during development, so both should be revoked and replaced.",
+    "**Secrets.** The Gemini key is in backend/.env. That file was kept out of Git at first; on 20 September the owner chose to commit it (a free-tier key) so a fresh clone works, and GitHub push protection had to be overridden by the owner. It is still excluded from the Docker build. The key and a Hugging Face token were also pasted into a chat during development, so both should be revoked and replaced for anything beyond a demonstration.",
 ])
 H2("13.8 Would pretrained question datasets help?")
 para("Question-and-answer datasets (for example medical exam or consumer-health question sets) do not improve a hosted model like Gemini through fine-tuning here: the model is not trained by the app. They are useful in two other ways. "
@@ -1097,14 +1098,15 @@ para("Question-and-answer datasets (for example medical exam or consumer-health 
 H2("13.9 Tests")
 table(["Suite", "Count", "What it covers"], [
     ["backend/tests/test_companion.py", "53", "Red-flag detector in three languages, language detection, prompt construction and injection wording, request limits, rate limit, speech clean-up, PCM to WAV, fallback replies, endpoints with a faked Gemini"],
-    ["test/health_store_test.dart", "part of 48 new", "Saving and loading, one log entry a day and a 60-entry cap, name-free context text, clear-all"],
-    ["test/chat_state_test.dart", "part of 48 new", "History rules, personalisation switch, retry of an unanswered message, persistence"],
-    ["test/companion_flow_test.dart", "part of 48 new", "Typing indicator, suggestion chips, failed message and Try again, urgent highlight, full voice flow with a fake microphone, missing permission, speaker button, Delete all my data"],
-    ["test/app_flow_test.dart", "part of 48 new", "First launch shows onboarding, skipping is remembered, form validation, editing a saved profile"],
-    ["test/home_flow_test.dart", "part of 48 new", "Home shows the real name and only real results, empty state, rows open the right tab, next-step rules, relative dates"],
-    ["test/report_service_test.dart", "part of 48 new", "Empty, sample and full reports build as valid PDFs; long logs spill onto more pages; report IDs"],
+    ["test/health_store_test.dart", "part of 59 new", "Saving and loading, one log entry a day and a 60-entry cap, name-free context text, clear-all"],
+    ["test/chat_state_test.dart", "part of 59 new", "History rules, personalisation switch, retry of an unanswered message, persistence"],
+    ["test/companion_flow_test.dart", "part of 59 new", "Typing indicator, suggestion chips, failed message and Try again, urgent highlight, full voice flow with a fake microphone, missing permission, speaker button, Delete all my data"],
+    ["test/app_flow_test.dart", "part of 59 new", "First launch shows onboarding, skipping is remembered, form validation, editing a saved profile"],
+    ["test/home_flow_test.dart", "part of 59 new", "Home shows the real name and only real results, empty state, rows open the right tab, next-step rules, relative dates"],
+    ["test/auth_flow_test.dart (with test/fake_auth.dart)", "part of 59 new", "Sign-in, registration, a refused password, guest mode, the phone code, and two accounts not seeing each other's results"],
+    ["test/report_service_test.dart", "part of 59 new", "Empty, sample and full reports build as valid PDFs; long logs spill onto more pages; report IDs"],
 ], [5.6, 2.6, 8.4], caption="New tests", size=8.5,
-    note="All 58 Flutter tests (10 earlier plus 48 new) and all 53 backend tests pass. The companion screen's real speech recognition and the real microphone are not covered by automatic tests because they need a phone.")
+    note="All 69 Flutter tests (10 earlier plus 59 new) and all 53 backend tests pass. The companion screen's real speech recognition and the real microphone are not covered by automatic tests because they need a phone.")
 H2("13.10 Defects found while building, and their fixes")
 table(["Problem", "Fix"], [
     ["A coloured card containing a switch tile threw a Material assertion (real UI bug caught by a test)", "Wrapped the tile in a transparent Material"],
@@ -1118,12 +1120,33 @@ table(["Problem", "Fix"], [
     ["An older backend process was still running on port 8000 without the companion (found while starting the check)", "Killed and restarted; the demo script and README stress restarting the server after updates"],
 ], [8.0, 8.6], caption="Issues and fixes", size=8.5)
 
+H2("13.11 Companion refinements (21 September 2026)")
+para("Made in a second working session on another PC (commits 25e6841, 41fbecb, e3e1dd2 and d38ab9a). The results below are the measurements recorded in those commits; they have not been re-measured on a phone for this report.")
+bullets([
+    "**Tone.** The system prompt has a How you speak section: answer like a kind older sister, say one warm sentence that shows she was heard before any advice, and make clear that nothing she asks is silly. The safety rules are unchanged, and softness must not hide a real concern: a message about pain still says to see a doctor.",
+    "**Mood buttons.** Six feelings (happy, sad, angry, tired, worried, in pain) as animated emoji. Large circles greet her before the conversation starts, then shrink to a slim strip above the input. A tap sends an ordinary message in her language (Urdu labels included), so the companion answers as if she had typed it. The In pain button uses the bandaged-face emoji because two other candidates drew nothing in the animation library.",
+    "**Look.** The avatar sits in a slow pink beam; a lit segment travels around the message box border while the companion is listening, transcribing or thinking; colour rises inside the box while she speaks; the three dots became a rotating striped ball with the word Thinking. The three effects come from libraries.dev (React) and were redrawn with Flutter's own painting in berry and rose.",
+    "**Reply length.** Typed answers were about 112 words, a wall of text on a phone. The rule now asks for 60 to 70 words and says the answer must give something new (a reason, a number, a sign to watch for or one concrete step) rather than more reassurance. Measured afterwards: 72 and 75 words.",
+    "**Spoken answers are short and start at once.** Measured through the tunnel, the wait after a spoken question was the AI voice, not the model: Gemini text to speech took 4.7 s for one sentence and 16.1 s for a paragraph, so a typical answer needed 25 to 30 s, while chat itself answered in 1.8 s. Now an answer that is read out automatically is spoken by the phone's own voice, which starts at once, costs nothing and works offline; the AI voice stays on the speaker button of each message and is the fallback when a phone has no voice. The chat request carries a brief flag, set when the answer will be spoken, which asks for under 45 words (543 characters became 185 on the same question). This replaces the order described in section 13.5a (AI voice first).",
+])
+H2("13.12 Accounts (scope 6.1)")
+para("Made on 21 September 2026 (commit d354fb2). Scope item 6.1 asks for secure account creation with email authentication.")
+bullets([
+    "**Why Firebase Authentication.** The Femora backend is a laptop behind a temporary tunnel, so sign-in has to keep working when that machine is off, and nobody on the team should be storing passwords. Only the account lives in Firebase; results, scans, logs and the conversation stay on the phone, so the privacy design in section 13.7 still holds.",
+    "**Four ways in:** email and password, Google, phone with an SMS code, and anonymous look around first, because a woman may not want to give an email before she trusts a breast-cancer app. Firebase's error codes are translated into plain sentences (for example That email or password is not correct).",
+    "**Package rename.** The package was com.example.femora. Firebase stores the package name in its configuration, so renaming later would mean redoing the setup, and com.example names are refused by the Play Store. It is now pk.edu.au.femora. A new APK therefore installs as a separate app from earlier builds.",
+    "**Per-account data.** The health store and the chat history used one storage key each, so on a shared phone the second woman to sign in would have seen the first one's PCOS result, scan and conversation. Both are now kept per account, with a one-time migration that gives pre-account data to whoever signs in first.",
+    "**Testing.** AuthService is an interface, so widget tests never need a Firebase app. Seven new tests cover sign-in, registration, a refused password, guest mode, the phone code and two accounts not seeing each other's results.",
+    "**Committed configuration.** google-services.json and firebase_options.dart are committed on purpose: Firebase client configuration is public by design and ships inside the APK anyway.",
+    "**Not verified.** Sign-in has not been tried on a phone. Google and phone sign-in typically also need the app's signing-key fingerprint registered in the Firebase console, and the release APKs so far are signed with the debug key; if they fail this is the first thing to check. Email and guest sign-in do not depend on it.",
+])
+
 # ================================================================== 14 CONCLUSION
 H1("14. Conclusion")
 para("The breast module now consists of two models backed by measured evidence and an honest account of their limits. The most valuable result of this "
      "period was not a higher accuracy figure but a truthful one: testing on a hospital the model had never seen exposed a large gap, adding the right data "
      "closed most of it, and a further experiment that did not help was documented and rejected. The app can be shown on a phone today and now includes a voice-enabled, personalised AI companion and a one-tap "
-     "health report. About half of the scope, mainly cycle prediction, trend charts, accounts, pregnancy and hormonal insights, remains to be built.")
+     "health report, and accounts. About 40% of the scope, mainly cycle prediction, trend charts, pregnancy, hormonal insights and most reminders, remains to be built.")
 
 # ================================================================== APPENDICES
 H1("Appendix A. Metric glossary", new_page=True)
@@ -1190,6 +1213,11 @@ table(["Decision", "Reason"], [
     ["Retrain only the gate, with other-organ ultrasounds", "A non-breast ultrasound passed the old gate; changing only the gate leaves every classification unchanged. Kept the honest unseen-organ estimate (43% to 60% refused) separate from the deployed version's scores"],
     ["In-app server address setting", "The free tunnel address changes on each start"],
     ["Call Gemini from the backend, never from the app", "An API key inside an APK can be extracted; the backend also holds the safety rules and rate limit"],
+    ["Firebase Authentication for accounts", "The backend is a laptop behind a temporary tunnel, so sign-in must not depend on it, and the team should not store passwords; only the account is in Firebase, results stay on the phone"],
+    ["Rename the package to pk.edu.au.femora before adding Firebase", "Firebase stores the package name and the Play Store refuses com.example names; renaming later would repeat the setup"],
+    ["Keep the health store and chat history per account", "Two women sharing a phone must not see each other's results"],
+    ["Phone voice for automatic spoken answers, AI voice on request", "The AI voice took 25 to 30 s for a typical answer; the phone voice starts at once and has no quota"],
+    ["Do not add more normal scans to the ultrasound model for now", "Normal scans are about 5% of the non-cancer test scans and the errors are benign versus malignant, so more normals cannot move the accuracy much; see Q37"],
     ["Phone voice as the fallback for the AI voice", "The free AI voice quota is small (10 a day per model); the phone's own voice is instant and unlimited, so speech never depends on a quota"],
     ["gemini-3.1-flash-lite for chat and speech recognition", "Fastest model available to a new key (1.5 to 3 s); 2.5-flash was closed to new users and 3.8-flash returned 503 under load; 3.6-flash kept as backup"],
     ["Red flags detected in code, not by the model", "Emergency handling must not depend on a model's judgement; it also works when Gemini is down"],
@@ -1216,7 +1244,17 @@ table(["Commit", "Date", "Change"], [
     ["79c81f6, 2397213, 0249b7b", "20 Sep 2026", "Report: phone test plans (ultrasound, questionnaires) and the informal web-image check"],
     ["f168378", "20 Sep 2026", "Retrain the ultrasound gate to refuse other-organ ultrasounds (ml/train_gate_v2.py, new breast_gate.npz and metadata)"],
     ["b098f85", "20 Sep 2026", "Add AI companion backend: Gemini chat, voice in and out, safety rules"],
-    ["8c5eb71", "20 Sep 2026", "Add AI companion app: onboarding, on-device health store, chat with voice, one-tap lab-style report"],
+    ["8c5eb71, dc8249b", "20 Sep 2026", "Add AI companion app: onboarding, on-device health store, chat with voice, one-tap lab-style report; report and README"],
+    ["72ecf4b", "20 Sep 2026", "Wire Home to the health store; catch heavy-bleeding wording in Roman Urdu"],
+    ["0c4c007", "20 Sep 2026", "Voice: phone-voice fallback, backup voice model, audio played from a file"],
+    ["5b17937, 680ede3", "20 Sep 2026", "Report: record APK builds 4 and 5"],
+    ["3306a4b, c124511", "20 Sep 2026", "Handoff notes and the latest APK; backend/.env.example"],
+    ["cb488d3, e66ad4a", "20 Sep 2026", "backend/.env committed at the owner's request; handoff updated"],
+    ["2bbe7b7", "21 Sep 2026", "Report: regenerate the docx with APK build 5; scripts that restore its inputs"],
+    ["25e6841, 41fbecb", "21 Sep 2026", "Companion: warmer voice, animated moods, softer look; emoji fix"],
+    ["e3e1dd2", "21 Sep 2026", "Voice: answer out loud in about a second"],
+    ["d38ab9a", "21 Sep 2026", "Companion: moderate replies; the three effects redrawn in Flutter"],
+    ["d354fb2", "21 Sep 2026", "Accounts: sign in with email, Google, phone or as a guest (Firebase)"],
 ], [2.4, 3.0, 11.2], caption="Commits made during this period")
 
 H1("Appendix F. Questions a panel may ask")
@@ -1242,7 +1280,7 @@ qa = [
     ("Q10. Is this a medical diagnosis?",
      "No. Femora provides awareness and risk information, says so on every result, and always recommends seeing a doctor. It would need clinical validation and regulatory approval to be used as a diagnostic tool."),
     ("Q11. What data does the app store?",
-     "On the phone: the profile, the latest PCOS, ultrasound and risk results, the daily log, the chat history, the date of the last self-exam, the reminder switch and the server address (all in app storage). On the server: nothing is stored. When the user chats, a short name-free summary and the message go to Google Gemini through the backend; this can be switched off (Personalise) and everything can be erased with Delete all my data."),
+     "On the phone: the profile, the latest PCOS, ultrasound and risk results, the daily log, the chat history, the date of the last self-exam, the reminder switch and the server address (all in app storage). On the server: nothing is stored. Sign-in accounts are held by Firebase Authentication, and the data above is kept on the phone separately for each account. When the user chats, a short name-free summary and the message go to Google Gemini through the backend; this can be switched off (Personalise) and everything can be erased with Delete all my data."),
     ("Q12. Is the demo connection secure?",
      "The tunnel uses HTTPS, but Cloudflare terminates it and could see the traffic, so it is suitable for a demo only. The server also has no authentication and allows any origin. A real launch needs a trusted host, authentication, rate limiting and a privacy notice."),
     ("Q13. Why is XGBoost used for PCOS when it is not the best model in cross-validation?",
@@ -1270,13 +1308,17 @@ qa = [
     ("Q24. How would you deploy this for real users?",
      "Package the backend in Docker (files are ready), host it on a paid or institutional service with HTTPS, add authentication and rate limits, restrict CORS, log without storing images, and monitor performance. Then validate on local data."),
     ("Q25. What would you do with more time?",
-     "Build the missing modules (cycle prediction, trend charts, accounts, pregnancy mode), add a grounded knowledge base to the companion, try a lesion-focused two-step ultrasound model, collect local scans, add mammography, and consider on-device inference."),
+     "Build the missing modules (cycle prediction, trend charts, pregnancy mode), add a grounded knowledge base to the companion, try a lesion-focused two-step ultrasound model, collect local scans, add mammography, and consider on-device inference."),
     ("Q26. Which phones can run the APK?",
      "The release build targets 64-bit ARM Android phones (arm64-v8a), which covers nearly all phones made in recent years, and uses Flutter's default minimum Android version. A phone that only supports 32-bit ARM would need a different build. It is 19 MB and is installed directly (not through the Play Store), so Android asks to allow installs from unknown sources."),
     ("Q27. Is the APK build reproducible?",
      "Yes in practice: a second build from the same source produced a byte-for-byte identical file (same SHA-256), so the APK on the phone matches the code in the repository."),
     ("Q28. What is not finished?",
-     "About half of the scope: cycle prediction, trend charts, accounts and login, pregnancy mode, hormonal insights and most reminders. Section 12 gives the plan."),
+     "About 40% of the scope: cycle prediction, trend charts, pregnancy mode, hormonal insights and most reminders. Section 12 gives the plan."),
+    ("Q36. Where are accounts and passwords stored?",
+     "Femora stores no passwords and has no account database. Firebase Authentication (a Google service) holds the account, with four ways in: email, Google, a phone code or guest. Results, scans, logs and the conversation stay on the phone, kept separately for each account, so two women sharing a phone do not see each other's data."),
+    ("Q37. Would training the ultrasound model on more normal scans improve accuracy?",
+     "Not much, and it is not worth it now. Normal scans are only 135 of the 2,897 scans (BUSI 131, BrEaST 4; BUS-BRA has none) and 22 of the 470 non-cancer test scans, about 5%. The errors that matter are benign lesions flagged as suspicious and a few missed cancers, not normal scans, so even perfect normals could change the non-cancer-cleared figure by at most about 5 percentage points. The one test we ran with mostly normal scans (BUS-UCLM) gave no gain: AUC 0.868 against 0.869, with fewer cancers caught. There is also a shortcut risk: if the normals come from one hospital or scanner, the model can learn the scanner instead of the disease, the same problem that made version 7 fail on new hospitals. And with only 22 normal test scans we could not measure a small gain reliably anyway. More useful: benign and malignant scans from new hospitals (ideally local ones) and a lesion-focused two-step model."),
     ("Q29. Will it work on ultrasound images downloaded from the internet?",
      "Often, with limits. In an informal check, compression, low resolution and annotation marks did not change the answer on 7 of 7 test scans; colour-tinted images were refused; a real carcinoma image was flagged (93%), a real fibroadenoma image was a false alarm (66% malignant), and a generic non-breast ultrasound was wrongly accepted. Two images cannot measure accuracy, so web images should be used only for demonstrations (section 6.13)."),
     ("Q30. How does the AI companion know about me?",
