@@ -772,6 +772,36 @@ para("**Conclusion.** Compression, low resolution and on-screen marks do not cha
      "should not be read as validation. Adding more organs (abdomen, carotid, obstetric) as gate negatives would improve this further.")
 
 # ================================================================== 7 RISK
+H2("6.14 Search for more data and an external check on BUSI-WHU (21 September 2026)")
+para("The question was whether more scans, ideally from other hospitals or from Pakistan, would raise the ultrasound accuracy. Kaggle was searched with its command line and the candidates were checked against their original publications.")
+table(["Dataset", "Origin", "Size and classes", "Licence", "Verdict"], [
+    ["BUSI_WHU", "Renmin Hospital of Wuhan University, China, 2020 to 2022, ethics-approved", "927 scans with lesion masks; 560 benign and 367 malignant according to the literature", "CC BY 4.0", "Downloaded and checked (below). The release has no class labels"],
+    ["HiSBreast", "Ca Mau General Hospital, Vietnam", "972 samples with the doctor's description and diagnosis", "CC BY 4.0", "Possible; labels and file details not yet checked"],
+    ["BUS-CoT", "Scientific Data 2026 paper", "11,439 images, 4,838 patients, 99 tumour types, pathology labels", "Not confirmed", "Potentially the largest gain; get it from the paper's official link, not the third-party Kaggle copy"],
+    ["BUS_UC", "Copied from the teaching website ultrasoundcases.info", "811 scans at 256 pixels, no ground truth", "Unclear", "Rejected"],
+    ["AISSLab, US3M, other unsourced uploads", "No paper or hospital found", "Various", "Unknown", "Rejected"],
+    ["BUSI copies, BUSI-BUS, combined sets", "Mirrors or mixes of data already used", "Various", "Various", "Rejected: would leak test scans"],
+    ["Synthetic sets", "AI-generated images", "Various", "Various", "Rejected: never train or test a screening model on them"],
+], [2.6, 3.8, 4.2, 1.8, 4.2], caption="Ultrasound datasets considered", size=8,
+    note="No public Pakistani breast ultrasound dataset was found on Kaggle or by web search. The realistic route is a local hospital through the supervisor, with ethics approval; even a few hundred labelled scans as an external test would answer the main open question in section 11.")
+para("**BUSI-WHU download.** The official release (BUSI_WHU.rar, 88,358,687 bytes, from Mendeley Data) matched its published SHA-256 checksum. The Kaggle copy has the same structure: 927 scans (555 train, 186 validation, 186 test) as 8-bit bitmaps of about 442 by 407 pixels, each with a binary lesion mask. "
+     "**Neither contains benign or malignant labels**; the 560 and 367 figures come from papers only. An accuracy test was therefore not possible.")
+para("**What could be checked without labels.** All 927 scans were run through the deployed pipeline (colour check, ultrasound gate, model, temperature, threshold 0.25).", keep=True)
+table(["Measurement", "Result"], [
+    ["Refused by the colour check", "0%"],
+    ["Refused by the ultrasound gate", "4.3% (40 of 927), against 0.3% on the project's own test scans"],
+    ["Flagged suspicious at the screening threshold (887 scans that passed)", "58.6%"],
+    ["Flag rate expected if the model behaved as on our own test set", "57.3% (from sensitivity 0.89, specificity 0.64 and the literature's 39.6% malignant share)"],
+    ["Most likely class (neutral rule)", "normal 1.4%, benign 54.0%, malignant 44.6%"],
+    ["P(malignant) at or above 0.5, 0.75, 0.9", "43.2%, 28.5%, 16.7%"],
+], [8.0, 8.6], caption="Deployed model on the 927 BUSI-WHU scans (no labels)", size=8.5)
+bullets([
+    "**Reading.** The model does not collapse on a hospital it never saw: its flag rate is close to what its own test results predict. This is consistent with reasonable behaviour, but it is not proof of accuracy, because a right flag rate can hide wrong scans.",
+    "**A real weakness found.** The gate wrongly refused 4.3% of genuine breast ultrasounds from this hospital (cysts, lesions and tightly cropped views were checked by eye). A user from such a hospital would be told the image does not look like a breast ultrasound. The gate needs more variety of real breast scans; because the gate only needs to know that an image is a breast ultrasound, the unlabelled BUSI-WHU scans can be used for that.",
+    "**Masks.** The lesion masks help the planned lesion-first two-step model, although masks were not the limiting factor (the other datasets already have them).",
+    "**Next steps.** Retrain the gate with BUSI-WHU scans as extra positives; obtain labels (ask the dataset authors, or use HiSBreast or BUS-CoT) before any accuracy claim; keep the 710 current test scans fixed so old and new models stay comparable.",
+])
+
 H1("7. Breast cancer risk questionnaire (component B)")
 H2("7.1 Data and design")
 d = RK["dataset"]
@@ -1319,6 +1349,8 @@ qa = [
      "Femora stores no passwords and has no account database. Firebase Authentication (a Google service) holds the account, with four ways in: email, Google, a phone code or guest. Results, scans, logs and the conversation stay on the phone, kept separately for each account, so two women sharing a phone do not see each other's data."),
     ("Q37. Would training the ultrasound model on more normal scans improve accuracy?",
      "Not much, and it is not worth it now. Normal scans are only 135 of the 2,897 scans (BUSI 131, BrEaST 4; BUS-BRA has none) and 22 of the 470 non-cancer test scans, about 5%. The errors that matter are benign lesions flagged as suspicious and a few missed cancers, not normal scans, so even perfect normals could change the non-cancer-cleared figure by at most about 5 percentage points. The one test we ran with mostly normal scans (BUS-UCLM) gave no gain: AUC 0.868 against 0.869, with fewer cancers caught. There is also a shortcut risk: if the normals come from one hospital or scanner, the model can learn the scanner instead of the disease, the same problem that made version 7 fail on new hospitals. And with only 22 normal test scans we could not measure a small gain reliably anyway. More useful: benign and malignant scans from new hospitals (ideally local ones) and a lesion-focused two-step model."),
+    ("Q38. Have you tested the ultrasound model on another hospital's data?",
+     "Partly. We downloaded BUSI-WHU (927 scans, Wuhan, CC BY 4.0), but its public release has masks and no benign or malignant labels, so accuracy could not be measured. Without labels we saw that the model flagged 58.6% of the scans, close to the 57.3% its own test results predict, and that the ultrasound gate wrongly refused 4.3% of these genuine scans, which is a weakness to fix. A labelled outside test set, ideally from a Pakistani hospital, is the most important next step."),
     ("Q29. Will it work on ultrasound images downloaded from the internet?",
      "Often, with limits. In an informal check, compression, low resolution and annotation marks did not change the answer on 7 of 7 test scans; colour-tinted images were refused; a real carcinoma image was flagged (93%), a real fibroadenoma image was a false alarm (66% malignant), and a generic non-breast ultrasound was wrongly accepted. Two images cannot measure accuracy, so web images should be used only for demonstrations (section 6.13)."),
     ("Q30. How does the AI companion know about me?",
