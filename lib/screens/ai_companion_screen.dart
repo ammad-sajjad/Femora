@@ -10,6 +10,7 @@ import '../widgets/companion_effects.dart';
 import '../widgets/femora_header.dart';
 import '../widgets/mood_picker.dart';
 import 'onboarding_screen.dart';
+import 'report_reader_screen.dart';
 import 'report_screen.dart';
 
 final _urduChars = RegExp(r'[؀-ۿ]');
@@ -17,7 +18,10 @@ bool _isUrdu(String text) => _urduChars.hasMatch(text);
 
 /// The personal AI companion: chat, voice in and out, and a summary of what it knows about the user.
 class AICompanionScreen extends StatefulWidget {
-  const AICompanionScreen({super.key});
+  /// Tests pass a reader wired to a fake server and photo picker.
+  final Widget Function()? readerBuilder;
+
+  const AICompanionScreen({super.key, this.readerBuilder});
 
   @override
   State<AICompanionScreen> createState() => _AICompanionScreenState();
@@ -81,6 +85,12 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
   void _pickMood(Mood mood) {
     final urdu = context.read<HealthStore>().profile.language == 'ur';
     _send(mood.message(urdu));
+  }
+
+  /// Opens the report reader; if she taps "Ask Femora about this" the question is sent to the companion.
+  Future<void> _openReader() async {
+    final question = await Navigator.push<String>(context, MaterialPageRoute(builder: (_) => widget.readerBuilder?.call() ?? const ReportReaderScreen()));
+    if (question != null && mounted) await _send(question);
   }
 
   List<String> _suggestions(HealthStore store) {
@@ -244,6 +254,17 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
                   },
                 ),
                 ListTile(
+                  key: const Key('open_report_reader'),
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.document_scanner_outlined, color: AppColors.primaryBerry),
+                  title: const Text('Explain a medical report'),
+                  subtitle: const Text('Photo of a lab test or ultrasound report'),
+                  onTap: () {
+                    Navigator.pop(sheet);
+                    _openReader();
+                  },
+                ),
+                ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.description_outlined, color: AppColors.primaryBerry),
                   title: const Text('Health report (PDF)'),
@@ -314,6 +335,24 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
         ),
         const SizedBox(height: 18),
         MoodGrid(urdu: urdu, onPick: _pickMood),
+        const SizedBox(height: 22),
+        GestureDetector(
+          key: const Key('empty_report_reader'),
+          onTap: _openReader,
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(gradient: AppColors.buttonGradient, borderRadius: BorderRadius.circular(18)),
+            child: const Row(children: [
+              Icon(Icons.document_scanner_outlined, color: Colors.white),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text('Have a lab or ultrasound report? Take a photo and I will explain it in Urdu or English.',
+                    style: TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white, height: 1.35)),
+              ),
+              Icon(Icons.chevron_right_rounded, color: Colors.white),
+            ]),
+          ),
+        ),
         const SizedBox(height: 22),
         const Text('Or ask me about', style: TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textDark)),
         const SizedBox(height: 4),
