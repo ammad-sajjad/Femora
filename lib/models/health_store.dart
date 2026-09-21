@@ -217,6 +217,12 @@ class HealthStore extends ChangeNotifier {
   List<SymptomLog> logs = [];
   List<PeriodEntry> periods = []; // every period the user logged, oldest first
 
+  /// Called whenever the period history may have changed (reminders are recalculated from it).
+  void Function()? onCycleChanged;
+
+  /// Called after Delete all my data, so other on-device stores (reminders) can erase theirs too.
+  void Function()? onCleared;
+
   /// Injectable clock, so tests can pin "today".
   DateTime Function() now = DateTime.now;
 
@@ -264,6 +270,7 @@ class HealthStore extends ChangeNotifier {
     }
     _loaded = true;
     notifyListeners();
+    onCycleChanged?.call();
   }
 
   Future<void> _save() async {
@@ -361,6 +368,7 @@ class HealthStore extends ChangeNotifier {
     if (periods.length > maxPeriods) periods = periods.sublist(periods.length - maxPeriods);
     notifyListeners();
     await _save();
+    onCycleChanged?.call();
     return null;
   }
 
@@ -377,6 +385,7 @@ class HealthStore extends ChangeNotifier {
     periods = [...periods]..[i] = e.withEnd(d);
     notifyListeners();
     await _save();
+    onCycleChanged?.call();
     return null;
   }
 
@@ -385,6 +394,7 @@ class HealthStore extends ChangeNotifier {
     periods = periods.where((e) => e.start != d).toList();
     notifyListeners();
     await _save();
+    onCycleChanged?.call();
   }
 
   static String _short(DateTime d) => '${d.day}/${d.month}/${d.year}';
@@ -409,6 +419,8 @@ class HealthStore extends ChangeNotifier {
     periods = [];
     notifyListeners();
     await _save();
+    onCycleChanged?.call();
+    onCleared?.call();
   }
 
   bool get hasAnyResult => pcos != null || breastRisk != null || scan != null;

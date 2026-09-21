@@ -9,6 +9,7 @@ import 'models/chat_state.dart';
 import 'models/health_store.dart';
 import 'models/models.dart';
 import 'models/pcos.dart';
+import 'models/reminders.dart';
 import 'models/self_exam.dart';
 import 'screens/auth_screen.dart';
 import 'screens/main_shell.dart';
@@ -48,6 +49,15 @@ class _FemoraAppState extends State<FemoraApp> {
   late final AppState _app = AppState()..onSaveLog = _store.addLog;
   late final ChatState _chat = ChatState();
   late final AuthState _auth = AuthState(service: widget.authService ?? FirebaseAuthService());
+  late final RemindersState _reminders = RemindersState()..load();
+
+  @override
+  void initState() {
+    super.initState();
+    // Reminders follow the cycle: recalculated whenever periods are logged or an account's data loads
+    _store.onCycleChanged = () => _reminders.apply(_store.cycle);
+    _store.onCleared = _reminders.clearAll;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +67,7 @@ class _FemoraAppState extends State<FemoraApp> {
         ChangeNotifierProvider<HealthStore>.value(value: _store),
         ChangeNotifierProvider<AppState>.value(value: _app),
         ChangeNotifierProvider<ChatState>.value(value: _chat),
+        ChangeNotifierProvider<RemindersState>.value(value: _reminders),
         ChangeNotifierProvider(create: (_) => PcosState(onResult: _store.recordPcos)),
         ChangeNotifierProvider(create: (_) => BreastState(onScan: _store.recordScan, onRisk: _store.recordBreastRisk)),
         ChangeNotifierProvider(create: (_) => SelfExamState()..load()),
