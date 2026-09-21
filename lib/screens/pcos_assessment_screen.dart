@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/chat_state.dart';
+import '../models/health_store.dart';
 import '../models/insights.dart';
+import '../models/models.dart';
 import '../models/pcos.dart';
+import '../models/self_exam.dart';
 import '../theme/app_theme.dart';
 import '../widgets/femora_header.dart';
 import '../widgets/gauge_meter_widget.dart';
 import '../widgets/guidance_card.dart';
 import '../widgets/hormone_chart_widget.dart';
+import '../widgets/what_if_card.dart';
 import 'pcos_questionnaire_screen.dart';
 
 class PCOSAssessmentScreen extends StatelessWidget {
@@ -19,9 +24,20 @@ class PCOSAssessmentScreen extends StatelessWidget {
     );
   }
 
+  /// Opens the AI companion and asks it about the what-if (its context already includes the PCOS result).
+  void _askAi(BuildContext context, String question) {
+    final chat = context.read<ChatState>();
+    final store = context.read<HealthStore>();
+    final lastExam = context.read<SelfExamState>().lastExam;
+    context.read<AppState>().setTab(4); // AI companion tab
+    chat.send(question, store: store, lastSelfExam: lastExam);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final result = context.watch<PcosState>().result;
+    final pcos = context.watch<PcosState>();
+    final result = pcos.result;
+    final answers = pcos.lastAnswers;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -72,6 +88,19 @@ class PCOSAssessmentScreen extends StatelessWidget {
                     ? _buildStartCard(context)
                     : _buildResultCard(context, result),
               ),
+              if (result != null && answers != null) ...[
+                const SizedBox(height: 18),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: WhatIfCard(
+                    key: ObjectKey(answers),
+                    api: pcos.api,
+                    answers: answers,
+                    result: result,
+                    onAsk: () => _askAi(context, 'If I exercised more, ate less fast food or lost a little weight, how could that change my PCOS risk? Please explain what the what-if estimate means.'),
+                  ),
+                ),
+              ],
               const SizedBox(height: 18),
 
               // Card 2: Hormonal Trends

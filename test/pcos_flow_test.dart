@@ -57,6 +57,10 @@ void main() {
 
     Map<String, dynamic>? sentBody;
     final client = MockClient((request) async {
+      if (request.url.path == '/predict/pcos/whatif') {
+        // the what-if card asks for its quick wins once the result is showing
+        return http.Response(jsonEncode({'baseline_probability': 0.81, 'baseline_risk_level': 'high', 'outcomes': [], 'note': 'n'}), 200);
+      }
       sentBody = jsonDecode(request.body) as Map<String, dynamic>;
       return http.Response(jsonEncode(_fakeResponse), 200);
     });

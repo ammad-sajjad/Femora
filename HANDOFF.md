@@ -27,7 +27,7 @@ Not built: pregnancy care (6.5) and its reminders. A knowledge-base (retrieval) 
 ## Set up on a new PC
 1. `git pull`. Models are in git (`backend/models/`).
 2. Backend: `python -m venv backend/.venv`, install `backend/requirements.txt`, `backend/.env` (with the Gemini free-tier key) is committed on purpose at the owner's request, so a pull brings it. If Google has disabled that key, copy `backend/.env.example` to `backend/.env` and put a new key on the `GEMINI_API_KEY=` line; the key was also pasted in chat, so revoke it for anything beyond a demo. Run `backend/.venv/Scripts/uvicorn app:app --app-dir backend --host 0.0.0.0 --port 8000`. `GET /health` should show `"companion": true`.
-3. App: Flutter 3.47.5 stable. `flutter pub get`, `flutter test` (237 pass), `flutter analyze` (no errors or warnings). Backend tests: `backend/.venv/Scripts/python -m pytest backend/tests` (53 pass).
+3. App: Flutter 3.47.5 stable. `flutter pub get`, `flutter test` (266 pass), `flutter analyze` (no errors or warnings). Backend tests: `backend/.venv/Scripts/python -m pytest backend/tests` (53 pass).
 4. Phone demo: `scripts\start_demo.ps1` (needs `cloudflared.exe`, path in the script or the `CLOUDFLARED` variable). Paste the printed address into the app's Server address dialog. Do not type in the script window.
 5. APK: `flutter build apk --release --target-platform android-arm64` (the home PC has only 8 GB RAM and builds fail if other programs are open; paths like `D:/flutter` in the notes below are specific to the home PC).
 6. **Always restart the backend after updating the code**; an old server process without the companion was once left running on port 8000.
@@ -100,3 +100,6 @@ Known limitation left as is: the ultrasound gate wrongly refuses about 4% of gen
 - The only scope module still unbuilt is **6.5 Pregnancy care**. Smaller gaps: hydration reminders and a grounded knowledge base for the companion (6.7).
 - Test totals: Flutter 237, backend 53; `flutter analyze` has no errors or warnings.
 - A fresh APK has not been built since accounts and all of this were added (the machine ran out of memory twice); the APK in the repo root is old and installs as a different app.
+
+## Plan after the scope (agreed 22 September 2026)
+Supervisor: pregnancy care (6.5) moves to FYP III. Order agreed with the owner: (B) PCOS what-if simulator [done], (A) photograph a lab or ultrasound report and have the companion explain it in Urdu or English, (D) Urdu and English language switch for the whole app, then better companion answers and a more human voice, then two-way live conversation (E), then AI outlining the lesion on the ultrasound (C, kept separate). A human-sounding voice needs a paid text-to-speech service or a paid Gemini key (the free voice allows about 10 replies a day); Urdu wording should be reviewed by a native speaker.
