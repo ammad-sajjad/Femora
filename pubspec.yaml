@@ -46,5 +46,4 @@ flutter:
     - packages/animated_emoji/lottie/angry.json
     - packages/animated_emoji/lottie/tired.json
     - packages/animated_emoji/lottie/anxiousWithSweat.json
-    - packages/animated_emoji/lottie/weary.json
-    - packages/animated_emoji/lottie/heartHands.json
+    - packages/animated_emoji/lottie/bandageFace.json
