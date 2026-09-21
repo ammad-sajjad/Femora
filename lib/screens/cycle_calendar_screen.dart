@@ -6,6 +6,7 @@ import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/cycle_widgets.dart';
 import '../widgets/femora_header.dart';
+import 'trends_screen.dart';
 
 class CycleCalendarScreen extends StatefulWidget {
   const CycleCalendarScreen({super.key});
@@ -17,6 +18,36 @@ class CycleCalendarScreen extends StatefulWidget {
 class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
   final TextEditingController _notesController = TextEditingController();
   DateTime? _month; // month shown in the calendar; today's month until she browses
+  String? _synced; // which account / load state the log form was last filled for
+
+  /// Fills the log form from what is saved for the chosen day, once the store has loaded or the account changed.
+  void _sync(AppState app, HealthStore store) {
+    final key = '${store.account}|${store.loaded}';
+    if (key == _synced) return;
+    _synced = key;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      app.selectLogDay(app.logDay, store.logOn(app.logDay));
+      _notesController.text = app.userNotes;
+    });
+  }
+
+  void _chooseDay(AppState app, HealthStore store, DateTime day) {
+    app.selectLogDay(day, store.logOn(day));
+    _notesController.text = app.userNotes;
+  }
+
+  Future<void> _pickDay(AppState app, HealthStore store) async {
+    final today = dayOf(store.now());
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: app.logDay,
+      firstDate: addDays(today, -60),
+      lastDate: today,
+      helpText: 'Which day do you want to log?',
+    );
+    if (picked != null && mounted) _chooseDay(app, store, picked);
+  }
 
   @override
   void dispose() {
@@ -29,6 +60,7 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
     final appState = context.watch<AppState>();
     final store = context.watch<HealthStore>();
     final engine = store.cycle;
+    _sync(appState, store);
     final month = _month ?? DateTime(engine.today.year, engine.today.month);
 
     return Scaffold(
@@ -63,6 +95,21 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
               ),
               CycleFlagsCard(engine: engine),
               CycleHistory(engine: engine),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
+                child: OutlinedButton.icon(
+                  key: const Key('open_trends'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primaryBerry,
+                    side: const BorderSide(color: AppColors.primaryBerry),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const TrendsScreen())),
+                  icon: const Icon(Icons.show_chart_rounded),
+                  label: const Text('See my trends', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700)),
+                ),
+              ),
               const SizedBox(height: 22),
 
               // Logger Card
@@ -88,11 +135,42 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 14),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        ChoiceChip(
+                          key: const Key('log_day_today'),
+                          label: const Text('Today'),
+                          selected: appState.loggingToday,
+                          selectedColor: const Color(0xFFFFDFE8),
+                          onSelected: (_) => _chooseDay(appState, store, dayOf(store.now())),
+                        ),
+                        ChoiceChip(
+                          key: const Key('log_day_yesterday'),
+                          label: const Text('Yesterday'),
+                          selected: appState.logDay == addDays(dayOf(store.now()), -1),
+                          selectedColor: const Color(0xFFFFDFE8),
+                          onSelected: (_) => _chooseDay(appState, store, addDays(dayOf(store.now()), -1)),
+                        ),
+                        ChoiceChip(
+                          key: const Key('log_day_pick'),
+                          label: Text(appState.loggingToday || appState.logDay == addDays(dayOf(store.now()), -1) ? 'Another day' : fmtDay(appState.logDay)),
+                          selected: !appState.loggingToday && appState.logDay != addDays(dayOf(store.now()), -1),
+                          selectedColor: const Color(0xFFFFDFE8),
+                          onSelected: (_) => _pickDay(appState, store),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
 
                     // Header Info
                     Text(
-                      engine.hasHistory ? 'Today • ${engine.periodOngoing ? 'Period day' : 'Cycle day'} ${engine.cycleDay}' : 'Today',
+                      !appState.loggingToday
+                          ? 'Logging for ${fmtDay(appState.logDay)}'
+                          : engine.hasHistory
+                              ? 'Today • ${engine.periodOngoing ? 'Period day' : 'Cycle day'} ${engine.cycleDay}'
+                              : 'Today',
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 18,
@@ -187,6 +265,34 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                     ),
                     const SizedBox(height: 22),
 
+                    // Sleep
+                    Row(
+                      children: [
+                        const Expanded(child: Text('Sleep', style: TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark))),
+                        Text(
+                          appState.sleepHours == null ? 'Not set' : '${appState.sleepHours!.toStringAsFixed(1)} hours',
+                          key: const Key('sleep_value'),
+                          style: const TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primaryBerry),
+                        ),
+                        if (appState.sleepHours != null)
+                          IconButton(key: const Key('sleep_clear'), visualDensity: VisualDensity.compact, icon: const Icon(Icons.close_rounded, size: 18), onPressed: () => appState.setSleep(null)),
+                      ],
+                    ),
+                    Slider(
+                      key: const Key('sleep_slider'),
+                      value: appState.sleepHours ?? 7,
+                      min: 0,
+                      max: 14,
+                      divisions: 28,
+                      activeColor: appState.sleepHours == null ? const Color(0xFFCFC7D8) : AppColors.primaryBerry,
+                      onChanged: appState.setSleep,
+                    ),
+                    const SizedBox(height: 10),
+                    _levelRow('Stress', const ['Calm', 'Mild', 'Medium', 'High', 'Very high'], appState.stress, 'stress', appState.setStress),
+                    const SizedBox(height: 16),
+                    _levelRow('Energy', const ['Very low', 'Low', 'Okay', 'Good', 'Great'], appState.energy, 'energy', appState.setEnergy),
+                    const SizedBox(height: 22),
+
                     // Notes Section
                     const Text(
                       'Notes',
@@ -226,11 +332,12 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
 
                     // Save Today's Log Button
                     GestureDetector(
+                      key: const Key('save_log'),
                       onTap: () {
                         appState.saveDailyLog();
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: const Text('Today\'s health log saved successfully!'),
+                            content: Text(appState.loggingToday ? 'Today\'s health log saved successfully!' : 'Health log for ${fmtDay(appState.logDay)} saved.'),
                             backgroundColor: AppColors.primaryBerry,
                             behavior: SnackBarBehavior.floating,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -258,12 +365,12 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-                            SizedBox(width: 8),
+                          children: [
+                            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                            const SizedBox(width: 8),
                             Text(
-                              'Save Today\'s Log',
-                              style: TextStyle(
+                              appState.loggingToday ? 'Save Today\'s Log' : 'Save log for ${fmtDay(appState.logDay)}',
+                              style: const TextStyle(
                                 fontFamily: 'Inter',
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
@@ -281,6 +388,46 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  /// A 1 to 5 scale as five tappable pills with a caption each. Tapping the chosen one clears it.
+  Widget _levelRow(String title, List<String> captions, int? selected, String keyPrefix, void Function(int?) onTap) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: const TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            for (var i = 1; i <= 5; i++)
+              Expanded(
+                child: GestureDetector(
+                  key: Key('${keyPrefix}_$i'),
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => onTap(i),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: selected == i ? AppColors.primaryBerry : const Color(0xFFF3EFF7),
+                          border: Border.all(color: selected == i ? AppColors.primaryBerry : const Color(0xFFE2DCEA)),
+                        ),
+                        child: Text('$i', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700, fontSize: 14, color: selected == i ? Colors.white : AppColors.textDark)),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(captions[i - 1], textAlign: TextAlign.center, style: const TextStyle(fontFamily: 'Inter', fontSize: 9.5, color: AppColors.textMuted)),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ],
     );
   }
 

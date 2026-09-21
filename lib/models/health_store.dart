@@ -162,23 +162,40 @@ class SymptomLog {
   final List<String> symptoms;
   final String? mood; // great | good | okay | low | bad
   final String notes;
+  final double? sleepHours; // 0 to 14, in half hours
+  final int? stress; // 1 (calm) to 5 (very high)
+  final int? energy; // 1 (very low) to 5 (great)
 
-  const SymptomLog({required this.date, required this.symptoms, this.mood, this.notes = ''});
+  const SymptomLog({required this.date, required this.symptoms, this.mood, this.notes = '', this.sleepHours, this.stress, this.energy});
 
-  Map<String, dynamic> toJson() => {'date': date.toIso8601String(), 'symptoms': symptoms, 'mood': mood, 'notes': notes};
+  /// Mood as a number for charts: bad 1 ... great 5 (null when not logged).
+  int? get moodScore => const {'bad': 1, 'low': 2, 'okay': 3, 'good': 4, 'great': 5}[mood];
+
+  Map<String, dynamic> toJson() => {
+        'date': date.toIso8601String(),
+        'symptoms': symptoms,
+        'mood': mood,
+        'notes': notes,
+        'sleepHours': sleepHours,
+        'stress': stress,
+        'energy': energy,
+      };
 
   factory SymptomLog.fromJson(Map<String, dynamic> j) => SymptomLog(
         date: DateTime.parse(j['date'] as String),
         symptoms: (j['symptoms'] as List).cast<String>(),
         mood: j['mood'] as String?,
         notes: (j['notes'] as String?) ?? '',
+        sleepHours: (j['sleepHours'] as num?)?.toDouble(),
+        stress: (j['stress'] as num?)?.toInt(),
+        energy: (j['energy'] as num?)?.toInt(),
       );
 }
 
 class HealthStore extends ChangeNotifier {
   static const _legacyKey = 'health_store_v1'; // written before accounts existed
   static const _legacyHeatKey = 'health_scan_heatmap_v1';
-  static const maxLogs = 60;
+  static const maxLogs = 365;
 
   /// Whose data this is. Results, logs and the scan heatmap are stored under this account's own keys, so
   /// signing in as someone else on a shared phone never shows her the previous woman's results.
@@ -315,7 +332,7 @@ class HealthStore extends ChangeNotifier {
   Future<void> addLog(SymptomLog log) async {
     final day = DateTime(log.date.year, log.date.month, log.date.day);
     logs.removeWhere((l) => l.date.year == day.year && l.date.month == day.month && l.date.day == day.day);
-    logs.add(SymptomLog(date: day, symptoms: log.symptoms, mood: log.mood, notes: log.notes));
+    logs.add(SymptomLog(date: day, symptoms: log.symptoms, mood: log.mood, notes: log.notes, sleepHours: log.sleepHours, stress: log.stress, energy: log.energy));
     logs.sort((a, b) => a.date.compareTo(b.date));
     if (logs.length > maxLogs) logs = logs.sublist(logs.length - maxLogs);
     notifyListeners();
@@ -370,6 +387,15 @@ class HealthStore extends ChangeNotifier {
   }
 
   static String _short(DateTime d) => '${d.day}/${d.month}/${d.year}';
+
+  /// The entry saved for [date], if any.
+  SymptomLog? logOn(DateTime date) {
+    final d = dayOf(date);
+    for (final l in logs) {
+      if (dayOf(l.date) == d) return l;
+    }
+    return null;
+  }
 
   /// Deletes everything Femora stored about the user (privacy).
   Future<void> clearAll() async {
@@ -431,8 +457,19 @@ class HealthStore extends ChangeNotifier {
     if (recent.isNotEmpty) {
       final sy = <String>{for (final l in recent) ...l.symptoms};
       final moods = <String>[for (final l in recent) if (l.mood != null) l.mood!];
+      double? avg(Iterable<num?> xs) {
+        final v = [for (final x in xs) if (x != null) x.toDouble()];
+        return v.isEmpty ? null : v.reduce((a, b) => a + b) / v.length;
+      }
+
+      final sleep = avg(recent.map((l) => l.sleepHours));
+      final stress = avg(recent.map((l) => l.stress));
+      final energy = avg(recent.map((l) => l.energy));
       lines.add('Recent log (last 7 days, ${recent.length} entries)'
-          '${sy.isEmpty ? '' : ': symptoms ${sy.join(', ')}'}${moods.isEmpty ? '' : '; mood ${moods.last}'}.');
+          '${sy.isEmpty ? '' : ': symptoms ${sy.join(', ')}'}${moods.isEmpty ? '' : '; mood ${moods.last}'}'
+          '${sleep == null ? '' : '; average sleep ${sleep.toStringAsFixed(1)} h'}'
+          '${stress == null ? '' : '; stress ${stress.toStringAsFixed(1)} of 5'}'
+          '${energy == null ? '' : '; energy ${energy.toStringAsFixed(1)} of 5'}.');
     }
     final text = lines.join('\n');
     return text.length > 3400 ? text.substring(0, 3400) : text;
