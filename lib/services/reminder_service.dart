@@ -4,7 +4,8 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
-/// Schedules the monthly breast self-exam notification (Android / iOS only).
+/// Schedules Femora's local notifications (Android / iOS only): the monthly self-exam reminder, and the period,
+/// fertile-window, daily-log and medication reminders. Nothing is sent to any server.
 class ReminderService {
   static const _selfExamId = 3001;
   static const _hour = 10;
@@ -77,6 +78,64 @@ class ReminderService {
       await _plugin.cancel(id: _selfExamId);
     } catch (e) {
       debugPrint('Could not cancel self-exam reminder: $e');
+    }
+  }
+
+
+  /// Asks for permission to show notifications. Returns false when unsupported or refused.
+  Future<bool> ensurePermission() async {
+    if (!isSupported) return false;
+    try {
+      await _init();
+      return await _requestPermission();
+    } catch (e) {
+      debugPrint('Could not ask for notification permission: $e');
+      return false;
+    }
+  }
+
+  /// Schedules one notification for the local wall-clock time [when]; repeats every day at that time when [repeatDaily].
+  Future<bool> scheduleAt({
+    required int id,
+    required String channel,
+    required String channelName,
+    required String title,
+    required String body,
+    required DateTime when,
+    bool repeatDaily = false,
+  }) async {
+    if (!isSupported) return false;
+    try {
+      await _init();
+      await _plugin.zonedSchedule(
+        id: id,
+        scheduledDate: tz.TZDateTime(tz.local, when.year, when.month, when.day, when.hour, when.minute),
+        title: title,
+        body: body,
+        notificationDetails: NotificationDetails(
+          android: AndroidNotificationDetails(channel, channelName),
+          iOS: const DarwinNotificationDetails(),
+        ),
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        matchDateTimeComponents: repeatDaily ? DateTimeComponents.time : null,
+      );
+      return true;
+    } catch (e) {
+      debugPrint('Could not schedule reminder $id: $e');
+      return false;
+    }
+  }
+
+  /// Cancels the reminders with these ids.
+  Future<void> cancelIds(Iterable<int> ids) async {
+    if (!isSupported) return;
+    try {
+      await _init();
+      for (final id in ids) {
+        await _plugin.cancel(id: id);
+      }
+    } catch (e) {
+      debugPrint('Could not cancel reminders: $e');
     }
   }
 
