@@ -18,20 +18,21 @@ Flutter women's-health app (FYP, Air University Islamabad; team Arshia Naseer, A
 | One-tap lab-style PDF health report (sample mode with watermark) | Done; rendered and checked, not yet opened on a phone |
 | Accounts (Firebase: email, Google, phone code, guest) | Built on the other PC; 7 tests; not tried on a phone (Google and phone sign-in may need the signing fingerprint registered in Firebase) |
 | Companion look and voice speed (moods, effects, short spoken answers by the phone voice) | Built on the other PC; measured through the tunnel, not heard on a phone by me |
+| Cycle tracking and prediction (scope 6.2) | Built 21 Sep (commit 388032f): logging, calendar with phases, predictions, late/irregular notes, Home card, report Panel 4, companion context. 44 tests; not tried on a phone. Prediction = her own average blended with the study average (`lib/models/cycle_engine.dart`; study in `ml/cycle_eval.py`, results `ml/cycle_results.json`) |
 | Word report (`scope doument/...docx`) | Updated 21 Sep for everything up to commit d354fb2 (sections 13.11 and 13.12, Q36 and Q37) |
 
-Not built: cycle prediction (Random Forest/LSTM), trend charts, pregnancy mode, hormonal insights, most reminders. A knowledge-base (retrieval) and a question-set evaluation for the companion are planned, not built.
+Not built: trend charts, pregnancy mode, hormonal insights, most reminders. A knowledge-base (retrieval) and a question-set evaluation for the companion are planned, not built.
 
 ## Set up on a new PC
 1. `git pull`. Models are in git (`backend/models/`).
 2. Backend: `python -m venv backend/.venv`, install `backend/requirements.txt`, `backend/.env` (with the Gemini free-tier key) is committed on purpose at the owner's request, so a pull brings it. If Google has disabled that key, copy `backend/.env.example` to `backend/.env` and put a new key on the `GEMINI_API_KEY=` line; the key was also pasted in chat, so revoke it for anything beyond a demo. Run `backend/.venv/Scripts/uvicorn app:app --app-dir backend --host 0.0.0.0 --port 8000`. `GET /health` should show `"companion": true`.
-3. App: Flutter 3.47.5 stable. `flutter pub get`, `flutter test` (69 pass), `flutter analyze` (no errors or warnings). Backend tests: `backend/.venv/Scripts/python -m pytest backend/tests` (53 pass).
+3. App: Flutter 3.47.5 stable. `flutter pub get`, `flutter test` (118 pass), `flutter analyze` (no errors or warnings). Backend tests: `backend/.venv/Scripts/python -m pytest backend/tests` (53 pass).
 4. Phone demo: `scripts\start_demo.ps1` (needs `cloudflared.exe`, path in the script or the `CLOUDFLARED` variable). Paste the printed address into the app's Server address dialog. Do not type in the script window.
 5. APK: `flutter build apk --release --target-platform android-arm64` (the home PC has only 8 GB RAM and builds fail if other programs are open; paths like `D:/flutter` in the notes below are specific to the home PC).
 6. **Always restart the backend after updating the code**; an old server process without the companion was once left running on port 8000.
 
 ## Latest APK
-`femora-release-arm64.apk` in this folder (build 5, commit `0c4c007`, 20.9 MB, arm64). It is OLDER than the code: no APK has been built since accounts were added, and the package is now `pk.edu.au.femora` (a different app, uninstall the old one first). Older APKs in this folder (`femora-arm64-release.apk`, `femora-release.apk`) are stale and can be deleted.
+`femora-release-arm64.apk` in this folder (build 5, commit `0c4c007`, 20.9 MB, arm64). It is OLDER than the code: no APK has been built since accounts and cycle tracking were added, and the package is now `pk.edu.au.femora` (a different app, uninstall the old one first). Older APKs in this folder (`femora-arm64-release.apk`, `femora-release.apk`) are stale and can be deleted.
 
 ## Voice: what happened and the current design
 - On the phone, speech recognition worked but the companion did not speak. Cause (verified): Gemini text-to-speech on a free key allows **10 requests a day per model**; testing used it up (HTTP 429).
@@ -89,3 +90,7 @@ with `VIRTUAL_ENV=ml/.venv uv pip install python-docx pywin32` (the venvs are uv
 ## Decision (21 September 2026): breast module improvement is closed
 The owner decided to stop improving the breast ultrasound module. It stays as deployed (screening threshold 0.25, accuracy 71.8%, AUC 0.87).
 Known limitation left as is: the ultrasound gate wrongly refuses about 4% of genuine breast scans from other hospitals (measured on BUSI-WHU, report section 6.14). The fix, if ever wanted, is to retrain the gate with BUSI-WHU scans as extra positives (`ml/train_gate_v2.py`; the scans are on the home PC in `D:\dl\busi_whu`, not in git). No labelled outside test set exists yet.
+
+## Cycle tracking notes (21 September 2026)
+- Measured on the Fehring data: next period within 3 days 67% (95% interval 60-75%) on day one, 82% (78-86%) with 3+ cycles; the scope's 85-90% personalised target was not reached, and a Random Forest gave no gain, so no RF or LSTM is shipped (report chapter 14).
+- **Word report locking:** the Word that automation opens is actually WPS Office; after a table-of-contents refresh it can stay alive and lock the .docx. Find the holder (Restart Manager) and stop that one process, then rebuild. `scripts/build_report.py` accepts `REPORT_OUT=<path>` to build elsewhere.
