@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/breast.dart';
 import '../models/pcos.dart';
+import '../models/what_if.dart';
 
 class ChatReply {
   final String reply;
@@ -87,6 +88,12 @@ class ApiService {
   Future<PcosResult> predictPcos(PcosAnswers answers) async {
     final json = await _post('/predict/pcos', answers.toJson());
     return _parse(() => PcosResult.fromJson(json));
+  }
+
+  /// What the PCOS model would say for each scenario (one call), against the answers as given.
+  Future<WhatIfResult> whatIfPcos(PcosAnswers answers, List<WhatIfScenario> scenarios) async {
+    final json = await _post('/predict/pcos/whatif', {'answers': answers.toJson(), 'scenarios': scenarios.map((s) => s.toJson()).toList()});
+    return _parse(() => WhatIfResult.fromJson(json));
   }
 
   Future<BreastRiskResult> predictBreastRisk(BreastRiskAnswers answers) async {

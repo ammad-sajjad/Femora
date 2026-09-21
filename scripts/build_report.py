@@ -941,7 +941,7 @@ table(["What", "How", "Result"], [
     ["Wrong uploads", "Colour noise and a grayscale gradient", "Both refused with an explanatory message"],
     ["Threshold change", "Reran the model on all 710 test scans; first reproduced the notebook's 68.3% at 0.21", "Reproduced, then 71.8% at 0.25"],
     ["Risk questionnaire", "Eight profiles through the API", "Risk rises with each added factor; no placeholder warning"],
-    ["Flutter tests", "Breast flows, PCOS flow, server-address logic, health store, chat state, companion screen with a fake microphone, onboarding and app launch, report builder", "237 of 237 pass; flutter analyze reports no errors and no warnings"],
+    ["Flutter tests", "Breast flows, PCOS flow, server-address logic, health store, chat state, companion screen with a fake microphone, onboarding and app launch, report builder", "266 of 266 pass; flutter analyze reports no errors and no warnings"],
     ["Companion backend tests", "backend/tests/test_companion.py: safety detector, language detection, prompt building, request validation, rate limit, speech clean-up, fallback (Gemini calls are faked)", "53 of 53 pass"],
     ["Live Gemini check", "Real calls with the developer's key against the running backend: English and Urdu chat with personal context, emergency and breast-lump wording, a prompt-injection attempt, Urdu speech to text, text to speech, both models, both demo scans and a colour photo", "Chat 1.5 to 3 s, speech synthesis 4 to 6 s; Urdu speech transcribed in Urdu script after a stricter prompt and an automatic retry"],
     ["Notebooks", "Every Kaggle notebook was run first as a tiny smoke test, then in full", "All stages ran; ONNX parity checks passed"],
@@ -1133,27 +1133,28 @@ para("Question-and-answer datasets (for example medical exam or consumer-health 
 H2("13.9 Tests")
 table(["Suite", "Count", "What it covers"], [
     ["backend/tests/test_companion.py", "53", "Red-flag detector in three languages, language detection, prompt construction and injection wording, request limits, rate limit, speech clean-up, PCM to WAV, fallback replies, endpoints with a faked Gemini"],
-    ["test/health_store_test.dart", "part of 227 new", "Saving and loading, one log entry a day and a 60-entry cap, name-free context text, clear-all"],
-    ["test/chat_state_test.dart", "part of 227 new", "History rules, personalisation switch, retry of an unanswered message, persistence"],
-    ["test/companion_flow_test.dart", "part of 227 new", "Typing indicator, suggestion chips, failed message and Try again, urgent highlight, full voice flow with a fake microphone, missing permission, speaker button, Delete all my data"],
-    ["test/app_flow_test.dart", "part of 227 new", "First launch shows onboarding, skipping is remembered, form validation, editing a saved profile"],
-    ["test/home_flow_test.dart", "part of 227 new", "Home shows the real name and only real results, empty state, rows open the right tab, next-step rules, relative dates"],
-    ["test/auth_flow_test.dart (with test/fake_auth.dart)", "part of 227 new", "Sign-in, registration, a refused password, guest mode, the phone code, and two accounts not seeing each other's results"],
-    ["test/cycle_engine_test.dart", "part of 227 new", "22 tests: no history, day one, personalising, missed logs, ovulation and fertile window, phases, unfinished period, late and irregular cycles, date maths"],
-    ["test/period_store_test.dart", "part of 227 new", "11 tests: saving and reloading periods, ending a period, refused logs with reasons, separate accounts, deleting all data, companion context, older saved data"],
-    ["test/cycle_screen_test.dart", "part of 227 new", "11 tests: first log, tracking display, month browsing, ending a period, refused log message, late and irregular notes, day menu, future days, symptom log"],
-    ["test/trends_test.dart", "part of 227 new", "19 tests: log fields saved and loaded, mood scores, the day window, averages, symptom counts, each trend note and its threshold, the store (a year of logs, companion averages)"],
-    ["test/log_form_test.dart", "part of 227 new", "7 tests: saving sleep, stress, energy, mood and symptoms; refilling from a saved day; clearing; logging yesterday; account switch; opening the trends"],
-    ["test/trends_screen_test.dart", "part of 227 new", "5 tests: empty state, numbers and charts, 7 / 30 / 90 day ranges, charts with no data, too few days"],
-    ["test/hormone_insights_test.dart", "part of 227 new", "25 tests: logs placed in phases, per-phase averages, each pattern and flag with its thresholds, too little data, unordered logs, phase background, hormone curve shapes, companion line"],
-    ["test/hormone_screen_test.dart", "part of 227 new", "7 tests: empty state, table and patterns, too few logs, flagged symptom leading to the PCOS check, chart labels, opening from the Cycle tab, the new symptoms"],
-    ["test/reminders_test.dart (with test/fake_reminders.dart)", "part of 227 new", "23 tests: planner rules, settings state with a recording stand-in for the phone, store hook"],
-    ["test/reminders_screen_test.dart", "part of 227 new", "11 tests: switches, timing choices, permission refusal, unsupported platform, daily time, medication add / refuse / switch / delete, self-exam switch, opening from the Cycle tab"],
-    ["test/analytics_test.dart", "part of 227 new", "11 tests: prediction replay on her own cycles, learning, irregular cycles, three-cycle minimum, duplicates and missed logs, cycle history figures"],
-    ["test/dashboard_test.dart", "part of 227 new", "7 tests: empty states, headline numbers and charts, too few cycles, hormone sections, flagged symptom, latest results, links"],
-    ["test/report_service_test.dart", "part of 227 new", "Empty, sample and full reports build as valid PDFs; long logs spill onto more pages; report IDs"],
+    ["test/health_store_test.dart", "part of 256 new", "Saving and loading, one log entry a day and a 60-entry cap, name-free context text, clear-all"],
+    ["test/chat_state_test.dart", "part of 256 new", "History rules, personalisation switch, retry of an unanswered message, persistence"],
+    ["test/companion_flow_test.dart", "part of 256 new", "Typing indicator, suggestion chips, failed message and Try again, urgent highlight, full voice flow with a fake microphone, missing permission, speaker button, Delete all my data"],
+    ["test/app_flow_test.dart", "part of 256 new", "First launch shows onboarding, skipping is remembered, form validation, editing a saved profile"],
+    ["test/home_flow_test.dart", "part of 256 new", "Home shows the real name and only real results, empty state, rows open the right tab, next-step rules, relative dates"],
+    ["test/auth_flow_test.dart (with test/fake_auth.dart)", "part of 256 new", "Sign-in, registration, a refused password, guest mode, the phone code, and two accounts not seeing each other's results"],
+    ["test/cycle_engine_test.dart", "part of 256 new", "22 tests: no history, day one, personalising, missed logs, ovulation and fertile window, phases, unfinished period, late and irregular cycles, date maths"],
+    ["test/period_store_test.dart", "part of 256 new", "11 tests: saving and reloading periods, ending a period, refused logs with reasons, separate accounts, deleting all data, companion context, older saved data"],
+    ["test/cycle_screen_test.dart", "part of 256 new", "11 tests: first log, tracking display, month browsing, ending a period, refused log message, late and irregular notes, day menu, future days, symptom log"],
+    ["test/trends_test.dart", "part of 256 new", "19 tests: log fields saved and loaded, mood scores, the day window, averages, symptom counts, each trend note and its threshold, the store (a year of logs, companion averages)"],
+    ["test/log_form_test.dart", "part of 256 new", "7 tests: saving sleep, stress, energy, mood and symptoms; refilling from a saved day; clearing; logging yesterday; account switch; opening the trends"],
+    ["test/trends_screen_test.dart", "part of 256 new", "5 tests: empty state, numbers and charts, 7 / 30 / 90 day ranges, charts with no data, too few days"],
+    ["test/hormone_insights_test.dart", "part of 256 new", "25 tests: logs placed in phases, per-phase averages, each pattern and flag with its thresholds, too little data, unordered logs, phase background, hormone curve shapes, companion line"],
+    ["test/hormone_screen_test.dart", "part of 256 new", "7 tests: empty state, table and patterns, too few logs, flagged symptom leading to the PCOS check, chart labels, opening from the Cycle tab, the new symptoms"],
+    ["test/reminders_test.dart (with test/fake_reminders.dart)", "part of 256 new", "23 tests: planner rules, settings state with a recording stand-in for the phone, store hook"],
+    ["test/reminders_screen_test.dart", "part of 256 new", "11 tests: switches, timing choices, permission refusal, unsupported platform, daily time, medication add / refuse / switch / delete, self-exam switch, opening from the Cycle tab"],
+    ["test/analytics_test.dart", "part of 256 new", "11 tests: prediction replay on her own cycles, learning, irregular cycles, three-cycle minimum, duplicates and missed logs, cycle history figures"],
+    ["test/dashboard_test.dart", "part of 256 new", "7 tests: empty states, headline numbers and charts, too few cycles, hormone sections, flagged symptom, latest results, links"],
+    ["test/what_if_test.dart", "part of 256 new", "29 tests: what-if requests and answers, which changes are offered (no BMI under 18.5), live estimate with pauses and stale answers, errors, the card, the PCOS tab"],
+    ["test/report_service_test.dart", "part of 256 new", "Empty, sample and full reports build as valid PDFs; long logs spill onto more pages; report IDs"],
 ], [5.6, 2.6, 8.4], caption="New tests", size=8.5,
-    note="All 237 Flutter tests (10 earlier plus 227 new) and all 53 backend tests pass. The companion screen's real speech recognition and the real microphone are not covered by automatic tests because they need a phone.")
+    note="All 266 Flutter tests (10 earlier plus 256 new) and all 68 backend tests pass. The companion screen's real speech recognition and the real microphone are not covered by automatic tests because they need a phone.")
 H2("13.10 Defects found while building, and their fixes")
 table(["Problem", "Fix"], [
     ["A coloured card containing a switch tile threw a Material assertion (real UI bug caught by a test)", "Wrapped the tile in a transparent Material"],
@@ -1355,8 +1356,26 @@ bullets([
 ])
 # --- end of chapter 15 sections (later modules are inserted above this line)
 
-# ================================================================== 16 CONCLUSION
-H1("16. Conclusion")
+# ================================================================== 16 PRESENTATION FEATURES
+H1("16. Presentation features added after the scope (interactive PCOS, report reader, Urdu)")
+para("With the scope complete except pregnancy care (which the supervisor moved to FYP III), work moved to features that make the system easy to demonstrate and more useful in Pakistan: "
+     "an interactive what-if view of the PCOS estimate, a reader that explains a photographed medical report, and an Urdu and English language switch, followed by better companion answers and voice. "
+     "Sections are added here as each feature is finished.")
+H2("16.1 PCOS what-if simulator")
+bullets([
+    "**What the user sees.** Under the PCOS result a card asks What if I changed something? It has switches for regular exercise and frequent fast food and a weight slider with the resulting BMI. As she changes them, the estimate updates within about half a second and shows how many points higher or lower it is. A Quick wins list shows the estimate for each single change (exercise regularly, eat less fast food, about 5% or 10% lighter) and for all of them together, each as a bar with a mark where she is now. A button hands the question to the AI companion.",
+    "**How it works.** A new server endpoint (POST /predict/pcos/whatif) takes the answers and up to 8 scenarios, changes only the fields a scenario names (weight, exercise, fast food; waist too when hip is given), runs the same model and returns each estimate, risk band and the change in percentage points against the answers as given. The phone asks for the quick wins once and then for one scenario after a short pause; an answer that arrives late for an older change is ignored.",
+    "**What it is based on.** The model was trained with direction rules (monotone constraints): more exercise can only lower the estimate, and a higher BMI or fast food can only raise it. A test runs 128 different answer sets through the endpoint and confirms that exercise, less fast food and lower weight never raise the estimate, and that all three together are never worse than any one alone.",
+    "**Safety choices.** Weight loss is only suggested when BMI is 25 or more, and never below a BMI of 18.5: the slider stops there, and an underweight user gets no slider and a sentence saying so. Symptoms are never offered as something to change. The card and the server always say this is what the model would estimate from a small study of 541 women, not a promise, and that diet, exercise or weight should not be changed because of it without asking a doctor. If the server cannot be reached the card says so instead of a number.",
+])
+bullets([
+    "**Tests.** 44 automatic tests: 15 on the server (the answers are unchanged by the refactor, the baseline matches, BMI is recomputed, ordering, bands, the 128-set direction check, waist rules, eight kinds of bad request) and 29 in the app (the request and answer, which changes are offered including that no suggested weight ever gives a BMI under 18.5 for any of 5 heights and 19 weights, the live estimate with pauses, several quick changes as one request, stale answers, errors, the card, and the PCOS tab). The card was drawn to an image at phone width, which caught an overflow that is now fixed.",
+    "**Limits.** The what-if shows the model's association in a small self-reported dataset. It cannot say what will happen to a person, and differences of a few points are within the model's uncertainty. The size of each effect has not been validated. It has not been tried on a phone.",
+])
+# --- end of chapter 16 sections (later features are inserted above this line)
+
+# ================================================================== 17 CONCLUSION
+H1("17. Conclusion")
 para("The breast module now consists of two models backed by measured evidence and an honest account of their limits. The most valuable result of this "
      "period was not a higher accuracy figure but a truthful one: testing on a hospital the model had never seen exposed a large gap, adding the right data "
      "closed most of it, and a further experiment that did not help was documented and rejected. The app can be shown on a phone today and now includes a voice-enabled, personalised AI companion and a one-tap "

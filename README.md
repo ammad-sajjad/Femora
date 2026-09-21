@@ -45,7 +45,7 @@ The AI tab is a personal companion: it chats in English and Urdu, listens (mic b
 
 **Backend setup (one time):** create `backend/.env` containing one line, `GEMINI_API_KEY=<your key>` (git-ignored and docker-ignored; never commit it). Restart the backend / `scripts\start_demo.ps1` so it loads the key and the new code. Without a key the companion still answers from a small offline rule set (`source: fallback`). Check `GET /health` → `"companion": true`.
 
-Endpoints (`backend/companion.py`): `GET /companion/status`, `POST /chat`, `POST /voice/transcribe`, `POST /voice/speak`. Models: chat and speech-to-text `gemini-3.1-flash-lite` (backup `gemini-3.6-flash`), text-to-speech `gemini-3.1-flash-tts-preview` (backup `gemini-2.5-flash-preview-tts`; the free tier allows about 10 voice requests a day per model, after which the app reads answers with the phone's own voice). Emergency red flags are detected in code (English, Roman Urdu, Urdu), not by the model. Tests: `backend/.venv/Scripts/python -m pytest backend/tests` (53) and `flutter test` (237). The free Gemini tier may use submitted text to improve Google products; use a paid key before real users.
+Endpoints (`backend/companion.py`): `GET /companion/status`, `POST /chat`, `POST /voice/transcribe`, `POST /voice/speak`. Models: chat and speech-to-text `gemini-3.1-flash-lite` (backup `gemini-3.6-flash`), text-to-speech `gemini-3.1-flash-tts-preview` (backup `gemini-2.5-flash-preview-tts`; the free tier allows about 10 voice requests a day per model, after which the app reads answers with the phone's own voice). Emergency red flags are detected in code (English, Roman Urdu, Urdu), not by the model. Tests: `backend/.venv/Scripts/python -m pytest backend/tests` (68) and `flutter test` (266). The free Gemini tier may use submitted text to improve Google products; use a paid key before real users.
 
 ## Cycle tracking and prediction
 
@@ -59,6 +59,10 @@ The prediction is the woman's own average cycle length blended with the study av
 - **Hormonal health insights (6.6):** *Hormonal insights* places each logged day in its cycle phase, shows a typical hormone chart with today marked, symptoms by phase, patterns in the log and symptoms that keep coming back (`lib/models/hormone_insights.dart`).
 - **Reminders (6.8):** *Reminders* schedules local notifications for the next period, the fertile window and ovulation day, a daily log nudge, medication and the monthly self-exam, recalculated whenever a period is logged (`lib/models/reminders.dart`, `lib/screens/reminders_screen.dart`). Not yet tried on a real phone.
 - **Dashboard (6.9):** the *Health dashboard* card on Home combines cycle history, a prediction check on her own cycles, symptom patterns, hormonal trends and the latest results; the PDF report gained charts (`lib/models/analytics.dart`, `lib/screens/dashboard_screen.dart`).
+
+## Presentation features (after the scope)
+
+- **PCOS what-if simulator:** under the PCOS result, switches for exercise and fast food and a weight slider show what the model would estimate if those answers changed, with a Quick wins list (`POST /predict/pcos/whatif`, `lib/models/what_if.dart`, `lib/widgets/what_if_card.dart`). Weight loss is never suggested below a BMI of 18.5. It shows the model's estimate, not a promise.
 
 ## Project report
 
