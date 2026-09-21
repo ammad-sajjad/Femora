@@ -22,7 +22,7 @@ Not built: cycle prediction (Random Forest/LSTM), trend charts, accounts/login, 
 
 ## Set up on a new PC
 1. `git pull`. Models are in git (`backend/models/`).
-2. Backend: `python -m venv backend/.venv`, install `backend/requirements.txt`, then create **`backend/.env`** with one line `GEMINI_API_KEY=<key>` (git-ignored on purpose; the old key was pasted into a chat, so **revoke it and use a new one**). Run `backend/.venv/Scripts/uvicorn app:app --app-dir backend --host 0.0.0.0 --port 8000`. `GET /health` should show `"companion": true`.
+2. Backend: `python -m venv backend/.venv`, install `backend/requirements.txt`, then copy `backend/.env.example` to **`backend/.env`** and put your key on the `GEMINI_API_KEY=` line (git-ignored on purpose; the old key was pasted into a chat, so **revoke it and use a new one**). Run `backend/.venv/Scripts/uvicorn app:app --app-dir backend --host 0.0.0.0 --port 8000`. `GET /health` should show `"companion": true`.
 3. App: Flutter 3.47.5 stable. `flutter pub get`, `flutter test` (58 pass), `flutter analyze` (no errors or warnings). Backend tests: `backend/.venv/Scripts/python -m pytest backend/tests` (53 pass).
 4. Phone demo: `scripts\start_demo.ps1` (needs `cloudflared.exe`, path in the script or the `CLOUDFLARED` variable). Paste the printed address into the app's Server address dialog. Do not type in the script window.
 5. APK: `flutter build apk --release --target-platform android-arm64` (the home PC has only 8 GB RAM and builds fail if other programs are open; paths like `D:/flutter` in the notes below are specific to the home PC).
