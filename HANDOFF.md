@@ -22,7 +22,7 @@ Not built: cycle prediction (Random Forest/LSTM), trend charts, accounts/login, 
 
 ## Set up on a new PC
 1. `git pull`. Models are in git (`backend/models/`).
-2. Backend: `python -m venv backend/.venv`, install `backend/requirements.txt`, then copy `backend/.env.example` to **`backend/.env`** and put your key on the `GEMINI_API_KEY=` line (git-ignored on purpose; the old key was pasted into a chat, so **revoke it and use a new one**). Run `backend/.venv/Scripts/uvicorn app:app --app-dir backend --host 0.0.0.0 --port 8000`. `GET /health` should show `"companion": true`.
+2. Backend: `python -m venv backend/.venv`, install `backend/requirements.txt`, `backend/.env` (with the Gemini free-tier key) is committed on purpose at the owner's request, so a pull brings it. If Google has disabled that key, copy `backend/.env.example` to `backend/.env` and put a new key on the `GEMINI_API_KEY=` line; the key was also pasted in chat, so revoke it for anything beyond a demo. Run `backend/.venv/Scripts/uvicorn app:app --app-dir backend --host 0.0.0.0 --port 8000`. `GET /health` should show `"companion": true`.
 3. App: Flutter 3.47.5 stable. `flutter pub get`, `flutter test` (58 pass), `flutter analyze` (no errors or warnings). Backend tests: `backend/.venv/Scripts/python -m pytest backend/tests` (53 pass).
 4. Phone demo: `scripts\start_demo.ps1` (needs `cloudflared.exe`, path in the script or the `CLOUDFLARED` variable). Paste the printed address into the app's Server address dialog. Do not type in the script window.
 5. APK: `flutter build apk --release --target-platform android-arm64` (the home PC has only 8 GB RAM and builds fail if other programs are open; paths like `D:/flutter` in the notes below are specific to the home PC).
@@ -44,7 +44,7 @@ Home tab showed a fake "Ayesha" and fake cycle data; emergency detector missed R
 - Keep the Word report up to date with every change (edit `scripts/build_report.py`, rebuild with python-docx, refresh the table of contents through Word COM, check the pages visually, commit script and .docx together).
 - Build the release APK after changes and put a copy where the user can reach it (Desktop on the home PC, and the repo root).
 - Work autonomously; ask before pushing unless told to push.
-- Never repeat pasted keys in output; never commit `backend/.env`.
+- Never repeat keys in output. `backend/.env` is committed by the owner's explicit choice (free key); do not add other secrets to the repo.
 
 ## Report (Word) status
 `scripts/build_report.py` is current, including APK build 5 and section 13.5a (voice quota). The `.docx` in git was last regenerated before the build 5 row was added: Word held a lock on the file at the end of the session. On the home PC close the docx everywhere, run the build script, then refresh via Word COM. The script is the source of truth; the docx is generated from it. A stray lock file (`~$...docx`) had been committed once and is now removed and ignored.
