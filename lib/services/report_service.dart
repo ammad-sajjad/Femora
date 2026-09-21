@@ -78,6 +78,9 @@ class ReportData {
             date: day.subtract(Duration(days: i)),
             symptoms: i.isEven ? const ['fatigue', 'cramps'] : const ['acne'],
             mood: const ['okay', 'low', 'good', 'okay', 'low', 'okay', 'good'][i],
+            sleepHours: const [7.0, 6.0, 7.5, 6.5, 5.5, 6.5, 7.0][i],
+            stress: const [2, 3, 2, 4, 4, 3, 2][i],
+            energy: const [3, 2, 4, 3, 2, 3, 4][i],
           ),
       ],
       periods: [for (final ago in [118, 90, 62, 34, 6]) PeriodEntry(start: day.subtract(Duration(days: ago)), end: day.subtract(Duration(days: ago - 4)))],
@@ -475,6 +478,14 @@ pw.Widget _wellnessPanel(ReportData d) {
   }
   final exam = d.lastSelfExam;
   final overdue = exam != null && now.difference(exam).inDays > 30;
+  double? mean(Iterable<num?> xs) {
+    final v = [for (final x in xs) if (x != null) x.toDouble()];
+    return v.isEmpty ? null : v.reduce((a, b) => a + b) / v.length;
+  }
+
+  final avgSleep = mean(recent.map((l) => l.sleepHours));
+  final avgStress = mean(recent.map((l) => l.stress));
+  final avgEnergy = mean(recent.map((l) => l.energy));
   return pw.Column(
     crossAxisAlignment: pw.CrossAxisAlignment.start,
     children: [
@@ -488,6 +499,12 @@ pw.Widget _wellnessPanel(ReportData d) {
           colour: overdue ? _amber : exam == null ? _muted : _green
         ),
         (test: 'Daily logs recorded', result: '${recent.length}', reference: 'Days with symptoms, mood or notes saved', flag: '-', colour: _muted),
+        if (avgSleep != null)
+          (test: 'Average sleep', result: '${avgSleep.toStringAsFixed(1)} h', reference: '7 - 9 hours a night', flag: avgSleep < 7 ? 'LOW' : avgSleep > 9 ? 'HIGH' : 'NORMAL', colour: avgSleep < 7 || avgSleep > 9 ? _amber : _green),
+        if (avgStress != null)
+          (test: 'Average stress (1 to 5)', result: avgStress.toStringAsFixed(1), reference: '1 = calm, 5 = very high', flag: avgStress >= 4 ? 'HIGH' : '-', colour: avgStress >= 4 ? _amber : _muted),
+        if (avgEnergy != null)
+          (test: 'Average energy (1 to 5)', result: avgEnergy.toStringAsFixed(1), reference: '1 = very low, 5 = great', flag: avgEnergy <= 2 ? 'LOW' : '-', colour: avgEnergy <= 2 ? _amber : _muted),
         (
           test: 'Most frequent symptoms',
           result: top.isEmpty ? 'None' : top.first.key,

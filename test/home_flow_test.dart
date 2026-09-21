@@ -112,6 +112,17 @@ void main() {
     expect(find.textContaining('expected'), findsWidgets);
   });
 
+  testWidgets('the trends card shows how much was logged this week and opens the charts', (tester) async {
+    _tallScreen(tester);
+    final store = _storeWith(logs: [for (var i = 0; i < 3; i++) SymptomLog(date: _now.subtract(Duration(days: i)), symptoms: const [], mood: 'good')]);
+    await tester.pumpWidget(_home(store, AppState()..now = () => _now));
+    expect(find.textContaining('3 of the last 7 days logged'), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const Key('home_trends')));
+    await tester.tap(find.byKey(const Key('home_trends')));
+    await tester.pumpAndSettle();
+    expect(find.text('My trends'), findsOneWidget);
+  });
+
   testWidgets('greeting follows the time of day and an unnamed user is not given a name', (tester) async {
     _tallScreen(tester);
     final store = HealthStore()..profile = HealthProfile(onboarded: true);

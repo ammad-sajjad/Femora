@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'cycle_engine.dart';
 import 'health_store.dart';
 
 class SymptomItem {
@@ -37,6 +38,21 @@ class AppState extends ChangeNotifier {
 
   String? _mood;
   String? get mood => _mood;
+
+  double? _sleepHours;
+  double? get sleepHours => _sleepHours;
+
+  int? _stress;
+  int? get stress => _stress;
+
+  int? _energy;
+  int? get energy => _energy;
+
+  DateTime? _logDay;
+
+  /// The day the log form is for (today unless she picked another day).
+  DateTime get logDay => _logDay ?? dayOf(now());
+  bool get loggingToday => logDay == dayOf(now());
 
   /// Where saved daily logs go (the on-device health store). Null in tests that do not need it.
   Future<void> Function(SymptomLog log)? onSaveLog;
@@ -84,13 +100,51 @@ class AppState extends ChangeNotifier {
     _userNotes = notes;
   }
 
+  void setSleep(double? hours) {
+    _sleepHours = hours == null ? null : hours.clamp(0, 14).toDouble();
+    notifyListeners();
+  }
+
+  void setStress(int? level) {
+    _stress = _stress == level ? null : level; // tapping the chosen level again clears it
+    notifyListeners();
+  }
+
+  void setEnergy(int? level) {
+    _energy = _energy == level ? null : level;
+    notifyListeners();
+  }
+
+  /// Chooses which day the form is for and fills it with whatever was saved for that day.
+  void selectLogDay(DateTime day, SymptomLog? saved) {
+    _logDay = dayOf(day);
+    fillFrom(saved);
+  }
+
+  /// Fills the form from a saved entry (or clears it when there is none).
+  void fillFrom(SymptomLog? l) {
+    final have = {for (final x in l?.symptoms ?? const <String>[]) x};
+    for (final sy in _symptoms) {
+      sy.isSelected = have.contains(sy.name.toLowerCase());
+    }
+    _mood = l?.mood;
+    _sleepHours = l?.sleepHours;
+    _stress = l?.stress;
+    _energy = l?.energy;
+    _userNotes = l?.notes ?? '';
+    notifyListeners();
+  }
+
   /// Saves today's symptoms, mood and notes to the health store (so the companion and the report can use them).
   Future<void> saveDailyLog() async {
     final log = SymptomLog(
-      date: now(),
+      date: logDay,
       symptoms: [for (final s in _symptoms) if (s.isSelected) s.name.toLowerCase()],
       mood: _mood,
       notes: _userNotes.trim(),
+      sleepHours: _sleepHours,
+      stress: _stress,
+      energy: _energy,
     );
     await onSaveLog?.call(log);
     notifyListeners();
