@@ -68,7 +68,7 @@ const moods = <Mood>[
   ),
   Mood(
     key: 'pain',
-    emoji: AnimatedEmojis.weary,
+    emoji: AnimatedEmojis.bandageFace, // weary renders blank in lottie 3.x; this one works and reads as hurting
     labelEn: 'In pain',
     labelUr: 'درد',
     messageEn: 'I am having a lot of pain today.',
