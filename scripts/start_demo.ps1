@@ -3,7 +3,12 @@
 # Usage:  powershell -ExecutionPolicy Bypass -File scripts\start_demo.ps1   (add -Test to self-check and exit)
 param([switch]$Test)
 $root = Split-Path -Parent $PSScriptRoot
-$cloudflared = if ($env:CLOUDFLARED) { $env:CLOUDFLARED } else { 'D:\dl\tunnel\cloudflared.exe' }
+# The home PC keeps cloudflared on D:; other machines have it on PATH or from npm. Set CLOUDFLARED to override.
+$candidates = @($env:CLOUDFLARED, 'D:\dl\tunnel\cloudflared.exe',
+                (Join-Path $env:APPDATA 'npm\node_modules\cloudflared\bin\cloudflared.exe'),
+                (Get-Command cloudflared.exe -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty Source))
+$cloudflared = $candidates | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+if (-not $cloudflared) { throw 'cloudflared.exe not found. Install it or set the CLOUDFLARED variable to its path.' }
 $log = Join-Path $env:TEMP 'femora_tunnel.log'
 try { Remove-Item -LiteralPath $log -Force -ErrorAction Stop } catch {}   # old log may not exist; short 8.3 temp paths can also fail harmlessly
 

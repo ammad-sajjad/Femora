@@ -26,6 +26,7 @@ dependencies:
   printing: ^5.15.1
   http_parser: ^4.1.2
   flutter_tts: ^4.2.5
+  animated_emoji: ^3.3.0
 
 dependency_overrides:
   path_provider_android: 2.2.15
@@ -39,3 +40,11 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    # Bundled so the mood emojis animate without a connection (the package falls back to the network otherwise).
+    - packages/animated_emoji/lottie/smile.json
+    - packages/animated_emoji/lottie/sad.json
+    - packages/animated_emoji/lottie/angry.json
+    - packages/animated_emoji/lottie/tired.json
+    - packages/animated_emoji/lottie/anxiousWithSweat.json
+    - packages/animated_emoji/lottie/weary.json
+    - packages/animated_emoji/lottie/heartHands.json
