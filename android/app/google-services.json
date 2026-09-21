@@ -1,0 +1,76 @@
+{
+  "project_info": {
+    "project_number": "632943140270",
+    "project_id": "fluttermangaapp",
+    "storage_bucket": "fluttermangaapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:632943140270:android:391da51ae58f063e423c3f",
+        "android_client_info": {
+          "package_name": "com.maniak.flutter_manga_reader"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "632943140270-1rfa9m23459tvl8ao7cqitl3mi6a2vn9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYZBXIqb7NB9U1qjby8pMhkiHViD2cu4M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "632943140270-1rfa9m23459tvl8ao7cqitl3mi6a2vn9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:632943140270:android:267cc42ac9e0d268423c3f",
+        "android_client_info": {
+          "package_name": "pk.edu.au.femora"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "632943140270-07nrreh99hlem5pjbd8p0eq31uth0ngb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "pk.edu.au.femora",
+            "certificate_hash": "a6994c18bb5f19f351ac7b65cad869a160567b5e"
+          }
+        },
+        {
+          "client_id": "632943140270-1rfa9m23459tvl8ao7cqitl3mi6a2vn9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYZBXIqb7NB9U1qjby8pMhkiHViD2cu4M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "632943140270-1rfa9m23459tvl8ao7cqitl3mi6a2vn9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

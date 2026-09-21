@@ -175,9 +175,17 @@ class SymptomLog {
 }
 
 class HealthStore extends ChangeNotifier {
-  static const _key = 'health_store_v1';
-  static const _heatKey = 'health_scan_heatmap_v1';
+  static const _legacyKey = 'health_store_v1'; // written before accounts existed
+  static const _legacyHeatKey = 'health_scan_heatmap_v1';
   static const maxLogs = 60;
+
+  /// Whose data this is. Results, logs and the scan heatmap are stored under this account's own keys, so
+  /// signing in as someone else on a shared phone never shows her the previous woman's results.
+  String _account = 'guest';
+  String get account => _account;
+
+  String get _key => 'health_store_v1_$_account';
+  String get _heatKey => 'health_scan_heatmap_v1_$_account';
 
   bool _loaded = false;
   bool get loaded => _loaded;
@@ -192,9 +200,32 @@ class HealthStore extends ChangeNotifier {
   /// Injectable clock, so tests can pin "today".
   DateTime Function() now = DateTime.now;
 
+  /// Switches to another signed-in account and loads that account's data.
+  Future<void> useAccount(String id) async {
+    if (id == _account && _loaded) return;
+    _account = id;
+    _loaded = false;
+    profile = HealthProfile();
+    pcos = null;
+    breastRisk = null;
+    scan = null;
+    scanHeatmap = null;
+    logs = [];
+    notifyListeners();
+    await load();
+  }
+
   Future<void> load() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      // Anything saved before accounts existed belongs to whoever is signing in first on this phone.
+      if (!prefs.containsKey(_key) && prefs.containsKey(_legacyKey)) {
+        await prefs.setString(_key, prefs.getString(_legacyKey)!);
+        final heat = prefs.getString(_legacyHeatKey);
+        if (heat != null) await prefs.setString(_heatKey, heat);
+        await prefs.remove(_legacyKey);
+        await prefs.remove(_legacyHeatKey);
+      }
       final raw = prefs.getString(_key);
       if (raw != null) {
         final j = jsonDecode(raw) as Map<String, dynamic>;

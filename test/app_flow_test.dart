@@ -4,7 +4,10 @@ import 'package:femora/screens/main_shell.dart';
 import 'package:femora/screens/onboarding_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:femora/widgets/companion_effects.dart';
+import 'package:femora/services/auth_service.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'fake_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -38,7 +41,7 @@ void main() {
 
   testWidgets('first launch shows the welcome screen, skipping goes to the app, and it is remembered', (tester) async {
     _tallScreen(tester);
-    await tester.pumpWidget(const FemoraApp());
+    await tester.pumpWidget(FemoraApp(authService: FakeAuth(signedInAs: const AppUser(id: 'uid-test', email: 'ayesha@example.com', name: 'Ayesha'))));
     await tester.pump(); // load the saved data
     await tester.pump();
     expect(find.byType(OnboardingScreen), findsOneWidget);
@@ -50,7 +53,7 @@ void main() {
 
     // next launch: straight into the app
     await tester.pumpWidget(const SizedBox());
-    await tester.pumpWidget(const FemoraApp());
+    await tester.pumpWidget(FemoraApp(authService: FakeAuth(signedInAs: const AppUser(id: 'uid-test', email: 'ayesha@example.com', name: 'Ayesha'))));
     await tester.pump();
     await tester.pump();
     expect(find.byType(MainShellScreen), findsOneWidget);
