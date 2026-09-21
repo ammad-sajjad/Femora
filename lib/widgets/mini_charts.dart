@@ -21,6 +21,8 @@ class LineChart extends StatelessWidget {
   final List<AxisLabel> xLabels;
   final double height;
   final String semantics;
+  final int? marker; // draws a dashed vertical line at this index (for example today)
+  final bool dots; // a dot at every value
 
   const LineChart({
     super.key,
@@ -32,6 +34,8 @@ class LineChart extends StatelessWidget {
     this.xLabels = const [],
     this.height = 130,
     this.semantics = 'Line chart',
+    this.marker,
+    this.dots = true,
   });
 
   @override
@@ -64,6 +68,13 @@ class _LinePainter extends CustomPainter {
       final dx = (x(i) - tp.width / 2).clamp(plot.left - 4, size.width - tp.width);
       tp.paint(canvas, Offset(dx, plot.bottom + 4));
     }
+    if (c.marker != null && n > 0) {
+      final mx = x(c.marker!.clamp(0, n - 1));
+      final dash = Paint()..color = AppColors.textDark..strokeWidth = 1.4;
+      for (var yy = plot.top; yy < plot.bottom; yy += 6) {
+        canvas.drawLine(Offset(mx, yy), Offset(mx, (yy + 3).clamp(plot.top, plot.bottom)), dash);
+      }
+    }
     for (var s = 0; s < c.series.length; s++) {
       final color = c.colors[s % c.colors.length];
       final line = Paint()
@@ -90,7 +101,7 @@ class _LinePainter extends CustomPainter {
         }
       }
       canvas.drawPath(path, line);
-      for (var i = 0; i < c.series[s].length; i++) {
+      for (var i = 0; c.dots && i < c.series[s].length; i++) {
         final v = c.series[s][i];
         if (v != null) canvas.drawCircle(Offset(x(i), y(v.clamp(c.minY, c.maxY))), n > 40 ? 1.8 : 3, dot);
       }

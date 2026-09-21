@@ -6,6 +6,7 @@ import 'package:pdf/widgets.dart' as pw;
 
 import '../models/cycle_engine.dart';
 import '../models/health_store.dart';
+import '../models/hormone_insights.dart';
 
 /// Everything the report shows, gathered in one place (from the on-device store, or sample data for demos).
 class ReportData {
@@ -422,9 +423,12 @@ String _cycleSummaryLine(CycleEngine e) {
 }
 
 List<String> _cycleSteps(ReportData d) {
-  if (d.periods.isEmpty) return const [];
   final e = CycleEngine(d.periods, d.generated);
-  return [for (final f in e.flags) if (f.seeDoctor) f.text];
+  final ins = HormoneInsights(e, d.logs, d.generated);
+  return [
+    if (d.periods.isNotEmpty) for (final f in e.flags) if (f.seeDoctor) f.text,
+    for (final f in ins.flags) if (f.seeDoctor) f.text,
+  ];
 }
 
 pw.Widget _cyclePanel(ReportData d) {
@@ -438,6 +442,7 @@ pw.Widget _cyclePanel(ReportData d) {
   final regFlag = e.regularity == 'irregular' ? ('REVIEW', _amber) : e.regularity == 'regular' ? ('REGULAR', _green) : ('-', _muted);
   final perFlag = per == null ? ('-', _muted) : per > 7 ? ('REVIEW', _amber) : ('NORMAL', _green);
   final late = e.isLate;
+  final ins = HormoneInsights(e, d.logs, d.generated);
   return pw.Column(
     crossAxisAlignment: pw.CrossAxisAlignment.start,
     children: [
@@ -457,6 +462,8 @@ pw.Widget _cyclePanel(ReportData d) {
       ]),
       _note('Interpretation: ${e.basis} Ovulation and the fertile window are estimates from cycle length, not measurements, and must not be used to avoid pregnancy.'),
       for (final f in e.flags) _note('Note: ${f.text}'),
+      for (final n in ins.patterns) _note('Pattern in the daily log: ${n.text}'),
+      for (final n in ins.flags) _note('Hormonal note: ${n.text}'),
     ],
   );
 }

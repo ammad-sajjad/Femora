@@ -6,6 +6,7 @@ import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/cycle_widgets.dart';
 import '../widgets/femora_header.dart';
+import 'hormone_insights_screen.dart';
 import 'trends_screen.dart';
 
 class CycleCalendarScreen extends StatefulWidget {
@@ -108,6 +109,21 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                   onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const TrendsScreen())),
                   icon: const Icon(Icons.show_chart_rounded),
                   label: const Text('See my trends', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700)),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 10, 18, 0),
+                child: OutlinedButton.icon(
+                  key: const Key('open_insights'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primaryBerry,
+                    side: const BorderSide(color: AppColors.primaryBerry),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const HormoneInsightsScreen())),
+                  icon: const Icon(Icons.bubble_chart_outlined),
+                  label: const Text('Hormonal insights', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700)),
                 ),
               ),
               const SizedBox(height: 22),

@@ -69,6 +69,8 @@ class AppState extends ChangeNotifier {
     SymptomItem(id: 'backache', name: 'Backache', icon: Icons.accessibility_new_outlined),
     SymptomItem(id: 'tender', name: 'Tender', icon: Icons.spa_outlined),
     SymptomItem(id: 'nausea', name: 'Nausea', icon: Icons.sick_outlined),
+    SymptomItem(id: 'hairloss', name: 'Hair loss', icon: Icons.content_cut_outlined),
+    SymptomItem(id: 'excesshair', name: 'Excess hair', icon: Icons.waves_outlined),
   ];
 
   List<SymptomItem> get symptoms => _symptoms;
