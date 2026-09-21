@@ -19,14 +19,15 @@ Flutter women's-health app (FYP, Air University Islamabad; team Arshia Naseer, A
 | Accounts (Firebase: email, Google, phone code, guest) | Built on the other PC; 7 tests; not tried on a phone (Google and phone sign-in may need the signing fingerprint registered in Firebase) |
 | Companion look and voice speed (moods, effects, short spoken answers by the phone voice) | Built on the other PC; measured through the tunnel, not heard on a phone by me |
 | Cycle tracking and prediction (scope 6.2) | Built 21 Sep (commit 388032f): logging, calendar with phases, predictions, late/irregular notes, Home card, report Panel 4, companion context. 44 tests; not tried on a phone. Prediction = her own average blended with the study average (`lib/models/cycle_engine.dart`; study in `ml/cycle_eval.py`, results `ml/cycle_results.json`) |
+| Symptom and mood tracker (6.10), hormonal insights (6.6), reminders (6.8), dashboard (6.9) | Built 21 Sep in that order, each tested and committed (report chapter 15). Nothing about them has been tried on a phone; in particular no notification has been delivered on a real device yet |
 | Word report (`scope doument/...docx`) | Updated 21 Sep for everything up to commit d354fb2 (sections 13.11 and 13.12, Q36 and Q37) |
 
-Not built: trend charts, pregnancy mode, hormonal insights, most reminders. A knowledge-base (retrieval) and a question-set evaluation for the companion are planned, not built.
+Not built: pregnancy care (6.5) and its reminders. A knowledge-base (retrieval) and a question-set evaluation for the companion are planned, not built.
 
 ## Set up on a new PC
 1. `git pull`. Models are in git (`backend/models/`).
 2. Backend: `python -m venv backend/.venv`, install `backend/requirements.txt`, `backend/.env` (with the Gemini free-tier key) is committed on purpose at the owner's request, so a pull brings it. If Google has disabled that key, copy `backend/.env.example` to `backend/.env` and put a new key on the `GEMINI_API_KEY=` line; the key was also pasted in chat, so revoke it for anything beyond a demo. Run `backend/.venv/Scripts/uvicorn app:app --app-dir backend --host 0.0.0.0 --port 8000`. `GET /health` should show `"companion": true`.
-3. App: Flutter 3.47.5 stable. `flutter pub get`, `flutter test` (118 pass), `flutter analyze` (no errors or warnings). Backend tests: `backend/.venv/Scripts/python -m pytest backend/tests` (53 pass).
+3. App: Flutter 3.47.5 stable. `flutter pub get`, `flutter test` (237 pass), `flutter analyze` (no errors or warnings). Backend tests: `backend/.venv/Scripts/python -m pytest backend/tests` (53 pass).
 4. Phone demo: `scripts\start_demo.ps1` (needs `cloudflared.exe`, path in the script or the `CLOUDFLARED` variable). Paste the printed address into the app's Server address dialog. Do not type in the script window.
 5. APK: `flutter build apk --release --target-platform android-arm64` (the home PC has only 8 GB RAM and builds fail if other programs are open; paths like `D:/flutter` in the notes below are specific to the home PC).
 6. **Always restart the backend after updating the code**; an old server process without the companion was once left running on port 8000.
@@ -94,3 +95,8 @@ Known limitation left as is: the ultrasound gate wrongly refuses about 4% of gen
 ## Cycle tracking notes (21 September 2026)
 - Measured on the Fehring data: next period within 3 days 67% (95% interval 60-75%) on day one, 82% (78-86%) with 3+ cycles; the scope's 85-90% personalised target was not reached, and a Random Forest gave no gain, so no RF or LSTM is shipped (report chapter 14).
 - **Word report locking:** the Word that automation opens is actually WPS Office; after a table-of-contents refresh it can stay alive and lock the .docx. Find the holder (Restart Manager) and stop that one process, then rebuild. `scripts/build_report.py` accepts `REPORT_OUT=<path>` to build elsewhere.
+
+## Modules 6.10, 6.6, 6.8, 6.9 (21 September 2026)
+- The only scope module still unbuilt is **6.5 Pregnancy care**. Smaller gaps: hydration reminders and a grounded knowledge base for the companion (6.7).
+- Test totals: Flutter 237, backend 53; `flutter analyze` has no errors or warnings.
+- A fresh APK has not been built since accounts and all of this were added (the machine ran out of memory twice); the APK in the repo root is old and installs as a different app.

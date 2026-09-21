@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import '../models/analytics.dart';
 import '../models/cycle_engine.dart';
 import '../models/health_store.dart';
 import '../models/hormone_insights.dart';
@@ -431,6 +432,59 @@ List<String> _cycleSteps(ReportData d) {
   ];
 }
 
+// ---------------------------------------------------------------- charts
+
+pw.TextStyle get _axisText => const pw.TextStyle(fontSize: 7, color: _muted);
+
+/// Bars: the length in days of the latest cycles, oldest first.
+pw.Widget _cycleLengthChart(List<int> lengths) {
+  final n = lengths.length;
+  final top = (lengths.reduce((a, b) => a > b ? a : b) + 4).toDouble();
+  return pw.Container(
+    height: 96,
+    margin: const pw.EdgeInsets.only(top: 6),
+    child: pw.Chart(
+      grid: pw.CartesianGrid(
+        xAxis: pw.FixedAxis<num>([for (var i = 0; i < n; i++) i], format: (v) => '${v.toInt() + 1}', textStyle: _axisText, margin: 3, marginStart: 16, marginEnd: 16),
+        yAxis: pw.FixedAxis<num>([0, 14, 21, 28, 35, top >= 42 ? top.ceil() : 42], divisions: true, divisionsColor: _line, textStyle: _axisText, marginStart: 4),
+      ),
+      datasets: [
+        pw.BarDataSet(
+          color: _berry,
+          width: n > 8 ? 9 : 14,
+          data: [for (var i = 0; i < n; i++) pw.PointChartValue(i.toDouble(), lengths[i].toDouble())],
+        ),
+      ],
+    ),
+  );
+}
+
+/// Lines over the last 30 days for values that were logged (gaps are simply skipped).
+pw.Widget _dayLineChart({required String title, required List<(int day, double value)> a, List<(int day, double value)> b = const [], required List<num> yTicks, PdfColor colorA = _berry, PdfColor colorB = _green}) {
+  return pw.Expanded(
+    child: pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text(title, style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: _ink)),
+        pw.Container(
+          height: 84,
+          margin: const pw.EdgeInsets.only(top: 3, right: 8),
+          child: pw.Chart(
+            grid: pw.CartesianGrid(
+              xAxis: pw.FixedAxis<num>([0, 10, 20, 29], format: (v) => v == 29 ? 'today' : '${v.toInt() - 29}', textStyle: _axisText, margin: 3),
+              yAxis: pw.FixedAxis<num>(yTicks, divisions: true, divisionsColor: _line, textStyle: _axisText, marginStart: 4),
+            ),
+            datasets: [
+              if (a.isNotEmpty) pw.LineDataSet(color: colorA, drawPoints: true, pointSize: 2, pointColor: colorA, data: [for (final (d, v) in a) pw.PointChartValue(d.toDouble(), v)]),
+              if (b.isNotEmpty) pw.LineDataSet(color: colorB, drawPoints: true, pointSize: 2, pointColor: colorB, data: [for (final (d, v) in b) pw.PointChartValue(d.toDouble(), v)]),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 pw.Widget _cyclePanel(ReportData d) {
   const title = 'PANEL 4: MENSTRUAL CYCLE';
   if (d.periods.isEmpty) return _pending(title, 'No periods have been logged. Use the Cycle tab in the app to log the first day of your last period.');
@@ -443,6 +497,8 @@ pw.Widget _cyclePanel(ReportData d) {
   final perFlag = per == null ? ('-', _muted) : per > 7 ? ('REVIEW', _amber) : ('NORMAL', _green);
   final late = e.isLate;
   final ins = HormoneInsights(e, d.logs, d.generated);
+  final history = CycleHistory.of(e);
+  final backtest = CycleBacktest.compute(d.periods);
   return pw.Column(
     crossAxisAlignment: pw.CrossAxisAlignment.start,
     children: [
@@ -460,6 +516,11 @@ pw.Widget _cyclePanel(ReportData d) {
           (test: 'Ovulation (estimate)', result: DateFormat('d MMM').format(e.ovulation!), reference: 'Fertile window ${DateFormat('d MMM').format(e.fertileStart!)} to ${DateFormat('d MMM').format(e.fertileEnd!)}', flag: '-', colour: _muted),
         ],
       ]),
+      if (history.lengths.length >= 2) ...[
+        _cycleLengthChart(history.lastLengths(12)),
+        _note('Cycle length in days, oldest to newest (last ${history.lastLengths(12).length}). Usual range 21 to 35 days. Average ${history.average!.toStringAsFixed(1)}, shortest ${history.shortest}, longest ${history.longest}.'),
+      ],
+      if (backtest.summary != null) _note('Prediction check: ${backtest.summary}'),
       _note('Interpretation: ${e.basis} Ovulation and the fertile window are estimates from cycle length, not measurements, and must not be used to avoid pregnancy.'),
       for (final f in e.flags) _note('Note: ${f.text}'),
       for (final n in ins.patterns) _note('Pattern in the daily log: ${n.text}'),
@@ -490,6 +551,14 @@ pw.Widget _wellnessPanel(ReportData d) {
     return v.isEmpty ? null : v.reduce((a, b) => a + b) / v.length;
   }
 
+  List<(int, double)> points(double? Function(SymptomLog) f) => [
+        for (final l in recent)
+          if (f(l) != null) (29 - now.difference(DateTime(l.date.year, l.date.month, l.date.day)).inDays.clamp(0, 29), f(l)!),
+      ];
+  final moodPts = points((l) => l.moodScore?.toDouble());
+  final energyPts = points((l) => l.energy?.toDouble());
+  final sleepPts = points((l) => l.sleepHours);
+  final chartsHaveData = moodPts.length + sleepPts.length >= 3;
   final avgSleep = mean(recent.map((l) => l.sleepHours));
   final avgStress = mean(recent.map((l) => l.stress));
   final avgEnergy = mean(recent.map((l) => l.energy));
@@ -497,6 +566,11 @@ pw.Widget _wellnessPanel(ReportData d) {
     crossAxisAlignment: pw.CrossAxisAlignment.start,
     children: [
       _panelTitle(title, 'Last 30 days'),
+      if (chartsHaveData) pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+        _dayLineChart(title: 'Mood (1 bad to 5 great) and energy (1 to 5)', a: moodPts, b: energyPts, yTicks: const [1, 2, 3, 4, 5]),
+        _dayLineChart(title: 'Sleep (hours)', a: sleepPts, yTicks: const [0, 4, 8, 12], colorA: PdfColor.fromInt(0xFF6B58A8)),
+      ]),
+      if (chartsHaveData) pw.Padding(padding: const pw.EdgeInsets.only(top: 2, bottom: 4), child: pw.Text('Left chart: red is mood, green is energy. Days you did not log are left blank.', style: pw.TextStyle(fontSize: 7.5, color: _muted, fontStyle: pw.FontStyle.italic))),
       _resultTable([
         (
           test: 'Last breast self-exam',

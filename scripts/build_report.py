@@ -270,7 +270,7 @@ table(["Module (scope ref.)", "Status", "Evidence"], [
     ["Hormonal health insights (6.6)", "Done (not tried on a phone)", "Symptoms and mood analysed across the four cycle phases, typical hormone chart, phase tips, patterns and flags for symptoms that keep coming back (section 15.2)"],
     ["Symptom and mood tracker (6.10)", "Done (not tried on a phone)", "Symptoms, mood, notes, sleep, stress and energy saved per day (any of the last 60 days); trend charts and notes for 7, 30 and 90 days; used by Home, the companion and the report (section 15.1)"],
     ["AI healthcare companion (6.7)", "Done (prototype)", "Gemini chat with Urdu and English voice in and out, safety rules, personal context from the on-device health store (section 13)"],
-    ["Health report (6.9)", "Done (first version)", "One tap makes a lab-style PDF with one panel per test (section 13.6)"],
+    ["Reports and health dashboard (6.9)", "Done (not tried on a phone)", "One-tap lab-style PDF (section 13.6) now with charts, and a dashboard with cycle history, a prediction check on her own cycles, symptom patterns and hormonal trends (section 15.4)"],
     ["Onboarding and accounts (6.1)", "Done (not tried on a phone)", "First-launch profile plus sign-in with email, Google, a phone code or as a guest (Firebase Authentication); results stay on the phone, kept per account (section 13.12)"],
     ["Pregnancy care (6.5) and its reminders", "Not started", "See section 12"],
 ], [5.6, 2.4, 8.6], caption="Status of the scope modules")
@@ -286,7 +286,7 @@ bullets([
     "**The app now has a personal AI companion.** It uses Google Gemini through the backend, understands and speaks Urdu and English, and knows the user's own results (without their name) because the whole app now saves to one on-device health store. Safety rules run on the server, not in the model (section 13).",
     "**A one-tap report.** The health report is a lab-style PDF (one panel per test, reference ranges, flags, QR code, report number) that can be shared or printed, with a sample-data mode for demonstrations.",
     "**Cycle prediction was measured, not assumed.** On the Fehring data (159 women, 1,665 cycles) the next period is predicted within 3 days about 67% of the time on day one and about 82% once three cycles are logged. A Random Forest did no better than a woman's own average, so the simpler model is used (section 14).",
-    "**About 70% of the scope is working** (an estimate). The largest gaps are trend charts, pregnancy mode, hormonal insights and most reminders.",
+    "**About 90% of the scope is working** (an estimate). The main gap is pregnancy care (6.5); the companion also lacks a grounded knowledge base and hydration reminders. Nothing built on 21 September has been tried on a phone yet.",
 ])
 
 # ================================================================== 2 BACKGROUND
@@ -941,7 +941,7 @@ table(["What", "How", "Result"], [
     ["Wrong uploads", "Colour noise and a grayscale gradient", "Both refused with an explanatory message"],
     ["Threshold change", "Reran the model on all 710 test scans; first reproduced the notebook's 68.3% at 0.21", "Reproduced, then 71.8% at 0.25"],
     ["Risk questionnaire", "Eight profiles through the API", "Risk rises with each added factor; no placeholder warning"],
-    ["Flutter tests", "Breast flows, PCOS flow, server-address logic, health store, chat state, companion screen with a fake microphone, onboarding and app launch, report builder", "216 of 216 pass; flutter analyze reports no errors and no warnings"],
+    ["Flutter tests", "Breast flows, PCOS flow, server-address logic, health store, chat state, companion screen with a fake microphone, onboarding and app launch, report builder", "237 of 237 pass; flutter analyze reports no errors and no warnings"],
     ["Companion backend tests", "backend/tests/test_companion.py: safety detector, language detection, prompt building, request validation, rate limit, speech clean-up, fallback (Gemini calls are faked)", "53 of 53 pass"],
     ["Live Gemini check", "Real calls with the developer's key against the running backend: English and Urdu chat with personal context, emergency and breast-lump wording, a prompt-injection attempt, Urdu speech to text, text to speech, both models, both demo scans and a colour photo", "Chat 1.5 to 3 s, speech synthesis 4 to 6 s; Urdu speech transcribed in Urdu script after a stricter prompt and an automatic retry"],
     ["Notebooks", "Every Kaggle notebook was run first as a tiny smoke test, then in full", "All stages ran; ONNX parity checks passed"],
@@ -1021,19 +1021,19 @@ bullets([
     "**Test-set tuning.** The 0.25 threshold was chosen after seeing the test results.",
     "**Small subgroups.** BrEaST (35 test scans), the normal class (22 test scans) and U-Systems (a few scans) cannot support firm conclusions.",
     "**Demo hosting.** The tunnel exposes a development server; it is suitable for a demonstration, not for real users.",
-    "**Scope.** About 30% of the scope, mainly trend charts, pregnancy, hormonal insights and most reminders, is not built.",
+    "**Scope.** About 10% of the scope is not built: the pregnancy module (6.5) and its reminders, and small companion items (hydration reminders, a grounded knowledge base).",
     "**Companion privacy.** The free Gemini tier may use submitted text to improve Google products; a paid key with a data-use opt-out is needed for real users (section 13.7).",
 ])
 
 # ================================================================== 12 REMAINING
 H1("12. Remaining work and recommended order")
 table(["Order", "Item (scope ref.)", "What is needed"], [
-    ["1", "Dashboard (6.9)", "Built in section 15.4"],
+    ["1", "Pregnancy care (6.5)", "Pregnancy mode, week and trimester tracking, daily pregnancy symptoms, pre-eclampsia warning signs and pregnancy reminders; the largest remaining module"],
     ["2", "Cycle tracking follow-up (6.2)", "Try it with real users on a phone; daily hormone and symptom data (mcPHASES) could sharpen the ovulation estimate; validate on local data"],
     ["3", "Companion improvements (6.7)", "Grounded knowledge base (retrieval from NIH, CDC and MedlinePlus text), a question-set evaluation, clinician review of wording, trend charts on Home"],
     ["4", "Accounts follow-up (6.1)", "Sign-in exists (section 13.12). Still needed: try Google and phone sign-in on a phone and register the signing fingerprint in Firebase if they fail; optional cloud backup of results"],
     ["5", "Pregnancy mode, reminders, hormonal insights (6.5, 6.8, 6.6)", "Pregnancy tracking and warning signs; period, ovulation, medication and hydration reminders; phase-specific insights"],
-    ["6", "Report history (6.9)", "The one-tap report and the Home snapshot exist; saved report history and charts remain"],
+    ["6", "Report history (6.9)", "The report and dashboard exist; a saved list of earlier reports does not"],
     ["7", "Hardening", "Run on a real phone, real hosting with authentication, optional lesion-focused ultrasound model, mammography (future work)"],
 ], [1.5, 5.6, 9.5], caption="Suggested plan")
 
@@ -1133,25 +1133,27 @@ para("Question-and-answer datasets (for example medical exam or consumer-health 
 H2("13.9 Tests")
 table(["Suite", "Count", "What it covers"], [
     ["backend/tests/test_companion.py", "53", "Red-flag detector in three languages, language detection, prompt construction and injection wording, request limits, rate limit, speech clean-up, PCM to WAV, fallback replies, endpoints with a faked Gemini"],
-    ["test/health_store_test.dart", "part of 206 new", "Saving and loading, one log entry a day and a 60-entry cap, name-free context text, clear-all"],
-    ["test/chat_state_test.dart", "part of 206 new", "History rules, personalisation switch, retry of an unanswered message, persistence"],
-    ["test/companion_flow_test.dart", "part of 206 new", "Typing indicator, suggestion chips, failed message and Try again, urgent highlight, full voice flow with a fake microphone, missing permission, speaker button, Delete all my data"],
-    ["test/app_flow_test.dart", "part of 206 new", "First launch shows onboarding, skipping is remembered, form validation, editing a saved profile"],
-    ["test/home_flow_test.dart", "part of 206 new", "Home shows the real name and only real results, empty state, rows open the right tab, next-step rules, relative dates"],
-    ["test/auth_flow_test.dart (with test/fake_auth.dart)", "part of 206 new", "Sign-in, registration, a refused password, guest mode, the phone code, and two accounts not seeing each other's results"],
-    ["test/cycle_engine_test.dart", "part of 206 new", "22 tests: no history, day one, personalising, missed logs, ovulation and fertile window, phases, unfinished period, late and irregular cycles, date maths"],
-    ["test/period_store_test.dart", "part of 206 new", "11 tests: saving and reloading periods, ending a period, refused logs with reasons, separate accounts, deleting all data, companion context, older saved data"],
-    ["test/cycle_screen_test.dart", "part of 206 new", "11 tests: first log, tracking display, month browsing, ending a period, refused log message, late and irregular notes, day menu, future days, symptom log"],
-    ["test/trends_test.dart", "part of 206 new", "19 tests: log fields saved and loaded, mood scores, the day window, averages, symptom counts, each trend note and its threshold, the store (a year of logs, companion averages)"],
-    ["test/log_form_test.dart", "part of 206 new", "7 tests: saving sleep, stress, energy, mood and symptoms; refilling from a saved day; clearing; logging yesterday; account switch; opening the trends"],
-    ["test/trends_screen_test.dart", "part of 206 new", "5 tests: empty state, numbers and charts, 7 / 30 / 90 day ranges, charts with no data, too few days"],
-    ["test/hormone_insights_test.dart", "part of 206 new", "25 tests: logs placed in phases, per-phase averages, each pattern and flag with its thresholds, too little data, unordered logs, phase background, hormone curve shapes, companion line"],
-    ["test/hormone_screen_test.dart", "part of 206 new", "7 tests: empty state, table and patterns, too few logs, flagged symptom leading to the PCOS check, chart labels, opening from the Cycle tab, the new symptoms"],
-    ["test/reminders_test.dart (with test/fake_reminders.dart)", "part of 206 new", "23 tests: planner rules, settings state with a recording stand-in for the phone, store hook"],
-    ["test/reminders_screen_test.dart", "part of 206 new", "11 tests: switches, timing choices, permission refusal, unsupported platform, daily time, medication add / refuse / switch / delete, self-exam switch, opening from the Cycle tab"],
-    ["test/report_service_test.dart", "part of 206 new", "Empty, sample and full reports build as valid PDFs; long logs spill onto more pages; report IDs"],
+    ["test/health_store_test.dart", "part of 227 new", "Saving and loading, one log entry a day and a 60-entry cap, name-free context text, clear-all"],
+    ["test/chat_state_test.dart", "part of 227 new", "History rules, personalisation switch, retry of an unanswered message, persistence"],
+    ["test/companion_flow_test.dart", "part of 227 new", "Typing indicator, suggestion chips, failed message and Try again, urgent highlight, full voice flow with a fake microphone, missing permission, speaker button, Delete all my data"],
+    ["test/app_flow_test.dart", "part of 227 new", "First launch shows onboarding, skipping is remembered, form validation, editing a saved profile"],
+    ["test/home_flow_test.dart", "part of 227 new", "Home shows the real name and only real results, empty state, rows open the right tab, next-step rules, relative dates"],
+    ["test/auth_flow_test.dart (with test/fake_auth.dart)", "part of 227 new", "Sign-in, registration, a refused password, guest mode, the phone code, and two accounts not seeing each other's results"],
+    ["test/cycle_engine_test.dart", "part of 227 new", "22 tests: no history, day one, personalising, missed logs, ovulation and fertile window, phases, unfinished period, late and irregular cycles, date maths"],
+    ["test/period_store_test.dart", "part of 227 new", "11 tests: saving and reloading periods, ending a period, refused logs with reasons, separate accounts, deleting all data, companion context, older saved data"],
+    ["test/cycle_screen_test.dart", "part of 227 new", "11 tests: first log, tracking display, month browsing, ending a period, refused log message, late and irregular notes, day menu, future days, symptom log"],
+    ["test/trends_test.dart", "part of 227 new", "19 tests: log fields saved and loaded, mood scores, the day window, averages, symptom counts, each trend note and its threshold, the store (a year of logs, companion averages)"],
+    ["test/log_form_test.dart", "part of 227 new", "7 tests: saving sleep, stress, energy, mood and symptoms; refilling from a saved day; clearing; logging yesterday; account switch; opening the trends"],
+    ["test/trends_screen_test.dart", "part of 227 new", "5 tests: empty state, numbers and charts, 7 / 30 / 90 day ranges, charts with no data, too few days"],
+    ["test/hormone_insights_test.dart", "part of 227 new", "25 tests: logs placed in phases, per-phase averages, each pattern and flag with its thresholds, too little data, unordered logs, phase background, hormone curve shapes, companion line"],
+    ["test/hormone_screen_test.dart", "part of 227 new", "7 tests: empty state, table and patterns, too few logs, flagged symptom leading to the PCOS check, chart labels, opening from the Cycle tab, the new symptoms"],
+    ["test/reminders_test.dart (with test/fake_reminders.dart)", "part of 227 new", "23 tests: planner rules, settings state with a recording stand-in for the phone, store hook"],
+    ["test/reminders_screen_test.dart", "part of 227 new", "11 tests: switches, timing choices, permission refusal, unsupported platform, daily time, medication add / refuse / switch / delete, self-exam switch, opening from the Cycle tab"],
+    ["test/analytics_test.dart", "part of 227 new", "11 tests: prediction replay on her own cycles, learning, irregular cycles, three-cycle minimum, duplicates and missed logs, cycle history figures"],
+    ["test/dashboard_test.dart", "part of 227 new", "7 tests: empty states, headline numbers and charts, too few cycles, hormone sections, flagged symptom, latest results, links"],
+    ["test/report_service_test.dart", "part of 227 new", "Empty, sample and full reports build as valid PDFs; long logs spill onto more pages; report IDs"],
 ], [5.6, 2.6, 8.4], caption="New tests", size=8.5,
-    note="All 216 Flutter tests (10 earlier plus 206 new) and all 53 backend tests pass. The companion screen's real speech recognition and the real microphone are not covered by automatic tests because they need a phone.")
+    note="All 237 Flutter tests (10 earlier plus 227 new) and all 53 backend tests pass. The companion screen's real speech recognition and the real microphone are not covered by automatic tests because they need a phone.")
 H2("13.10 Defects found while building, and their fixes")
 table(["Problem", "Fix"], [
     ["A coloured card containing a switch tile threw a Material assertion (real UI bug caught by a test)", "Wrapped the tile in a transparent Material"],
@@ -1341,6 +1343,16 @@ bullets([
     "**Tests.** 34 automatic tests: the planner (11: each reminder type, the days-before choices, times already past, fertile and ovulation dates, late and no-history cases, daily and medication repeats, unique ids and ordering), the settings state (11: permission, saving and restarting, turning off, refusal, unsupported platforms, recalculation, medication add, edit and remove, name checks, deleting all data, damaged settings), the hook from the store (1) and the screen (11). Scheduling is checked against a recording stand-in for the phone.",
     "**Not verified.** No notification has been delivered on a real phone yet. Android can delay inexact alarms by minutes, and some manufacturers' battery savers block notifications from apps that are not exempted; both need a check on real phones. Reminders are refreshed when a period is logged or an account loads: if the app is not opened for weeks, the reminders already scheduled (the next two periods) still arrive, but later ones wait until it is opened.",
 ])
+H2("15.4 Reports and health dashboard (scope 6.9)")
+bullets([
+    "**Health dashboard.** Opened from a card on Home. One scrolling screen: four headline numbers (cycle day and phase, next period, average cycle length, regularity); Your cycle (a bar chart of the last 12 cycle lengths against the usual 21 to 35 day band, and the prediction check below); Symptoms and mood over the last 30 days (the summary tiles and the mood, sleep, stress and energy, and symptom charts from section 15.1); Hormonal trends (the typical hormone chart, average mood and energy in each phase, the symptoms-by-phase table and a count of notes worth reading); Results (the latest PCOS, ultrasound and breast-risk result, each leading back to its test); and links to the PDF report, the trends, the hormonal insights and the reminders.",
+    "**Prediction analytics (the prediction check).** For every completed cycle the app replays what it would have predicted for that cycle's length using only the cycles logged before it, and compares this with what really happened and with simply using the average woman's 29-day cycle. It shows the error in days for each cycle as two lines, and one sentence: how many cycles were within 3 days, the average error, and the average error the population average would have had. It needs three completed cycles; before that it says how many are needed. Gaps under 15 days (duplicates) and over 60 days (missed logs) are not counted as cycles.",
+    "**Charts in the PDF report.** The cycle panel now includes a bar chart of the last cycle lengths, the average, shortest and longest, and the prediction-check sentence; the wellness panel includes a mood and energy line chart and a sleep chart for the last 30 days (days not logged are left blank). The wellness rows for average sleep, stress and energy were added in section 15.1, and the hormonal patterns and flags in section 15.2 also appear in the cycle panel. A report is still one tap from the companion menu or the dashboard, and can be saved, printed or shared.",
+])
+bullets([
+    "**Tests.** 21 new automatic tests: the analytics (11: what is predicted from which earlier cycles, learning on regular and long cycles, irregular cycles, the three-cycle minimum, duplicates and missed logs, empty history, history figures), the dashboard (7: empty states, headline numbers and charts, too few cycles, hormone sections, a flagged symptom, latest results leading to the test, links), the Home card (1) and the PDF (2: charts appear when there is enough data, and odd or sparse data never breaks them). The dashboard and the PDF page were rendered to images and checked.",
+    "**Limits.** The prediction check uses only her own cycles, so with three or four cycles it is a small sample and will move as she logs more; it is not the accuracy figure from the research study (section 14.2). The hormonal trends are the typical textbook curves plus her own mood and energy by phase: no hormone is measured. The dashboard and the PDF charts were checked by automatic tests and rendered images, not on a phone.",
+])
 # --- end of chapter 15 sections (later modules are inserted above this line)
 
 # ================================================================== 16 CONCLUSION
@@ -1348,7 +1360,7 @@ H1("16. Conclusion")
 para("The breast module now consists of two models backed by measured evidence and an honest account of their limits. The most valuable result of this "
      "period was not a higher accuracy figure but a truthful one: testing on a hospital the model had never seen exposed a large gap, adding the right data "
      "closed most of it, and a further experiment that did not help was documented and rejected. The app can be shown on a phone today and now includes a voice-enabled, personalised AI companion and a one-tap "
-     "health report, and accounts. About 30% of the scope, mainly trend charts, pregnancy, hormonal insights and most reminders, remains to be built.")
+     "health report, and accounts. About 10% of the scope, chiefly the pregnancy module, remains to be built.")
 
 # ================================================================== APPENDICES
 H1("Appendix A. Metric glossary", new_page=True)
@@ -1426,6 +1438,7 @@ table(["Decision", "Reason"], [
     ["Show the hormone chart as a labelled textbook illustration", "The app has no hormone measurements; drawing curves as if they were hers would be false precision, so the screen says they are typical shapes"],
     ["Schedule one-off reminders from the predictions and refresh them whenever the cycle changes", "A fixed repeating notification would drift away from the predicted dates; recalculating after every logged period keeps them right"],
     ["Use inexact alarms for reminders", "No exact-alarm permission is needed and a few minutes of delay does not matter for these reminders"],
+    ["Judge the prediction on her own history as well as on the study", "The study gives the expected accuracy for a new user; replaying her own cycles shows whether learning from her helps, and she can see it"],
     ["Do not add more normal scans to the ultrasound model for now", "Normal scans are about 5% of the non-cancer test scans and the errors are benign versus malignant, so more normals cannot move the accuracy much; see Q37"],
     ["Phone voice as the fallback for the AI voice", "The free AI voice quota is small (10 a day per model); the phone's own voice is instant and unlimited, so speech never depends on a quota"],
     ["gemini-3.1-flash-lite for chat and speech recognition", "Fastest model available to a new key (1.5 to 3 s); 2.5-flash was closed to new users and 3.8-flash returned 503 under load; 3.6-flash kept as backup"],
@@ -1519,13 +1532,13 @@ qa = [
     ("Q24. How would you deploy this for real users?",
      "Package the backend in Docker (files are ready), host it on a paid or institutional service with HTTPS, add authentication and rate limits, restrict CORS, log without storing images, and monitor performance. Then validate on local data."),
     ("Q25. What would you do with more time?",
-     "Build the missing modules (trend charts, pregnancy mode, hormonal insights), add a grounded knowledge base to the companion, try a lesion-focused two-step ultrasound model, collect local scans, add mammography, and consider on-device inference."),
+     "Build the missing pregnancy module (6.5), add a grounded knowledge base to the companion, try a lesion-focused two-step ultrasound model, collect local scans, add mammography, and consider on-device inference."),
     ("Q26. Which phones can run the APK?",
      "The release build targets 64-bit ARM Android phones (arm64-v8a), which covers nearly all phones made in recent years, and uses Flutter's default minimum Android version. A phone that only supports 32-bit ARM would need a different build. It is 19 MB and is installed directly (not through the Play Store), so Android asks to allow installs from unknown sources."),
     ("Q27. Is the APK build reproducible?",
      "Yes in practice: a second build from the same source produced a byte-for-byte identical file (same SHA-256), so the APK on the phone matches the code in the repository."),
     ("Q28. What is not finished?",
-     "About 30% of the scope: trend charts, pregnancy mode, hormonal insights and most reminders. Section 12 gives the plan."),
+     "About 10% of the scope: the pregnancy module (6.5) and its reminders, plus a few companion items. Section 12 gives the plan."),
     ("Q36. Where are accounts and passwords stored?",
      "Femora stores no passwords and has no account database. Firebase Authentication (a Google service) holds the account, with four ways in: email, Google, a phone code or guest. Results, scans, logs and the conversation stay on the phone, kept separately for each account, so two women sharing a phone do not see each other's data."),
     ("Q37. Would training the ultrasound model on more normal scans improve accuracy?",
