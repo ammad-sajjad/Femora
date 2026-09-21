@@ -12,6 +12,7 @@ import 'package:femora/screens/ai_companion_screen.dart';
 import 'package:femora/services/api_service.dart';
 import 'package:femora/services/reminder_service.dart';
 import 'package:femora/services/voice_service.dart';
+import 'package:femora/widgets/companion_effects.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -121,7 +122,12 @@ Future<void> _type(WidgetTester tester, String text) async {
 }
 
 void main() {
-  setUp(() => SharedPreferences.setMockInitialValues({}));
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+    // The companion's glow, breathing moods and thinking orbs repeat for ever, which pumpAndSettle would wait on.
+    companionAnimations = false;
+  });
+  tearDown(() => companionAnimations = true);
 
   testWidgets('a typed question shows a typing indicator, then the answer, and sends the personal context', (tester) async {
     _tallScreen(tester);
@@ -161,6 +167,41 @@ void main() {
     await tester.tap(find.byKey(const Key('suggestion_What does my PCOS result mean?')));
     await tester.pumpAndSettle();
     expect(find.text('Here is a careful answer.'), findsOneWidget);
+  });
+
+  testWidgets('tapping a feeling says it for her, and the strip keeps it reachable afterwards', (tester) async {
+    _tallScreen(tester);
+    final h = _Harness();
+    h.store.profile = HealthProfile(name: 'Ayesha', onboarded: true);
+    await tester.pumpWidget(h.widget);
+
+    expect(find.textContaining('How are you feeling today, Ayesha?'), findsOneWidget);
+    expect(find.byKey(const Key('mood_sad')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('mood_sad')));
+    await tester.pumpAndSettle();
+
+    final sent = jsonDecode(h.requests.firstWhere((r) => r.url.path == '/chat').body) as Map<String, dynamic>;
+    expect((sent['messages'] as List).last['text'], contains('sad'));
+    expect(find.text('Here is a careful answer.'), findsOneWidget);
+
+    // The big circles give way to the slim strip once she is in a conversation.
+    expect(find.byKey(const Key('mood_sad')), findsNothing);
+    expect(find.byKey(const Key('mood_strip_happy')), findsOneWidget); // the strip scrolls, so only the first pills are built
+  });
+
+  testWidgets('an Urdu user is offered the feelings in Urdu and sends Urdu', (tester) async {
+    _tallScreen(tester);
+    final h = _Harness();
+    h.store.profile = HealthProfile(name: 'Ayesha', language: 'ur', onboarded: true);
+    await tester.pumpWidget(h.widget);
+
+    expect(find.text('درد'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('mood_pain')));
+    await tester.pumpAndSettle();
+
+    final sent = jsonDecode(h.requests.firstWhere((r) => r.url.path == '/chat').body) as Map<String, dynamic>;
+    expect((sent['messages'] as List).last['text'], contains('درد'));
   });
 
   testWidgets('personalisation off is stated and sends no context', (tester) async {

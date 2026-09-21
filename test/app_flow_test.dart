@@ -3,6 +3,7 @@ import 'package:femora/models/health_store.dart';
 import 'package:femora/screens/main_shell.dart';
 import 'package:femora/screens/onboarding_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:femora/widgets/companion_effects.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,7 +29,12 @@ Widget _onboarding(HealthStore store, {bool editing = false}) => ChangeNotifierP
     );
 
 void main() {
-  setUp(() => SharedPreferences.setMockInitialValues({}));
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+    // This walks into the companion tab, whose glow and mood animations repeat for ever.
+    companionAnimations = false;
+  });
+  tearDown(() => companionAnimations = true);
 
   testWidgets('first launch shows the welcome screen, skipping goes to the app, and it is remembered', (tester) async {
     _tallScreen(tester);

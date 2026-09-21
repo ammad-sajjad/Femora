@@ -6,7 +6,9 @@ import '../models/health_store.dart';
 import '../models/self_exam.dart';
 import '../services/voice_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/companion_effects.dart';
 import '../widgets/femora_header.dart';
+import '../widgets/mood_picker.dart';
 import 'onboarding_screen.dart';
 import 'report_screen.dart';
 
@@ -72,6 +74,13 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
     }
   }
 
+  /// A tapped feeling becomes an ordinary message, so the companion comforts her exactly as it would
+  /// if she had typed the words herself.
+  void _pickMood(Mood mood) {
+    final urdu = context.read<HealthStore>().profile.language == 'ur';
+    _send(mood.message(urdu));
+  }
+
   List<String> _suggestions(HealthStore store) {
     final ur = store.profile.language == 'ur';
     return [
@@ -117,6 +126,12 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
             ),
             if (chat.error != null) _errorBanner(chat.error!),
             if (voice.error != null) _voiceError(voice),
+            // Once the conversation has started the big circles are gone, so a slim strip keeps a feeling one tap away.
+            if (messages.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: MoodStrip(urdu: store.profile.language == 'ur', onPick: _pickMood),
+              ),
             _inputBar(context, voice, chat),
           ],
         ),
@@ -140,11 +155,14 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
       decoration: BoxDecoration(color: AppColors.cardWhite, borderRadius: BorderRadius.circular(22), boxShadow: AppTheme.softShadow),
       child: Row(
         children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: const BoxDecoration(gradient: AppColors.buttonGradient, shape: BoxShape.circle),
-            child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 22),
+          GlowRing(
+            size: 50,
+            child: Container(
+              width: 42,
+              height: 42,
+              decoration: const BoxDecoration(gradient: AppColors.buttonGradient, shape: BoxShape.circle),
+              child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 22),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -275,15 +293,30 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
   // ------------------------------------------------------------------ conversation
 
   Widget _emptyState(HealthStore store) {
+    final name = store.profile.firstName;
+    final urdu = store.profile.language == 'ur';
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
       children: [
-        const Text('Ask me anything about periods, PCOS, breast health or your results.',
-            style: TextStyle(fontFamily: 'Inter', fontSize: 14, color: AppColors.textMuted, height: 1.4)),
+        Text(
+          name.isEmpty ? 'How are you feeling today?' : 'How are you feeling today, $name?',
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontFamily: 'Inter', fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.textDark),
+        ),
+        const SizedBox(height: 5),
+        const Text(
+          'Tap how you feel, or just tell me. Nothing you ask is silly, and this stays between us.',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontFamily: 'Inter', fontSize: 12.5, color: AppColors.textMuted, height: 1.4),
+        ),
+        const SizedBox(height: 18),
+        MoodGrid(urdu: urdu, onPick: _pickMood),
+        const SizedBox(height: 22),
+        const Text('Or ask me about', style: TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textDark)),
         const SizedBox(height: 4),
         const Text('You can type, or tap the microphone and speak in Urdu or English.',
-            style: TextStyle(fontFamily: 'Inter', fontSize: 12.5, color: AppColors.textLight, height: 1.4)),
-        const SizedBox(height: 14),
+            style: TextStyle(fontFamily: 'Inter', fontSize: 12, color: AppColors.textLight, height: 1.4)),
+        const SizedBox(height: 10),
         for (final s in _suggestions(store))
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
@@ -331,100 +364,120 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
             const SizedBox(width: 10),
             Container(
               key: const Key('typing_indicator'),
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
               decoration: BoxDecoration(color: AppColors.cardWhite, borderRadius: BorderRadius.circular(18), boxShadow: AppTheme.softShadow),
-              child: const SizedBox(width: 34, height: 12, child: LinearProgressIndicator(color: AppColors.primaryBerry, backgroundColor: Color(0xFFFFDFE8), minHeight: 3)),
+              child: const ThinkingOrbs(),
             ),
           ],
         ),
       );
 
-  Widget _avatar() => Container(
-        width: 32,
-        height: 32,
-        decoration: const BoxDecoration(color: Color(0xFFFFDFE8), shape: BoxShape.circle),
-        child: const Icon(Icons.auto_awesome_rounded, color: AppColors.primaryBerry, size: 17),
+  Widget _avatar() => GlowRing(
+        size: 34,
+        thickness: 1.8,
+        child: Container(
+          width: 27,
+          height: 27,
+          decoration: const BoxDecoration(color: Color(0xFFFFDFE8), shape: BoxShape.circle),
+          child: const Icon(Icons.auto_awesome_rounded, color: AppColors.primaryBerry, size: 15),
+        ),
       );
 
   Widget _bubble(ChatMsg m, VoiceController voice) {
     final dir = _isUrdu(m.text) ? TextDirection.rtl : TextDirection.ltr;
     if (m.isUser) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 14),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Flexible(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE3EDFC),
-                  borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(20), topRight: Radius.circular(20), bottomLeft: Radius.circular(20), bottomRight: Radius.circular(4)),
+      return SoftArrival(
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 14),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFFFFE3EC), Color(0xFFFFD2E1)],
+                    ),
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(20),
+                        topRight: Radius.circular(20),
+                        bottomLeft: Radius.circular(20),
+                        bottomRight: Radius.circular(4)),
+                  ),
+                  child: Text(m.text,
+                      textDirection: dir, style: const TextStyle(fontFamily: 'Inter', fontSize: 14, color: Color(0xFF3A1F2B), height: 1.4)),
                 ),
-                child: Text(m.text, textDirection: dir, style: const TextStyle(fontFamily: 'Inter', fontSize: 14, color: AppColors.textDark, height: 1.4)),
               ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              width: 32,
-              height: 32,
-              decoration: const BoxDecoration(color: Color(0xFFFF487E), shape: BoxShape.circle),
-              child: const Icon(Icons.person, color: Colors.white, size: 18),
-            ),
-          ],
+              const SizedBox(width: 8),
+              Container(
+                width: 32,
+                height: 32,
+                decoration: const BoxDecoration(color: Color(0xFFFF487E), shape: BoxShape.circle),
+                child: const Icon(Icons.person, color: Colors.white, size: 18),
+              ),
+            ],
+          ),
         ),
       );
     }
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _avatar(),
-          const SizedBox(width: 10),
-          Flexible(
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(16, 14, 10, 8),
-              decoration: BoxDecoration(
-                color: AppColors.cardWhite,
-                borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(4), topRight: Radius.circular(20), bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
-                border: m.urgent ? Border.all(color: AppColors.accentPink, width: 1.5) : null,
-                boxShadow: AppTheme.softShadow,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (m.urgent)
-                    const Padding(
-                      padding: EdgeInsets.only(bottom: 6),
-                      child: Row(children: [
-                        Icon(Icons.warning_amber_rounded, color: AppColors.accentPink, size: 18),
-                        SizedBox(width: 6),
-                        Text('Please get medical help', style: TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.accentPink)),
-                      ]),
-                    ),
-                  Text(m.text, textDirection: dir, style: const TextStyle(fontFamily: 'Inter', fontSize: 14, color: Color(0xFF2C2538), height: 1.45)),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      if (m.offline)
-                        const Expanded(child: Text('Offline answer', style: TextStyle(fontFamily: 'Inter', fontSize: 10.5, color: AppColors.textLight))),
-                      IconButton(
-                        key: Key('speak_${m.id}'),
-                        visualDensity: VisualDensity.compact,
-                        icon: Icon(voice.phase == VoicePhase.speaking ? Icons.stop_circle_outlined : Icons.volume_up_rounded, size: 20, color: AppColors.primaryBerry),
-                        onPressed: () => voice.phase == VoicePhase.speaking ? voice.stopSpeaking() : voice.speak(m.text, language: 'auto'),
+    return SoftArrival(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _avatar(),
+            const SizedBox(width: 10),
+            Flexible(
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(16, 14, 10, 8),
+                decoration: BoxDecoration(
+                  color: AppColors.cardWhite,
+                  borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(4), topRight: Radius.circular(20), bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
+                  border: m.urgent ? Border.all(color: AppColors.accentPink, width: 1.5) : null,
+                  boxShadow: AppTheme.softShadow,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (m.urgent)
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 6),
+                        child: Row(children: [
+                          Icon(Icons.warning_amber_rounded, color: AppColors.accentPink, size: 18),
+                          SizedBox(width: 6),
+                          Text('Please get medical help',
+                              style: TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.accentPink)),
+                        ]),
                       ),
-                    ],
-                  ),
-                ],
+                    Text(m.text,
+                        textDirection: dir, style: const TextStyle(fontFamily: 'Inter', fontSize: 14, color: Color(0xFF2C2538), height: 1.45)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        if (m.offline)
+                          const Expanded(
+                              child: Text('Offline answer', style: TextStyle(fontFamily: 'Inter', fontSize: 10.5, color: AppColors.textLight))),
+                        IconButton(
+                          key: Key('speak_${m.id}'),
+                          visualDensity: VisualDensity.compact,
+                          icon: Icon(voice.phase == VoicePhase.speaking ? Icons.stop_circle_outlined : Icons.volume_up_rounded,
+                              size: 20, color: AppColors.primaryBerry),
+                          onPressed: () => voice.phase == VoicePhase.speaking ? voice.stopSpeaking() : voice.speak(m.text, language: 'auto'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
