@@ -9,6 +9,7 @@ import '../theme/app_theme.dart';
 import '../widgets/cycle_ring_widget.dart';
 import '../widgets/cycle_widgets.dart';
 import '../widgets/femora_header.dart';
+import 'trends_screen.dart';
 
 /// Home: everything here comes from what the user has actually done in the app (the on-device [HealthStore]).
 class HomeDashboardScreen extends StatelessWidget {
@@ -106,6 +107,8 @@ class HomeDashboardScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               _nextStepCard(context, nextStep(store, lastExam, now)),
+              const SizedBox(height: 14),
+              _trendsCard(context, store),
             ],
           ),
         ),
@@ -237,6 +240,49 @@ class HomeDashboardScreen extends StatelessWidget {
             const SizedBox(width: 4),
             Icon(Icons.chevron_right_rounded, color: Colors.white.withValues(alpha: 0.8), size: 20),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _trendsCard(BuildContext context, HealthStore store) {
+    final n = store.now();
+    final week = store.logs.where((l) => DateTime(n.year, n.month, n.day).difference(DateTime(l.date.year, l.date.month, l.date.day)).inDays < 7).length;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: InkWell(
+        key: const Key('home_trends'),
+        borderRadius: BorderRadius.circular(22),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const TrendsScreen())),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(color: AppColors.cardWhite, borderRadius: BorderRadius.circular(22), boxShadow: AppTheme.softShadow),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: const BoxDecoration(color: Color(0xFFE9E3F5), shape: BoxShape.circle),
+                child: const Icon(Icons.show_chart_rounded, color: Color(0xFF6B58A8), size: 24),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('My trends', style: TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+                    const SizedBox(height: 3),
+                    Text(
+                      week == 0 ? 'Mood, sleep, stress, energy and symptoms over time' : '$week of the last 7 days logged. See your mood, sleep and stress patterns',
+                      key: const Key('home_trends_text'),
+                      style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, color: AppColors.textMuted, height: 1.35),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
+            ],
+          ),
         ),
       ),
     );

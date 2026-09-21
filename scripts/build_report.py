@@ -266,7 +266,7 @@ table(["Module (scope ref.)", "Status", "Evidence"], [
     ["Breast self-exam guide and reminder (6.3)", "Done", "Guide, logging and a monthly notification"],
     ["Breast AI chatbot (6.3C)", "Done (prototype)", "The AI companion answers about the user's own ultrasound and questionnaire results; the Breast tab has \"Discuss with AI\" buttons"],
     ["Cycle tracking and prediction (6.2)", "Done (first version, not tried on a phone)", "Period logging, calendar with phases, predicted next period, ovulation and fertile window, lateness and irregularity notes. Personal average blended with a study average, chosen after comparing it with a Random Forest (section 14)"],
-    ["Symptom and mood tracker (6.10)", "Basic version", "Symptoms, mood and notes are saved on the phone (one entry a day) and reach the report and the AI companion; no trend charts yet"],
+    ["Symptom and mood tracker (6.10)", "Done (not tried on a phone)", "Symptoms, mood, notes, sleep, stress and energy saved per day (any of the last 60 days); trend charts and notes for 7, 30 and 90 days; used by Home, the companion and the report (section 15.1)"],
     ["AI healthcare companion (6.7)", "Done (prototype)", "Gemini chat with Urdu and English voice in and out, safety rules, personal context from the on-device health store (section 13)"],
     ["Health report (6.9)", "Done (first version)", "One tap makes a lab-style PDF with one panel per test (section 13.6)"],
     ["Onboarding and accounts (6.1)", "Done (not tried on a phone)", "First-launch profile plus sign-in with email, Google, a phone code or as a guest (Firebase Authentication); results stay on the phone, kept per account (section 13.12)"],
@@ -939,7 +939,7 @@ table(["What", "How", "Result"], [
     ["Wrong uploads", "Colour noise and a grayscale gradient", "Both refused with an explanatory message"],
     ["Threshold change", "Reran the model on all 710 test scans; first reproduced the notebook's 68.3% at 0.21", "Reproduced, then 71.8% at 0.25"],
     ["Risk questionnaire", "Eight profiles through the API", "Risk rises with each added factor; no placeholder warning"],
-    ["Flutter tests", "Breast flows, PCOS flow, server-address logic, health store, chat state, companion screen with a fake microphone, onboarding and app launch, report builder", "118 of 118 pass; flutter analyze reports no errors and no warnings"],
+    ["Flutter tests", "Breast flows, PCOS flow, server-address logic, health store, chat state, companion screen with a fake microphone, onboarding and app launch, report builder", "150 of 150 pass; flutter analyze reports no errors and no warnings"],
     ["Companion backend tests", "backend/tests/test_companion.py: safety detector, language detection, prompt building, request validation, rate limit, speech clean-up, fallback (Gemini calls are faked)", "53 of 53 pass"],
     ["Live Gemini check", "Real calls with the developer's key against the running backend: English and Urdu chat with personal context, emergency and breast-lump wording, a prompt-injection attempt, Urdu speech to text, text to speech, both models, both demo scans and a colour photo", "Chat 1.5 to 3 s, speech synthesis 4 to 6 s; Urdu speech transcribed in Urdu script after a stricter prompt and an automatic retry"],
     ["Notebooks", "Every Kaggle notebook was run first as a tiny smoke test, then in full", "All stages ran; ONNX parity checks passed"],
@@ -1025,7 +1025,7 @@ bullets([
 # ================================================================== 12 REMAINING
 H1("12. Remaining work and recommended order")
 table(["Order", "Item (scope ref.)", "What is needed"], [
-    ["1", "Trend charts for the symptom and mood log (6.10)", "Basic saving is done (section 13); charts, sleep and stress inputs remain"],
+    ["1", "Hormonal insights, reminders and dashboard (6.6, 6.8, 6.9)", "Built in sections 15.2 to 15.4"],
     ["2", "Cycle tracking follow-up (6.2)", "Try it with real users on a phone; daily hormone and symptom data (mcPHASES) could sharpen the ovulation estimate; validate on local data"],
     ["3", "Companion improvements (6.7)", "Grounded knowledge base (retrieval from NIH, CDC and MedlinePlus text), a question-set evaluation, clinician review of wording, trend charts on Home"],
     ["4", "Accounts follow-up (6.1)", "Sign-in exists (section 13.12). Still needed: try Google and phone sign-in on a phone and register the signing fingerprint in Firebase if they fail; optional cloud backup of results"],
@@ -1130,18 +1130,21 @@ para("Question-and-answer datasets (for example medical exam or consumer-health 
 H2("13.9 Tests")
 table(["Suite", "Count", "What it covers"], [
     ["backend/tests/test_companion.py", "53", "Red-flag detector in three languages, language detection, prompt construction and injection wording, request limits, rate limit, speech clean-up, PCM to WAV, fallback replies, endpoints with a faked Gemini"],
-    ["test/health_store_test.dart", "part of 108 new", "Saving and loading, one log entry a day and a 60-entry cap, name-free context text, clear-all"],
-    ["test/chat_state_test.dart", "part of 108 new", "History rules, personalisation switch, retry of an unanswered message, persistence"],
-    ["test/companion_flow_test.dart", "part of 108 new", "Typing indicator, suggestion chips, failed message and Try again, urgent highlight, full voice flow with a fake microphone, missing permission, speaker button, Delete all my data"],
-    ["test/app_flow_test.dart", "part of 108 new", "First launch shows onboarding, skipping is remembered, form validation, editing a saved profile"],
-    ["test/home_flow_test.dart", "part of 108 new", "Home shows the real name and only real results, empty state, rows open the right tab, next-step rules, relative dates"],
-    ["test/auth_flow_test.dart (with test/fake_auth.dart)", "part of 108 new", "Sign-in, registration, a refused password, guest mode, the phone code, and two accounts not seeing each other's results"],
-    ["test/cycle_engine_test.dart", "part of 108 new", "22 tests: no history, day one, personalising, missed logs, ovulation and fertile window, phases, unfinished period, late and irregular cycles, date maths"],
-    ["test/period_store_test.dart", "part of 108 new", "11 tests: saving and reloading periods, ending a period, refused logs with reasons, separate accounts, deleting all data, companion context, older saved data"],
-    ["test/cycle_screen_test.dart", "part of 108 new", "11 tests: first log, tracking display, month browsing, ending a period, refused log message, late and irregular notes, day menu, future days, symptom log"],
-    ["test/report_service_test.dart", "part of 108 new", "Empty, sample and full reports build as valid PDFs; long logs spill onto more pages; report IDs"],
+    ["test/health_store_test.dart", "part of 140 new", "Saving and loading, one log entry a day and a 60-entry cap, name-free context text, clear-all"],
+    ["test/chat_state_test.dart", "part of 140 new", "History rules, personalisation switch, retry of an unanswered message, persistence"],
+    ["test/companion_flow_test.dart", "part of 140 new", "Typing indicator, suggestion chips, failed message and Try again, urgent highlight, full voice flow with a fake microphone, missing permission, speaker button, Delete all my data"],
+    ["test/app_flow_test.dart", "part of 140 new", "First launch shows onboarding, skipping is remembered, form validation, editing a saved profile"],
+    ["test/home_flow_test.dart", "part of 140 new", "Home shows the real name and only real results, empty state, rows open the right tab, next-step rules, relative dates"],
+    ["test/auth_flow_test.dart (with test/fake_auth.dart)", "part of 140 new", "Sign-in, registration, a refused password, guest mode, the phone code, and two accounts not seeing each other's results"],
+    ["test/cycle_engine_test.dart", "part of 140 new", "22 tests: no history, day one, personalising, missed logs, ovulation and fertile window, phases, unfinished period, late and irregular cycles, date maths"],
+    ["test/period_store_test.dart", "part of 140 new", "11 tests: saving and reloading periods, ending a period, refused logs with reasons, separate accounts, deleting all data, companion context, older saved data"],
+    ["test/cycle_screen_test.dart", "part of 140 new", "11 tests: first log, tracking display, month browsing, ending a period, refused log message, late and irregular notes, day menu, future days, symptom log"],
+    ["test/trends_test.dart", "part of 140 new", "19 tests: log fields saved and loaded, mood scores, the day window, averages, symptom counts, each trend note and its threshold, the store (a year of logs, companion averages)"],
+    ["test/log_form_test.dart", "part of 140 new", "7 tests: saving sleep, stress, energy, mood and symptoms; refilling from a saved day; clearing; logging yesterday; account switch; opening the trends"],
+    ["test/trends_screen_test.dart", "part of 140 new", "5 tests: empty state, numbers and charts, 7 / 30 / 90 day ranges, charts with no data, too few days"],
+    ["test/report_service_test.dart", "part of 140 new", "Empty, sample and full reports build as valid PDFs; long logs spill onto more pages; report IDs"],
 ], [5.6, 2.6, 8.4], caption="New tests", size=8.5,
-    note="All 118 Flutter tests (10 earlier plus 108 new) and all 53 backend tests pass. The companion screen's real speech recognition and the real microphone are not covered by automatic tests because they need a phone.")
+    note="All 150 Flutter tests (10 earlier plus 140 new) and all 53 backend tests pass. The companion screen's real speech recognition and the real microphone are not covered by automatic tests because they need a phone.")
 H2("13.10 Defects found while building, and their fixes")
 table(["Problem", "Fix"], [
     ["A coloured card containing a switch tile threw a Material assertion (real UI bug caught by a test)", "Wrapped the tile in a transparent Material"],
@@ -1259,8 +1262,36 @@ bullets([
     "**Not tried on a phone yet.** The logic and screens are covered by 44 automatic tests (engine, store and screen), and the screen was checked as a rendered image, but nobody has used it on a phone.",
 ])
 
-# ================================================================== 15 CONCLUSION
-H1("15. Conclusion")
+# ================================================================== 15 TRACKING MODULES
+H1("15. Symptom tracking, hormonal insights, reminders and dashboard (scope 6.6 to 6.10)")
+para("This chapter covers four scope items built one after another on 21 September 2026: 6.10 the symptom and mood tracker, 6.6 hormonal health insights, "
+     "6.8 notifications and reminders and 6.9 the reports and health-insights dashboard. Each section says what was built, how it works, what was tested and what is not proven.")
+H2("15.1 Symptom and mood tracker (scope 6.10)")
+bullets([
+    "**What is logged.** Symptoms, mood, notes (as before) and now sleep (hours, in half-hour steps), stress (1 calm to 5 very high) and energy (1 very low to 5 great). Any of them can be left empty.",
+    "**Which day.** Today, yesterday or any day up to 60 days back. The form opens filled with whatever was already saved for that day; saving again replaces it, so there is one entry per day. It refills when the account changes.",
+    "**How long it is kept.** A year of daily entries (the limit was 60) so 30 and 90 day charts have data. Everything stays on the phone, per account, and is erased by Delete all my data.",
+    "**Trends screen.** Reached from the Cycle tab (See my trends) and from a card on Home. It shows the last 7, 30 or 90 days: summary tiles (days logged, average mood, sleep, stress, energy), a mood line, sleep bars with the usual 7 to 9 hour band shaded, stress and energy lines, the most frequent symptoms, and plain-language notes. A measure with no data says so instead of drawing an empty chart.",
+    "**Used elsewhere.** The AI companion is told the 7-day averages (sleep, stress, energy); the health report's wellness panel gains average sleep, stress and energy rows with flags.",
+])
+table(["Note shown", "Rule", "Basis"], [
+    ["Any note at all", "At least 5 days logged in the period", "Fewer days say nothing reliable; the screen asks for more"],
+    ["Average sleep under 7 hours", "At least 5 nights logged; also counts nights under 6 hours", "Adults usually need 7 to 9 hours"],
+    ["Average sleep over 9 hours", "At least 5 nights logged", "Suggests mentioning it to a doctor if still tired"],
+    ["Stress often high", "Stress 4 or 5 on 30% or more of the days it was logged", "Wording offers general coping steps and a doctor if it does not ease"],
+    ["Low mood", "Low or bad on at least 5 days and on 40% or more of logged days", "Advice to talk to a doctor if low mood lasts two weeks or more; not a diagnosis"],
+    ["Short sleep and worse mood", "At least 8 days with both, 3 or more short nights and 3 or more other nights, mood 0.7 points lower on short nights", "Points out a pattern in her own data"],
+    ["Most frequent symptom", "Any symptom logged", "Simple count"],
+], [4.0, 6.6, 6.0], caption="Rules behind the notes on the trends screen", size=8.5)
+bullets([
+    "**Tests.** 33 automatic tests: the calculations (19), the log form (7), the trends screen (5) and the Home card and report rows (2). The trends screen was also drawn to an image and checked by eye (mood line, sleep bars with band, stress and energy lines, symptom bars).",
+    "**Scope wording not fully met.** The scope says logged data should improve adaptive personalisation and prediction accuracy. The logs now feed the companion, the notes and (next section) the hormonal insights, but they are not used to change the cycle prediction: the Fehring study has no sleep or stress data, so any such effect could not be measured, and none is claimed.",
+    "**Limits.** Sleep, stress and energy are self-reported; the thresholds are general adult guidance, not personal; the mood scale is deliberately simple. The screen and form were tested by automatic tests and a rendered image, not yet on a phone.",
+])
+# --- end of chapter 15 sections (later modules are inserted above this line)
+
+# ================================================================== 16 CONCLUSION
+H1("16. Conclusion")
 para("The breast module now consists of two models backed by measured evidence and an honest account of their limits. The most valuable result of this "
      "period was not a higher accuracy figure but a truthful one: testing on a hospital the model had never seen exposed a large gap, adding the right data "
      "closed most of it, and a further experiment that did not help was documented and rejected. The app can be shown on a phone today and now includes a voice-enabled, personalised AI companion and a one-tap "
@@ -1338,6 +1369,7 @@ table(["Decision", "Reason"], [
     ["Blend her own cycle average with the study average instead of a Random Forest or LSTM", "Measured on 1,665 cycles: the Random Forest and the LSTM-style history model gave no gain over her own average; the blended model is simple, explainable and works offline"],
     ["Run cycle prediction on the phone, not the server", "It is a few lines of arithmetic; it then works offline, stays private and needs no tunnel"],
     ["Ovulation estimated as expected period minus 13 days, labelled an estimate", "The app has no hormone data; the measured error (about 2 days) is stated instead of implied precision"],
+    ["Draw the charts with the app's own painting code instead of a chart library", "Only three simple chart types are needed; no new dependency, no build risk on the 8 GB PC, and full control of accessibility labels"],
     ["Do not add more normal scans to the ultrasound model for now", "Normal scans are about 5% of the non-cancer test scans and the errors are benign versus malignant, so more normals cannot move the accuracy much; see Q37"],
     ["Phone voice as the fallback for the AI voice", "The free AI voice quota is small (10 a day per model); the phone's own voice is instant and unlimited, so speech never depends on a quota"],
     ["gemini-3.1-flash-lite for chat and speech recognition", "Fastest model available to a new key (1.5 to 3 s); 2.5-flash was closed to new users and 3.8-flash returned 503 under load; 3.6-flash kept as backup"],

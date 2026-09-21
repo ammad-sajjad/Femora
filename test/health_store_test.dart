@@ -92,7 +92,7 @@ void main() {
     await s.addLog(SymptomLog(date: _today.add(const Duration(hours: 5)), symptoms: const ['acne'], mood: 'good'));
     expect(s.logs, hasLength(1));
     expect(s.logs.single.symptoms, ['acne']);
-    for (var i = 1; i <= 70; i++) {
+    for (var i = 1; i <= HealthStore.maxLogs + 10; i++) {
       await s.addLog(SymptomLog(date: _today.subtract(Duration(days: i)), symptoms: const ['x']));
     }
     expect(s.logs.length, HealthStore.maxLogs);

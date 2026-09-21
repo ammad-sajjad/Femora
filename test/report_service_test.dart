@@ -116,6 +116,17 @@ void main() {
     }
   });
 
+  test('sleep, stress and energy from the daily log add rows to the wellness panel', () async {
+    final s = ReportData.sample(now: _now);
+    ReportData with_(List<SymptomLog> logs) => ReportData(profile: s.profile, pcos: null, scan: null, scanImage: null, breastRisk: null, lastSelfExam: null, logs: logs, generated: _now);
+    final plain = [for (var i = 0; i < 7; i++) SymptomLog(date: _now.subtract(Duration(days: i)), symptoms: const ['acne'], mood: 'okay')];
+    final rich = [for (var i = 0; i < 7; i++) SymptomLog(date: _now.subtract(Duration(days: i)), symptoms: const ['acne'], mood: 'okay', sleepHours: 5.5, stress: 4, energy: 2)];
+    final a = await buildReport(with_(plain));
+    final b = await buildReport(with_(rich));
+    expect(_isPdf(b), isTrue);
+    expect(b.length, greaterThan(a.length));
+  });
+
   test('report ids look like lab report numbers and differ between patients', () {
     final a = reportId(ReportData.sample(now: _now));
     expect(RegExp(r'^FEM-260920-[0-9A-Z]{6}$').hasMatch(a), isTrue, reason: a);

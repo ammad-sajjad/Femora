@@ -13,7 +13,7 @@ PeriodEntry p(int daysAgo, {int? lengthDays}) => PeriodEntry(start: ago(daysAgo)
 
 class _Harness {
   final HealthStore store = HealthStore()..now = () => _now;
-  final AppState app = AppState();
+  final AppState app = AppState()..now = () => _now;
   Widget get widget => MultiProvider(
         providers: [ChangeNotifierProvider.value(value: app), ChangeNotifierProvider.value(value: store)],
         child: const MaterialApp(home: CycleCalendarScreen()),
