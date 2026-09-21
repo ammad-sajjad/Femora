@@ -30,7 +30,20 @@ class ChatMsg {
 
 /// The conversation with the AI companion. History is kept on the phone.
 class ChatState extends ChangeNotifier {
-  static const _key = 'companion_chat_v1';
+  static const _legacyKey = 'companion_chat_v1';
+
+  String _account = 'guest';
+  String get _key => 'companion_chat_v1_$_account';
+
+  /// Loads the conversation belonging to [id] and forgets the one on screen.
+  Future<void> useAccount(String id) async {
+    if (id == _account) return;
+    _account = id;
+    _messages = [];
+    _error = null;
+    notifyListeners();
+    await load();
+  }
   static const maxStored = 60;
   static const maxHistoryForModel = 9; // previous messages sent along with the new one (the server accepts 12 in total)
 
@@ -55,7 +68,13 @@ class ChatState extends ChangeNotifier {
 
   Future<void> load() async {
     try {
-      final raw = (await SharedPreferences.getInstance()).getString(_key);
+      final prefs = await SharedPreferences.getInstance();
+      // A conversation saved before accounts existed belongs to whoever signs in first on this phone.
+      if (!prefs.containsKey(_key) && prefs.containsKey(_legacyKey)) {
+        await prefs.setString(_key, prefs.getString(_legacyKey)!);
+        await prefs.remove(_legacyKey);
+      }
+      final raw = prefs.getString(_key);
       if (raw != null) {
         _messages = (jsonDecode(raw) as List).map((e) => ChatMsg.fromJson(e as Map<String, dynamic>)).toList();
       }
