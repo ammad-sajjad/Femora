@@ -85,3 +85,7 @@ with `VIRTUAL_ENV=ml/.venv uv pip install python-docx pywin32` (the venvs are uv
 - `lib/models/health_store.dart`, `chat_state.dart`; `lib/services/voice_service.dart`, `report_service.dart`, `api_service.dart`; `lib/screens/` (home, companion, onboarding, report, breast, PCOS, cycle).
 - `test/`: Flutter tests; `backend/tests/`: backend tests.
 - `ml/`: training notebooks and pinned splits; `scripts/`: demo script and report generator.
+
+## Decision (21 September 2026): breast module improvement is closed
+The owner decided to stop improving the breast ultrasound module. It stays as deployed (screening threshold 0.25, accuracy 71.8%, AUC 0.87).
+Known limitation left as is: the ultrasound gate wrongly refuses about 4% of genuine breast scans from other hospitals (measured on BUSI-WHU, report section 6.14). The fix, if ever wanted, is to retrain the gate with BUSI-WHU scans as extra positives (`ml/train_gate_v2.py`; the scans are on the home PC in `D:\dl\busi_whu`, not in git). No labelled outside test set exists yet.
