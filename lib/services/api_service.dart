@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/breast.dart';
 import '../models/pcos.dart';
+import '../models/report_reader.dart';
 import '../models/what_if.dart';
 
 class ChatReply {
@@ -94,6 +95,21 @@ class ApiService {
   Future<WhatIfResult> whatIfPcos(PcosAnswers answers, List<WhatIfScenario> scenarios) async {
     final json = await _post('/predict/pcos/whatif', {'answers': answers.toJson(), 'scenarios': scenarios.map((s) => s.toJson()).toList()});
     return _parse(() => WhatIfResult.fromJson(json));
+  }
+
+  /// Photos of one medical report (one per page, up to 3) explained in [language] (en | ur).
+  Future<ExplainedReport> explainReport(List<Uint8List> photos, {required String language, DateTime? date}) async {
+    final json = await _send(
+      () async {
+        final request = http.MultipartRequest('POST', Uri.parse('$baseUrl/report/explain'))..fields['language'] = language;
+        for (var i = 0; i < photos.length; i++) {
+          request.files.add(http.MultipartFile.fromBytes('images', photos[i], filename: 'page${i + 1}.jpg', contentType: MediaType('image', 'jpeg')));
+        }
+        return http.Response.fromStream(await _client.send(request));
+      },
+      timeout: const Duration(seconds: 90), // upload + a reading model
+    );
+    return _parse(() => ExplainedReport.fromJson(json, date: date ?? DateTime.now()));
   }
 
   Future<BreastRiskResult> predictBreastRisk(BreastRiskAnswers answers) async {

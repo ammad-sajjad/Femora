@@ -18,12 +18,14 @@ from PIL import Image, ImageOps, UnidentifiedImageError
 from pydantic import BaseModel, Field
 
 import companion
+import report_reader
 
 MODELS = Path(__file__).parent / "models"
 
 app = FastAPI(title="Femora API", version="0.2.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 app.include_router(companion.router)   # AI companion: /chat, /voice/transcribe, /voice/speak
+app.include_router(report_reader.router)  # /report/explain: photo of a medical report explained in Urdu or English
 
 pcos_meta = json.loads((MODELS / "pcos_meta.json").read_text())
 pcos_model = xgb.Booster()
