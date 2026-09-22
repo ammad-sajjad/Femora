@@ -8,10 +8,16 @@ import '../theme/app_theme.dart';
 
 const _monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const _monthShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+// Month names are written out in Urdu (not transliterated) since that is how they are normally read; the
+// day number keeps Western digits, which is how dates are written in Urdu apps too.
+const _monthShortUr = ['جنوری', 'فروری', 'مارچ', 'اپریل', 'مئی', 'جون', 'جولائی', 'اگست', 'ستمبر', 'اکتوبر', 'نومبر', 'دسمبر'];
+const _pluralWordsUr = {'day': 'دن', 'cycle': 'سائیکل'};
 
-String fmtDay(DateTime d) => '${d.day} ${_monthShort[d.month - 1]}';
+String fmtDay(DateTime d, {String language = 'en'}) => language == 'ur' ? '${d.day} ${_monthShortUr[d.month - 1]}' : '${d.day} ${_monthShort[d.month - 1]}';
 String fmtMonth(DateTime d) => '${_monthNames[d.month - 1]} ${d.year}';
-String plural(int n, String one) => '$n $one${n == 1 ? '' : 's'}';
+
+/// "$n day" / "$n days" in English; Urdu nouns do not change for a plural count, so just "$n دن".
+String plural(int n, String one, {String language = 'en'}) => language == 'ur' ? '$n ${_pluralWordsUr[one] ?? one}' : '$n $one${n == 1 ? '' : 's'}';
 
 const _green = Color(0xFF2E9E68);
 const _softGreen = Color(0xFFD8F1E3);

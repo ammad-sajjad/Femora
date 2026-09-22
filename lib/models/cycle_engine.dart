@@ -39,6 +39,17 @@ extension CyclePhaseText on CyclePhase {
         CyclePhase.luteal => 'Luteal phase',
       };
 
+  /// [label], but in Urdu when asked: for on-screen display only. The companion's own context text and the
+  /// PDF report keep the English [label] regardless of the profile language.
+  String labelIn(String language) => language == 'ur'
+      ? switch (this) {
+          CyclePhase.menstrual => 'حیض کا مرحلہ',
+          CyclePhase.follicular => 'فولیکیولر مرحلہ',
+          CyclePhase.ovulation => 'بیضہ دانی کی کھڑکی',
+          CyclePhase.luteal => 'لیوٹیل مرحلہ',
+        }
+      : label;
+
   String get tip => switch (this) {
         CyclePhase.menstrual => 'Your period is here. Rest, warmth and iron-rich food can help with cramps and tiredness.',
         CyclePhase.follicular => 'Estrogen is rising after your period. Many women feel more energetic now.',

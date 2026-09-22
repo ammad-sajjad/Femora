@@ -9,9 +9,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   cupertino_icons: ^1.0.6
   google_fonts: ^6.1.0
-  intl: ^0.19.0
+  intl: ^0.20.3
   provider: ^6.1.1
   http: ^1.2.2
   image_picker: ^1.2.3
@@ -50,3 +52,8 @@ flutter:
     - packages/animated_emoji/lottie/tired.json
     - packages/animated_emoji/lottie/anxiousWithSweat.json
     - packages/animated_emoji/lottie/bandageFace.json
+    - assets/fonts/NotoNastaliqUrdu-OFL.txt
+  fonts:
+    - family: NotoNastaliqUrdu
+      fonts:
+        - asset: assets/fonts/NotoNastaliqUrdu.ttf

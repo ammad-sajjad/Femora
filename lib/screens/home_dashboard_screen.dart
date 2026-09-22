@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/lang.dart';
 import '../models/cycle_engine.dart';
 import '../models/health_store.dart';
 import '../models/models.dart';
@@ -16,38 +17,61 @@ import 'trends_screen.dart';
 class HomeDashboardScreen extends StatelessWidget {
   const HomeDashboardScreen({super.key});
 
-  static String greeting(DateTime now) => now.hour < 12 ? 'Good morning' : (now.hour < 17 ? 'Good afternoon' : 'Good evening');
+  static String greeting(DateTime now, {String language = 'en'}) => now.hour < 12
+      ? t(language, 'Good morning', 'صبح بخیر')
+      : (now.hour < 17 ? t(language, 'Good afternoon', 'دوپہر بخیر') : t(language, 'Good evening', 'شام بخیر'));
 
-  static String ago(DateTime date, DateTime now) {
+  static String ago(DateTime date, DateTime now, {String language = 'en'}) {
     final days = DateTime(now.year, now.month, now.day).difference(DateTime(date.year, date.month, date.day)).inDays;
-    if (days <= 0) return 'today';
-    if (days == 1) return 'yesterday';
-    return '$days days ago';
+    if (days <= 0) return t(language, 'today', 'آج');
+    if (days == 1) return t(language, 'yesterday', 'کل');
+    return t(language, '$days days ago', '$days دن پہلے');
   }
 
   static String _cap(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
   /// One short, rule-based suggestion for what to do next. The most important thing comes first.
-  static String nextStep(HealthStore store, DateTime? lastExam, DateTime now) {
+  ///
+  /// The two branches that quote something she herself reported (a red flag, a cycle flag) embed that
+  /// value as it was recorded, which is still English-only; the rest of the sentence still translates.
+  static String nextStep(HealthStore store, DateTime? lastExam, DateTime now, {String language = 'en'}) {
+    final ur = language == 'ur';
     final risk = store.breastRisk;
     if (risk != null && risk.redFlags.isNotEmpty) {
-      return 'You reported ${risk.redFlags.first.toLowerCase()}. Please arrange to see a doctor; your companion can help you prepare what to say.';
+      final flag = risk.redFlags.first.toLowerCase();
+      return ur
+          ? 'آپ نے $flag کی اطلاع دی۔ براہِ کرم ڈاکٹر سے ملاقات کا انتظام کریں؛ آپ کا کمپینین یہ بتانے میں مدد کر سکتا ہے کہ کیا کہنا ہے۔'
+          : 'You reported $flag. Please arrange to see a doctor; your companion can help you prepare what to say.';
     }
     if (store.scan?.prediction == 'malignant') {
-      return 'Your ultrasound screening was flagged as suspicious. This is not a diagnosis, but please book a breast specialist visit.';
+      return t(language, 'Your ultrasound screening was flagged as suspicious. This is not a diagnosis, but please book a breast specialist visit.',
+          'آپ کی الٹراساؤنڈ اسکریننگ کو مشکوک نشان زد کیا گیا ہے۔ یہ تشخیص نہیں ہے، لیکن براہِ کرم بریسٹ اسپیشلسٹ سے ملاقات کریں۔');
     }
     final cycleFlag = CycleEngine(store.periods, now).flags.where((f) => f.seeDoctor).toList();
     if (cycleFlag.isNotEmpty) return cycleFlag.first.text;
     if (store.pcos?.level == 'high') {
-      return 'Your PCOS screening was high. A gynaecologist can confirm it; ask your companion what tests to expect.';
+      return t(language, 'Your PCOS screening was high. A gynaecologist can confirm it; ask your companion what tests to expect.',
+          'آپ کی PCOS اسکریننگ زیادہ رہی۔ ایک ماہرِ امراضِ نسواں اس کی تصدیق کر سکتی ہیں؛ اپنے کمپینین سے پوچھیں کہ کون سے ٹیسٹ متوقع ہیں۔');
     }
     final today = DateTime(now.year, now.month, now.day);
     final loggedToday = store.logs.any((l) => DateTime(l.date.year, l.date.month, l.date.day) == today);
-    if (!loggedToday) return 'Log how you feel today (symptoms and mood) so your companion and your report stay up to date.';
-    if (lastExam == null || now.difference(lastExam).inDays >= 30) return 'It is time for your monthly breast self-exam. The Breast tab has a step-by-step guide.';
-    if (store.periods.isEmpty) return 'Log the first day of your last period in the Cycle tab so Femora can predict your next one.';
-    if (store.pcos == null && store.breastRisk == null && store.scan == null) return 'Take a first check: PCOS risk or the breast questionnaire takes about two minutes.';
-    return 'You are all caught up. Ask your companion anything about your results.';
+    if (!loggedToday) {
+      return t(language, 'Log how you feel today (symptoms and mood) so your companion and your report stay up to date.',
+          'آج آپ کیسا محسوس کر رہی ہیں یہ درج کریں (علامات اور موڈ) تاکہ آپ کا کمپینین اور رپورٹ اپ ڈیٹ رہیں۔');
+    }
+    if (lastExam == null || now.difference(lastExam).inDays >= 30) {
+      return t(language, 'It is time for your monthly breast self-exam. The Breast tab has a step-by-step guide.',
+          'آپ کے ماہانہ بریسٹ سیلف ایگزام کا وقت ہو گیا ہے۔ بریسٹ ٹیب میں مرحلہ وار رہنمائی موجود ہے۔');
+    }
+    if (store.periods.isEmpty) {
+      return t(language, 'Log the first day of your last period in the Cycle tab so Femora can predict your next one.',
+          'اپنے آخری پیریڈ کا پہلا دن سائیکل ٹیب میں درج کریں تاکہ Femora آپ کے اگلے پیریڈ کا اندازہ لگا سکے۔');
+    }
+    if (store.pcos == null && store.breastRisk == null && store.scan == null) {
+      return t(language, 'Take a first check: PCOS risk or the breast questionnaire takes about two minutes.',
+          'پہلا چیک کریں: PCOS رسک یا بریسٹ سوالنامہ صرف دو منٹ لیتا ہے۔');
+    }
+    return t(language, 'You are all caught up. Ask your companion anything about your results.', 'آپ نے سب کچھ مکمل کر لیا ہے۔ اپنے نتائج کے بارے میں کمپینین سے کچھ بھی پوچھیں۔');
   }
 
   @override
@@ -56,6 +80,7 @@ class HomeDashboardScreen extends StatelessWidget {
     final lastExam = context.watch<SelfExamState>().lastExam;
     final now = context.read<AppState>().now();
     final name = store.profile.firstName;
+    final language = store.profile.language;
     final done = [store.pcos != null, store.scan != null, store.breastRisk != null].where((d) => d).length;
 
     return Scaffold(
@@ -75,23 +100,23 @@ class HomeDashboardScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      name.isEmpty ? greeting(now) : '${greeting(now)}, $name',
+                      name.isEmpty ? greeting(now, language: language) : '${greeting(now, language: language)}, $name',
                       key: const Key('home_greeting'),
                       style: const TextStyle(fontFamily: 'Inter', fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.textDark, letterSpacing: -0.5),
                     ),
                     const SizedBox(height: 4),
-                    const Text('Here is your health overview.', style: TextStyle(fontFamily: 'Inter', fontSize: 14, color: AppColors.textMuted)),
+                    Text(t(language, 'Here is your health overview.', 'یہ ہے آپ کی صحت کا خلاصہ۔'), style: const TextStyle(fontFamily: 'Inter', fontSize: 14, color: AppColors.textMuted)),
                   ],
                 ),
               ),
               const SizedBox(height: 18),
-              _cycleCard(context, CycleEngine(store.periods, now)),
+              _cycleCard(context, CycleEngine(store.periods, now), language),
               const SizedBox(height: 14),
-              _snapshotCard(context, store, lastExam, now, done),
+              _snapshotCard(context, store, lastExam, now, done, language),
               const SizedBox(height: 24),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24.0),
-                child: Text('Quick Log', style: TextStyle(fontFamily: 'Inter', fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Text(t(language, 'Quick Log', 'فوری اندراج'), style: const TextStyle(fontFamily: 'Inter', fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textDark)),
               ),
               const SizedBox(height: 14),
               Padding(
@@ -99,19 +124,19 @@ class HomeDashboardScreen extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _quickLogItem(context, icon: Icons.water_drop_rounded, iconColor: const Color(0xFFE53935), bgColor: AppColors.quickLogPeriod, label: 'PERIOD', tab: 1),
-                    _quickLogItem(context, icon: Icons.medical_services_outlined, iconColor: const Color(0xFF6B58A8), bgColor: AppColors.quickLogSymptoms, label: 'SYMPTOMS', tab: 1),
-                    _quickLogItem(context, icon: Icons.sentiment_satisfied_alt_rounded, iconColor: const Color(0xFF9E47BA), bgColor: AppColors.quickLogMood, label: 'MOOD', tab: 1),
-                    _quickLogItem(context, icon: Icons.bubble_chart_outlined, iconColor: const Color(0xFF2E9E68), bgColor: AppColors.quickLogHormones, label: 'PCOS', tab: 2),
+                    _quickLogItem(context, icon: Icons.water_drop_rounded, iconColor: const Color(0xFFE53935), bgColor: AppColors.quickLogPeriod, label: t(language, 'PERIOD', 'پیریڈ'), tab: 1),
+                    _quickLogItem(context, icon: Icons.medical_services_outlined, iconColor: const Color(0xFF6B58A8), bgColor: AppColors.quickLogSymptoms, label: t(language, 'SYMPTOMS', 'علامات'), tab: 1),
+                    _quickLogItem(context, icon: Icons.sentiment_satisfied_alt_rounded, iconColor: const Color(0xFF9E47BA), bgColor: AppColors.quickLogMood, label: t(language, 'MOOD', 'موڈ'), tab: 1),
+                    _quickLogItem(context, icon: Icons.bubble_chart_outlined, iconColor: const Color(0xFF2E9E68), bgColor: AppColors.quickLogHormones, label: t(language, 'PCOS', 'PCOS'), tab: 2),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
-              _nextStepCard(context, nextStep(store, lastExam, now)),
+              _nextStepCard(context, nextStep(store, lastExam, now, language: language), language),
               const SizedBox(height: 14),
-              _dashboardCard(context),
+              _dashboardCard(context, language),
               const SizedBox(height: 14),
-              _trendsCard(context, store),
+              _trendsCard(context, store, language),
             ],
           ),
         ),
@@ -119,9 +144,10 @@ class HomeDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _cycleCard(BuildContext context, CycleEngine e) {
+  Widget _cycleCard(BuildContext context, CycleEngine e, String language) {
     const white = Colors.white;
     final until = e.daysUntilNext;
+    final lateBy = e.isLate ? -until! : 0; // only read when isLate is true, i.e. only when until is set
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: InkWell(
@@ -144,33 +170,46 @@ class HomeDashboardScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            e.periodOngoing ? 'Period day ${e.cycleDay}' : 'Cycle day ${e.cycleDay}',
+                            e.periodOngoing ? t(language, 'Period day ${e.cycleDay}', 'پیریڈ کا دن ${e.cycleDay}') : t(language, 'Cycle day ${e.cycleDay}', 'سائیکل کا دن ${e.cycleDay}'),
                             key: const Key('home_cycle_title'),
                             style: const TextStyle(fontFamily: 'Inter', fontSize: 20, fontWeight: FontWeight.w700, color: white),
                           ),
                           const SizedBox(height: 4),
-                          if (e.phase != null) Text(e.phase!.label, style: TextStyle(fontFamily: 'Inter', fontSize: 13, color: white.withValues(alpha: 0.9))),
+                          if (e.phase != null) Text(e.phase!.labelIn(language), style: TextStyle(fontFamily: 'Inter', fontSize: 13, color: white.withValues(alpha: 0.9))),
                           const SizedBox(height: 10),
                           Text(
-                            e.isLate ? 'Period expected ${plural(-until!, 'day')} ago' : 'Next period ${fmtDay(e.nextStart!)}',
+                            e.isLate
+                                ? t(language, 'Period expected ${plural(lateBy, 'day')} ago', 'پیریڈ کی توقع ${plural(lateBy, 'day', language: 'ur')} پہلے تھی')
+                                : t(language, 'Next period ${fmtDay(e.nextStart!)}', 'اگلا پیریڈ ${fmtDay(e.nextStart!, language: 'ur')}'),
                             key: const Key('home_cycle_next'),
                             style: const TextStyle(fontFamily: 'Inter', fontSize: 13.5, fontWeight: FontWeight.w700, color: white),
                           ),
                           if (!e.isLate)
-                            Text('Fertile window ${fmtDay(e.fertileStart!)} to ${fmtDay(e.fertileEnd!)}', style: TextStyle(fontFamily: 'Inter', fontSize: 12, color: white.withValues(alpha: 0.85))),
+                            Text(
+                              t(language, 'Fertile window ${fmtDay(e.fertileStart!)} to ${fmtDay(e.fertileEnd!)}',
+                                  'زرخیز دورانیہ ${fmtDay(e.fertileStart!, language: 'ur')} سے ${fmtDay(e.fertileEnd!, language: 'ur')} تک'),
+                              style: TextStyle(fontFamily: 'Inter', fontSize: 12, color: white.withValues(alpha: 0.85)),
+                            ),
                         ],
                       ),
                     ),
-                    CycleRingWidget(days: e.isLate ? '${-until!}' : '$until', label: e.isLate ? 'DAYS LATE' : (until == 1 ? 'DAY TO GO' : 'DAYS TO GO')),
+                    CycleRingWidget(
+                      days: e.isLate ? '$lateBy' : '$until',
+                      label: e.isLate ? t(language, 'DAYS LATE', 'دن تاخیر') : (until == 1 ? t(language, 'DAY TO GO', 'دن باقی') : t(language, 'DAYS TO GO', 'دن باقی')),
+                    ),
                   ],
                 )
-              : const Column(
+              : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Track your cycle', style: TextStyle(fontFamily: 'Inter', fontSize: 20, fontWeight: FontWeight.w700, color: white)),
-                    SizedBox(height: 6),
-                    Text('Log the first day of your last period and Femora will predict your next one. Tap here to start.',
-                        key: Key('home_cycle_empty'), style: TextStyle(fontFamily: 'Inter', fontSize: 13, color: white, height: 1.4)),
+                    Text(t(language, 'Track your cycle', 'اپنا سائیکل ٹریک کریں'), style: const TextStyle(fontFamily: 'Inter', fontSize: 20, fontWeight: FontWeight.w700, color: white)),
+                    const SizedBox(height: 6),
+                    Text(
+                      t(language, 'Log the first day of your last period and Femora will predict your next one. Tap here to start.',
+                          'اپنے آخری پیریڈ کا پہلا دن درج کریں اور Femora آپ کے اگلے پیریڈ کا اندازہ لگائے گا۔ شروع کرنے کے لیے یہاں ٹیپ کریں۔'),
+                      key: const Key('home_cycle_empty'),
+                      style: const TextStyle(fontFamily: 'Inter', fontSize: 13, color: white, height: 1.4),
+                    ),
                   ],
                 ),
         ),
@@ -178,7 +217,7 @@ class HomeDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _snapshotCard(BuildContext context, HealthStore store, DateTime? lastExam, DateTime now, int done) {
+  Widget _snapshotCard(BuildContext context, HealthStore store, DateTime? lastExam, DateTime now, int done, String language) {
     final pcos = store.pcos;
     final scan = store.scan;
     final risk = store.breastRisk;
@@ -195,18 +234,28 @@ class HomeDashboardScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Your health snapshot', style: TextStyle(fontFamily: 'Inter', fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
+            Text(t(language, 'Your health snapshot', 'آپ کی صحت کا جائزہ'), style: const TextStyle(fontFamily: 'Inter', fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
             const SizedBox(height: 4),
             Text(
-              done == 0 ? 'No checks yet. Tap a row to start.' : '$done of 3 checks done',
+              done == 0 ? t(language, 'No checks yet. Tap a row to start.', 'ابھی کوئی چیک نہیں۔ شروع کرنے کے لیے ایک قطار پر ٹیپ کریں۔') : t(language, '$done of 3 checks done', '$done از 3 چیک مکمل'),
               key: const Key('home_progress'),
               style: TextStyle(fontFamily: 'Inter', fontSize: 12.5, color: Colors.white.withValues(alpha: 0.85)),
             ),
             const SizedBox(height: 10),
-            _row(context, const Key('home_pcos'), Icons.bubble_chart_outlined, 'PCOS risk', pcos == null ? 'Not checked yet' : '${_cap(pcos.level)} · ${pcos.percent}%', pcos == null ? null : ago(pcos.date, now), 2),
-            _row(context, const Key('home_scan'), Icons.monitor_heart_outlined, 'Breast ultrasound', scan == null ? 'Not scanned yet' : '${scan.title} · ${(scan.confidence * 100).round()}%', scan == null ? null : ago(scan.date, now), 3),
-            _row(context, const Key('home_risk'), Icons.favorite_border_rounded, 'Breast cancer risk', risk == null ? 'Not checked yet' : '${_cap(risk.level)} · ${risk.relativeRisk.toStringAsFixed(2)}× average', risk == null ? null : ago(risk.date, now), 3),
-            _row(context, const Key('home_exam'), Icons.self_improvement_rounded, 'Breast self-exam', lastExam == null ? 'Not logged yet' : ago(lastExam, now)[0].toUpperCase() + ago(lastExam, now).substring(1), null, 3),
+            _row(context, const Key('home_pcos'), Icons.bubble_chart_outlined, t(language, 'PCOS risk', 'PCOS رسک'),
+                pcos == null ? t(language, 'Not checked yet', 'ابھی چیک نہیں ہوا') : '${_cap(pcos.level)} · ${pcos.percent}%', pcos == null ? null : ago(pcos.date, now, language: language), 2),
+            _row(context, const Key('home_scan'), Icons.monitor_heart_outlined, t(language, 'Breast ultrasound', 'بریسٹ الٹراساؤنڈ'),
+                scan == null ? t(language, 'Not scanned yet', 'ابھی اسکین نہیں ہوا') : '${scan.title} · ${(scan.confidence * 100).round()}%', scan == null ? null : ago(scan.date, now, language: language), 3),
+            _row(
+                context,
+                const Key('home_risk'),
+                Icons.favorite_border_rounded,
+                t(language, 'Breast cancer risk', 'بریسٹ کینسر رسک'),
+                risk == null ? t(language, 'Not checked yet', 'ابھی چیک نہیں ہوا') : '${_cap(risk.level)} · ${risk.relativeRisk.toStringAsFixed(2)}× average',
+                risk == null ? null : ago(risk.date, now, language: language),
+                3),
+            _row(context, const Key('home_exam'), Icons.self_improvement_rounded, t(language, 'Breast self-exam', 'بریسٹ سیلف ایگزام'),
+                lastExam == null ? t(language, 'Not logged yet', 'ابھی درج نہیں ہوا') : _cap(ago(lastExam, now, language: language)), null, 3),
           ],
         ),
       ),
@@ -248,7 +297,7 @@ class HomeDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _dashboardCard(BuildContext context) {
+  Widget _dashboardCard(BuildContext context, String language) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: InkWell(
@@ -267,13 +316,16 @@ class HomeDashboardScreen extends StatelessWidget {
                 child: const Icon(Icons.dashboard_customize_outlined, color: AppColors.primaryBerry, size: 24),
               ),
               const SizedBox(width: 14),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Health dashboard', style: TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textDark)),
-                    SizedBox(height: 3),
-                    Text('Cycle history, how well predictions did, symptom patterns and hormonal trends', style: TextStyle(fontFamily: 'Inter', fontSize: 12.5, color: AppColors.textMuted, height: 1.35)),
+                    Text(t(language, 'Health dashboard', 'ہیلتھ ڈیش بورڈ'), style: const TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+                    const SizedBox(height: 3),
+                    Text(
+                      t(language, 'Cycle history, how well predictions did, symptom patterns and hormonal trends', 'سائیکل کی تاریخ، پیش گوئیوں کی درستگی، علامات کے رجحانات اور ہارمونل رجحانات'),
+                      style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, color: AppColors.textMuted, height: 1.35),
+                    ),
                   ],
                 ),
               ),
@@ -285,7 +337,7 @@ class HomeDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _trendsCard(BuildContext context, HealthStore store) {
+  Widget _trendsCard(BuildContext context, HealthStore store, String language) {
     final n = store.now();
     final week = store.logs.where((l) => DateTime(n.year, n.month, n.day).difference(DateTime(l.date.year, l.date.month, l.date.day)).inDays < 7).length;
     return Padding(
@@ -310,10 +362,12 @@ class HomeDashboardScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('My trends', style: TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+                    Text(t(language, 'My trends', 'میرے رجحانات'), style: const TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textDark)),
                     const SizedBox(height: 3),
                     Text(
-                      week == 0 ? 'Mood, sleep, stress, energy and symptoms over time' : '$week of the last 7 days logged. See your mood, sleep and stress patterns',
+                      week == 0
+                          ? t(language, 'Mood, sleep, stress, energy and symptoms over time', 'وقت کے ساتھ موڈ، نیند، تناؤ، توانائی اور علامات')
+                          : t(language, '$week of the last 7 days logged. See your mood, sleep and stress patterns', 'پچھلے 7 دنوں میں سے $week دن درج۔ اپنے موڈ، نیند اور تناؤ کے رجحانات دیکھیں'),
                       key: const Key('home_trends_text'),
                       style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, color: AppColors.textMuted, height: 1.35),
                     ),
@@ -328,7 +382,7 @@ class HomeDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _nextStepCard(BuildContext context, String text) {
+  Widget _nextStepCard(BuildContext context, String text, String language) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: InkWell(
@@ -352,11 +406,11 @@ class HomeDashboardScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Your next step', style: TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+                    Text(t(language, 'Your next step', 'آپ کا اگلا قدم'), style: const TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textDark)),
                     const SizedBox(height: 6),
                     Text(text, style: const TextStyle(fontFamily: 'Inter', fontSize: 13.5, color: Color(0xFF423B4E), height: 1.35)),
                     const SizedBox(height: 8),
-                    const Text('Ask your companion', style: TextStyle(fontFamily: 'Inter', fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.primaryBerry)),
+                    Text(t(language, 'Ask your companion', 'اپنے کمپینین سے پوچھیں'), style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.primaryBerry)),
                   ],
                 ),
               ),
