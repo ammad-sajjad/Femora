@@ -78,8 +78,10 @@ void main() {
     await _show(tester, find.byKey(const Key('onboarding_personalize')));
     await tester.tap(find.byKey(const Key('onboarding_personalize'))); // turn personalisation off
     await tester.pump();
-    await _show(tester, find.text('Get started'));
-    await tester.tap(find.text('Get started'));
+    // The form previews the language she just picked, so the button is already in Urdu.
+    expect(find.text('Get started'), findsNothing);
+    await _show(tester, find.text('شروع کریں'));
+    await tester.tap(find.text('شروع کریں'));
     await tester.pumpAndSettle();
 
     final p = store.profile;
