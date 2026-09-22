@@ -1,8 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
+import 'l10n/lang.dart';
 import 'models/auth_state.dart';
 import 'models/breast.dart';
 import 'models/chat_state.dart';
@@ -73,11 +75,28 @@ class _FemoraAppState extends State<FemoraApp> {
         ChangeNotifierProvider(create: (_) => SelfExamState()..load()),
         ChangeNotifierProvider(create: (_) => VoiceController()),
       ],
-      child: MaterialApp(
-        title: 'Femora',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        home: const _Root(),
+      // Only the language code is watched, so the app (and its Navigator, which keeps its state) is not
+      // rebuilt on every other change to the store.
+      child: Selector<HealthStore, String>(
+        selector: (_, store) => store.profile.language,
+        builder: (_, language, __) => MaterialApp(
+          title: 'Femora',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          locale: Locale(language),
+          supportedLocales: const [Locale('en'), Locale('ur')],
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          // Urdu text drawn anywhere (even a widget that never checked the language) still gets the
+          // bundled Urdu font, because it is only ever added as a *fallback*: an English TextStyle that
+          // sets its own fontFamily is untouched, and only the glyphs it cannot draw (Urdu ones) borrow
+          // this font instead of whatever the phone would otherwise substitute.
+          builder: (context, child) => DefaultTextStyle.merge(style: const TextStyle(fontFamilyFallback: kUrduFontFallback), child: child!),
+          home: const _Root(),
+        ),
       ),
     );
   }
