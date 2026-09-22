@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/lang.dart';
 import '../models/cycle_engine.dart';
 import '../models/health_store.dart';
 import '../models/models.dart';
@@ -39,14 +40,14 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
     _notesController.text = app.userNotes;
   }
 
-  Future<void> _pickDay(AppState app, HealthStore store) async {
+  Future<void> _pickDay(AppState app, HealthStore store, String language) async {
     final today = dayOf(store.now());
     final picked = await showDatePicker(
       context: context,
       initialDate: app.logDay,
       firstDate: addDays(today, -60),
       lastDate: today,
-      helpText: 'Which day do you want to log?',
+      helpText: t(language, 'Which day do you want to log?', 'آپ کس دن کا اندراج کرنا چاہتی ہیں؟'),
     );
     if (picked != null && mounted) _chooseDay(app, store, picked);
   }
@@ -62,6 +63,7 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
     final appState = context.watch<AppState>();
     final store = context.watch<HealthStore>();
     final engine = store.cycle;
+    final language = store.profile.language;
     _sync(appState, store);
     final month = _month ?? DateTime(engine.today.year, engine.today.month);
 
@@ -77,11 +79,11 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
               const FemoraHeader(isCalendarStyle: true),
               const SizedBox(height: 8),
 
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24.0),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Text(
-                  'My Cycle',
-                  style: TextStyle(fontFamily: 'Inter', fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                  t(language, 'My Cycle', 'میرا سائیکل'),
+                  style: const TextStyle(fontFamily: 'Inter', fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.textDark),
                 ),
               ),
               const SizedBox(height: 14),
@@ -109,7 +111,7 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                   ),
                   onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const TrendsScreen())),
                   icon: const Icon(Icons.show_chart_rounded),
-                  label: const Text('See my trends', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700)),
+                  label: Text(t(language, 'See my trends', 'میرے رجحانات دیکھیں'), style: const TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700)),
                 ),
               ),
               Padding(
@@ -124,7 +126,7 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                   ),
                   onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const HormoneInsightsScreen())),
                   icon: const Icon(Icons.bubble_chart_outlined),
-                  label: const Text('Hormonal insights', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700)),
+                  label: Text(t(language, 'Hormonal insights', 'ہارمونل بصیرت'), style: const TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700)),
                 ),
               ),
               Padding(
@@ -139,7 +141,7 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                   ),
                   onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const RemindersScreen())),
                   icon: const Icon(Icons.notifications_active_outlined),
-                  label: const Text('Reminders', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700)),
+                  label: Text(t(language, 'Reminders', 'یاد دہانیاں'), style: const TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700)),
                 ),
               ),
               const SizedBox(height: 22),
@@ -173,24 +175,24 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                       children: [
                         ChoiceChip(
                           key: const Key('log_day_today'),
-                          label: const Text('Today'),
+                          label: Text(t(language, 'Today', 'آج')),
                           selected: appState.loggingToday,
                           selectedColor: const Color(0xFFFFDFE8),
                           onSelected: (_) => _chooseDay(appState, store, dayOf(store.now())),
                         ),
                         ChoiceChip(
                           key: const Key('log_day_yesterday'),
-                          label: const Text('Yesterday'),
+                          label: Text(t(language, 'Yesterday', 'کل')),
                           selected: appState.logDay == addDays(dayOf(store.now()), -1),
                           selectedColor: const Color(0xFFFFDFE8),
                           onSelected: (_) => _chooseDay(appState, store, addDays(dayOf(store.now()), -1)),
                         ),
                         ChoiceChip(
                           key: const Key('log_day_pick'),
-                          label: Text(appState.loggingToday || appState.logDay == addDays(dayOf(store.now()), -1) ? 'Another day' : fmtDay(appState.logDay)),
+                          label: Text(appState.loggingToday || appState.logDay == addDays(dayOf(store.now()), -1) ? t(language, 'Another day', 'کوئی اور دن') : fmtDay(appState.logDay, language: language)),
                           selected: !appState.loggingToday && appState.logDay != addDays(dayOf(store.now()), -1),
                           selectedColor: const Color(0xFFFFDFE8),
-                          onSelected: (_) => _pickDay(appState, store),
+                          onSelected: (_) => _pickDay(appState, store, language),
                         ),
                       ],
                     ),
@@ -199,11 +201,12 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                     // Header Info
                     Text(
                       !appState.loggingToday
-                          ? 'Logging for ${fmtDay(appState.logDay)}'
+                          ? t(language, 'Logging for ${fmtDay(appState.logDay)}', 'اندراج برائے ${fmtDay(appState.logDay, language: 'ur')}')
                           : engine.hasHistory
-                              ? 'Today • ${engine.periodOngoing ? 'Period day' : 'Cycle day'} ${engine.cycleDay}'
-                              : 'Today',
-                      style: TextStyle(
+                              ? t(language, 'Today • ${engine.periodOngoing ? 'Period day' : 'Cycle day'} ${engine.cycleDay}',
+                                  'آج • ${engine.periodOngoing ? 'پیریڈ کا دن' : 'سائیکل کا دن'} ${engine.cycleDay}')
+                              : t(language, 'Today', 'آج'),
+                      style: const TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -212,8 +215,10 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      engine.phase?.tip ?? 'Log how you feel today. Your symptoms and mood are shared with your AI companion and your report.',
-                      style: TextStyle(
+                      engine.phase?.tipIn(language) ??
+                          t(language, 'Log how you feel today. Your symptoms and mood are shared with your AI companion and your report.',
+                              'آج آپ کیسا محسوس کر رہی ہیں یہ درج کریں۔ آپ کی علامات اور موڈ آپ کے AI کمپینین اور رپورٹ کے ساتھ شیئر کی جاتی ہیں۔'),
+                      style: const TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 13,
                         color: AppColors.textMuted,
@@ -223,9 +228,9 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                     const SizedBox(height: 20),
 
                     // Symptoms Header
-                    const Text(
-                      'Log Symptoms',
-                      style: TextStyle(
+                    Text(
+                      t(language, 'Log Symptoms', 'علامات درج کریں'),
+                      style: const TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -249,6 +254,7 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                         final symptom = appState.symptoms[index];
                         return _buildSymptomCard(
                           symptom,
+                          language,
                           onTap: () => appState.toggleSymptom(symptom.id),
                         );
                       },
@@ -256,9 +262,9 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                     const SizedBox(height: 22),
 
                     // Mood
-                    const Text(
-                      'Mood',
-                      style: TextStyle(
+                    Text(
+                      t(language, 'Mood', 'موڈ'),
+                      style: const TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -288,7 +294,7 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                                 children: [
                                   Text(emoji, style: const TextStyle(fontSize: 22)),
                                   const SizedBox(height: 2),
-                                  Text(label, style: const TextStyle(fontFamily: 'Inter', fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+                                  Text(t(language, label, _moodLabelsUr[id] ?? label), style: const TextStyle(fontFamily: 'Inter', fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
                                 ],
                               ),
                             ),
@@ -300,9 +306,9 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                     // Sleep
                     Row(
                       children: [
-                        const Expanded(child: Text('Sleep', style: TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark))),
+                        Expanded(child: Text(t(language, 'Sleep', 'نیند'), style: const TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark))),
                         Text(
-                          appState.sleepHours == null ? 'Not set' : '${appState.sleepHours!.toStringAsFixed(1)} hours',
+                          appState.sleepHours == null ? t(language, 'Not set', 'سیٹ نہیں') : t(language, '${appState.sleepHours!.toStringAsFixed(1)} hours', '${appState.sleepHours!.toStringAsFixed(1)} گھنٹے'),
                           key: const Key('sleep_value'),
                           style: const TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primaryBerry),
                         ),
@@ -320,15 +326,25 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                       onChanged: appState.setSleep,
                     ),
                     const SizedBox(height: 10),
-                    _levelRow('Stress', const ['Calm', 'Mild', 'Medium', 'High', 'Very high'], appState.stress, 'stress', appState.setStress),
+                    _levelRow(
+                        t(language, 'Stress', 'تناؤ'),
+                        language == 'ur' ? const ['پرسکون', 'ہلکا', 'درمیانہ', 'زیادہ', 'بہت زیادہ'] : const ['Calm', 'Mild', 'Medium', 'High', 'Very high'],
+                        appState.stress,
+                        'stress',
+                        appState.setStress),
                     const SizedBox(height: 16),
-                    _levelRow('Energy', const ['Very low', 'Low', 'Okay', 'Good', 'Great'], appState.energy, 'energy', appState.setEnergy),
+                    _levelRow(
+                        t(language, 'Energy', 'توانائی'),
+                        language == 'ur' ? const ['بہت کم', 'کم', 'ٹھیک', 'اچھا', 'بہت اچھا'] : const ['Very low', 'Low', 'Okay', 'Good', 'Great'],
+                        appState.energy,
+                        'energy',
+                        appState.setEnergy),
                     const SizedBox(height: 22),
 
                     // Notes Section
-                    const Text(
-                      'Notes',
-                      style: TextStyle(
+                    Text(
+                      t(language, 'Notes', 'نوٹس'),
+                      style: const TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -347,9 +363,9 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                         controller: _notesController,
                         onChanged: appState.updateNotes,
                         maxLines: 3,
-                        decoration: const InputDecoration(
-                          hintText: 'How are you feeling today?',
-                          hintStyle: TextStyle(
+                        decoration: InputDecoration(
+                          hintText: t(language, 'How are you feeling today?', 'آج آپ کیسا محسوس کر رہی ہیں؟'),
+                          hintStyle: const TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 13,
                             color: Color(0xFF5E6D84),
@@ -369,7 +385,9 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                         appState.saveDailyLog();
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(appState.loggingToday ? 'Today\'s health log saved successfully!' : 'Health log for ${fmtDay(appState.logDay)} saved.'),
+                            content: Text(appState.loggingToday
+                                ? t(language, 'Today\'s health log saved successfully!', 'آج کا ہیلتھ لاگ کامیابی سے محفوظ ہو گیا!')
+                                : t(language, 'Health log for ${fmtDay(appState.logDay)} saved.', '${fmtDay(appState.logDay, language: 'ur')} کا ہیلتھ لاگ محفوظ ہو گیا۔')),
                             backgroundColor: AppColors.primaryBerry,
                             behavior: SnackBarBehavior.floating,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -401,7 +419,9 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                             const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
                             const SizedBox(width: 8),
                             Text(
-                              appState.loggingToday ? 'Save Today\'s Log' : 'Save log for ${fmtDay(appState.logDay)}',
+                              appState.loggingToday
+                                  ? t(language, 'Save Today\'s Log', 'آج کا لاگ محفوظ کریں')
+                                  : t(language, 'Save log for ${fmtDay(appState.logDay)}', '${fmtDay(appState.logDay, language: 'ur')} کا لاگ محفوظ کریں'),
                               style: const TextStyle(
                                 fontFamily: 'Inter',
                                 fontSize: 15,
@@ -463,7 +483,7 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
     );
   }
 
-  Widget _buildSymptomCard(SymptomItem symptom, {required VoidCallback onTap}) {
+  Widget _buildSymptomCard(SymptomItem symptom, String language, {required VoidCallback onTap}) {
     final bool isSelected = symptom.isSelected;
 
     return GestureDetector(
@@ -493,7 +513,7 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              symptom.name,
+              symptom.nameIn(language),
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 13,
@@ -507,3 +527,5 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
     );
   }
 }
+
+const _moodLabelsUr = {'great': 'بہت اچھا', 'good': 'اچھا', 'okay': 'ٹھیک', 'low': 'کم', 'bad': 'خراب'};

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/lang.dart';
 import '../models/chat_state.dart';
 import '../models/health_store.dart';
 import '../models/self_exam.dart';
@@ -134,10 +135,10 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
                       controller: _scroll,
                       padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
                       itemCount: messages.length + (chat.sending ? 1 : 0),
-                      itemBuilder: (context, i) => i == messages.length ? _typing() : _bubble(messages[i], voice),
+                      itemBuilder: (context, i) => i == messages.length ? _typing() : _bubble(messages[i], voice, store.profile.language),
                     ),
             ),
-            if (chat.error != null) _errorBanner(chat.error!),
+            if (chat.error != null) _errorBanner(chat.error!, store.profile.language),
             if (voice.error != null) _voiceError(voice),
             // Once the conversation has started the big circles are gone, so a slim strip keeps a feeling one tap away.
             if (messages.isNotEmpty)
@@ -216,19 +217,21 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
       backgroundColor: AppColors.cardWhite,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (sheet) => Consumer3<HealthStore, VoiceController, ChatState>(
-        builder: (sheet, store, voice, chat, _) => SafeArea(
+        builder: (sheet, store, voice, chat, _) {
+          final language = store.profile.language;
+          return SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Companion settings', style: TextStyle(fontFamily: 'Inter', fontSize: 17, fontWeight: FontWeight.w700)),
+                Text(t(language, 'Companion settings', 'کمپینین کی سیٹنگز'), style: const TextStyle(fontFamily: 'Inter', fontSize: 17, fontWeight: FontWeight.w700)),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   activeColor: AppColors.primaryBerry,
-                  title: const Text('Personalise with my results'),
-                  subtitle: const Text('Shares a short summary, never your name.'),
+                  title: Text(t(language, 'Personalise with my results', 'میرے نتائج کے ساتھ ذاتی بنائیں')),
+                  subtitle: Text(t(language, 'Shares a short summary, never your name.', 'ایک مختصر خلاصہ شیئر کرتا ہے، کبھی آپ کا نام نہیں۔')),
                   value: store.profile.personalize,
                   onChanged: (v) {
                     store.profile.personalize = v;
@@ -239,15 +242,16 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
                   key: const Key('read_aloud_switch'),
                   contentPadding: EdgeInsets.zero,
                   activeColor: AppColors.primaryBerry,
-                  title: const Text('Read answers aloud'),
-                  subtitle: const Text("Answers straight away in the phone's voice. Tap the speaker on a message for the AI voice."),
+                  title: Text(t(language, 'Read answers aloud', 'جوابات بلند آواز سے پڑھیں')),
+                  subtitle: Text(t(language, "Answers straight away in the phone's voice. Tap the speaker on a message for the AI voice.",
+                      'فوراً فون کی آواز میں جواب دیتا ہے۔ AI آواز کے لیے پیغام پر اسپیکر آئیکن دبائیں۔')),
                   value: voice.readAloud,
                   onChanged: voice.setReadAloud,
                 ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.person_outline_rounded, color: AppColors.primaryBerry),
-                  title: const Text('Edit my profile'),
+                  title: Text(t(language, 'Edit my profile', 'میری پروفائل تبدیل کریں')),
                   onTap: () {
                     Navigator.pop(sheet);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const OnboardingScreen(editing: true)));
@@ -257,8 +261,8 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
                   key: const Key('open_report_reader'),
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.document_scanner_outlined, color: AppColors.primaryBerry),
-                  title: const Text('Explain a medical report'),
-                  subtitle: const Text('Photo of a lab test or ultrasound report'),
+                  title: Text(t(language, 'Explain a medical report', 'میڈیکل رپورٹ سمجھائیں')),
+                  subtitle: Text(t(language, 'Photo of a lab test or ultrasound report', 'لیب ٹیسٹ یا الٹراساؤنڈ رپورٹ کی تصویر')),
                   onTap: () {
                     Navigator.pop(sheet);
                     _openReader();
@@ -267,7 +271,7 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.description_outlined, color: AppColors.primaryBerry),
-                  title: const Text('Health report (PDF)'),
+                  title: Text(t(language, 'Health report (PDF)', 'ہیلتھ رپورٹ (PDF)')),
                   onTap: () {
                     Navigator.pop(sheet);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportScreen()));
@@ -276,7 +280,7 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.delete_sweep_outlined, color: AppColors.primaryBerry),
-                  title: const Text('Clear this conversation'),
+                  title: Text(t(language, 'Clear this conversation', 'یہ گفتگو صاف کریں')),
                   onTap: () {
                     chat.clear();
                     Navigator.pop(sheet);
@@ -286,16 +290,17 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
                   key: const Key('delete_my_data'),
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.lock_reset_rounded, color: AppColors.accentPink),
-                  title: const Text('Delete all my data on this phone', style: TextStyle(color: AppColors.accentPink)),
+                  title: Text(t(language, 'Delete all my data on this phone', 'اس فون پر میرا تمام ڈیٹا حذف کریں'), style: const TextStyle(color: AppColors.accentPink)),
                   onTap: () async {
                     final ok = await showDialog<bool>(
                       context: sheet,
                       builder: (d) => AlertDialog(
-                        title: const Text('Delete everything?'),
-                        content: const Text('This removes your profile, results, logs and chat from this phone. It cannot be undone.'),
+                        title: Text(t(language, 'Delete everything?', 'سب کچھ حذف کریں؟')),
+                        content: Text(t(language, 'This removes your profile, results, logs and chat from this phone. It cannot be undone.',
+                            'یہ آپ کی پروفائل، نتائج، اندراجات اور گفتگو اس فون سے ہٹا دے گا۔ اسے واپس نہیں لایا جا سکتا۔')),
                         actions: [
-                          TextButton(onPressed: () => Navigator.pop(d, false), child: const Text('Cancel')),
-                          TextButton(onPressed: () => Navigator.pop(d, true), child: const Text('Delete')),
+                          TextButton(onPressed: () => Navigator.pop(d, false), child: Text(t(language, 'Cancel', 'منسوخ کریں'))),
+                          TextButton(onPressed: () => Navigator.pop(d, true), child: Text(t(language, 'Delete', 'حذف کریں'))),
                         ],
                       ),
                     );
@@ -309,7 +314,8 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
               ],
             ),
           ),
-        ),
+        );
+        },
       ),
     );
   }
@@ -318,20 +324,22 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
 
   Widget _emptyState(HealthStore store) {
     final name = store.profile.firstName;
-    final urdu = store.profile.language == 'ur';
+    final language = store.profile.language;
+    final urdu = language == 'ur';
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
       children: [
         Text(
-          name.isEmpty ? 'How are you feeling today?' : 'How are you feeling today, $name?',
+          name.isEmpty ? t(language, 'How are you feeling today?', 'آج آپ کیسا محسوس کر رہی ہیں؟') : t(language, 'How are you feeling today, $name?', 'آج آپ کیسا محسوس کر رہی ہیں، $name؟'),
           textAlign: TextAlign.center,
           style: const TextStyle(fontFamily: 'Inter', fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.textDark),
         ),
         const SizedBox(height: 5),
-        const Text(
-          'Tap how you feel, or just tell me. Nothing you ask is silly, and this stays between us.',
+        Text(
+          t(language, 'Tap how you feel, or just tell me. Nothing you ask is silly, and this stays between us.',
+              'آپ جیسا محسوس کریں اس پر ٹیپ کریں، یا مجھے بتائیں۔ آپ کا کوئی بھی سوال بیوقوفانہ نہیں، اور یہ ہمارے درمیان رہے گا۔'),
           textAlign: TextAlign.center,
-          style: TextStyle(fontFamily: 'Inter', fontSize: 12.5, color: AppColors.textMuted, height: 1.4),
+          style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, color: AppColors.textMuted, height: 1.4),
         ),
         const SizedBox(height: 18),
         MoodGrid(urdu: urdu, onPick: _pickMood),
@@ -342,22 +350,22 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
           child: Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(gradient: AppColors.buttonGradient, borderRadius: BorderRadius.circular(18)),
-            child: const Row(children: [
-              Icon(Icons.document_scanner_outlined, color: Colors.white),
-              SizedBox(width: 12),
+            child: Row(children: [
+              const Icon(Icons.document_scanner_outlined, color: Colors.white),
+              const SizedBox(width: 12),
               Expanded(
-                child: Text('Have a lab or ultrasound report? Take a photo and I will explain it in Urdu or English.',
-                    style: TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white, height: 1.35)),
+                child: Text(t(language, 'Have a lab or ultrasound report? Take a photo and I will explain it in Urdu or English.', 'لیب یا الٹراساؤنڈ رپورٹ ہے؟ تصویر لیں اور میں اسے اردو یا انگریزی میں سمجھاؤں گی۔'),
+                    style: const TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white, height: 1.35)),
               ),
-              Icon(Icons.chevron_right_rounded, color: Colors.white),
+              const Icon(Icons.chevron_right_rounded, color: Colors.white),
             ]),
           ),
         ),
         const SizedBox(height: 22),
-        const Text('Or ask me about', style: TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+        Text(t(language, 'Or ask me about', 'یا مجھ سے پوچھیں'), style: const TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textDark)),
         const SizedBox(height: 4),
-        const Text('You can type, or tap the microphone and speak in Urdu or English.',
-            style: TextStyle(fontFamily: 'Inter', fontSize: 12, color: AppColors.textLight, height: 1.4)),
+        Text(t(language, 'You can type, or tap the microphone and speak in Urdu or English.', 'آپ ٹائپ کر سکتی ہیں، یا مائیکروفون پر ٹیپ کر کے اردو یا انگریزی میں بول سکتی ہیں۔'),
+            style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: AppColors.textLight, height: 1.4)),
         const SizedBox(height: 10),
         for (final s in _suggestions(store))
           Padding(
@@ -387,15 +395,16 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
             ),
           ),
         const SizedBox(height: 8),
-        _disclaimer(),
+        _disclaimer(language),
       ],
     );
   }
 
-  Widget _disclaimer() => const Text(
-        'Femora AI gives general information, not medical advice or a diagnosis. For anything that worries you, see a doctor.',
+  Widget _disclaimer(String language) => Text(
+        t(language, 'Femora AI gives general information, not medical advice or a diagnosis. For anything that worries you, see a doctor.',
+            'Femora AI عمومی معلومات دیتا ہے، طبی مشورہ یا تشخیص نہیں۔ جو بھی بات آپ کو پریشان کرے اس کے لیے ڈاکٹر سے ملیں۔'),
         textAlign: TextAlign.center,
-        style: TextStyle(fontFamily: 'Inter', fontSize: 11.5, color: AppColors.textLight, height: 1.35),
+        style: const TextStyle(fontFamily: 'Inter', fontSize: 11.5, color: AppColors.textLight, height: 1.35),
       );
 
   Widget _typing() => Padding(
@@ -425,7 +434,7 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
         ),
       );
 
-  Widget _bubble(ChatMsg m, VoiceController voice) {
+  Widget _bubble(ChatMsg m, VoiceController voice, String language) {
     final dir = _isUrdu(m.text) ? TextDirection.rtl : TextDirection.ltr;
     if (m.isUser) {
       return SoftArrival(
@@ -488,13 +497,13 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (m.urgent)
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 6),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
                         child: Row(children: [
-                          Icon(Icons.warning_amber_rounded, color: AppColors.accentPink, size: 18),
-                          SizedBox(width: 6),
-                          Text('Please get medical help',
-                              style: TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.accentPink)),
+                          const Icon(Icons.warning_amber_rounded, color: AppColors.accentPink, size: 18),
+                          const SizedBox(width: 6),
+                          Text(t(language, 'Please get medical help', 'براہِ کرم طبی مدد حاصل کریں'),
+                              style: const TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.accentPink)),
                         ]),
                       ),
                     Text(m.text,
@@ -503,8 +512,8 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         if (m.offline)
-                          const Expanded(
-                              child: Text('Offline answer', style: TextStyle(fontFamily: 'Inter', fontSize: 10.5, color: AppColors.textLight))),
+                          Expanded(
+                              child: Text(t(language, 'Offline answer', 'آف لائن جواب'), style: const TextStyle(fontFamily: 'Inter', fontSize: 10.5, color: AppColors.textLight))),
                         IconButton(
                           key: Key('speak_${m.id}'),
                           visualDensity: VisualDensity.compact,
@@ -524,7 +533,7 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
     );
   }
 
-  Widget _errorBanner(String message) => Container(
+  Widget _errorBanner(String message, String language) => Container(
         key: const Key('chat_error'),
         margin: const EdgeInsets.fromLTRB(20, 0, 20, 6),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -540,7 +549,7 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
                 final q = context.read<ChatState>().takeLastUnanswered();
                 if (q != null) _send(q);
               },
-              child: const Text('Try again', style: TextStyle(color: AppColors.primaryBerry, fontWeight: FontWeight.w700)),
+              child: Text(t(language, 'Try again', 'دوبارہ کوشش کریں'), style: const TextStyle(color: AppColors.primaryBerry, fontWeight: FontWeight.w700)),
             ),
           ],
         ),

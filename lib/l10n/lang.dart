@@ -14,6 +14,9 @@ const List<String> kUrduFontFallback = [kUrduFontFamily];
 /// `t(language, 'Save', 'محفوظ کریں')`, instead of a long inline ternary at every call site.
 String t(String language, String en, String ur) => language == 'ur' ? ur : en;
 
+/// Same as [t], for a list of options (e.g. a [ChoiceRow]'s labels) rather than a single string.
+List<String> tList(String language, List<String> en, List<String> ur) => language == 'ur' ? ur : en;
+
 final _urduChars = RegExp(r'[؀-ۿݐ-ݿ]');
 
 /// True if [text] contains an Urdu (or other Arabic-script) character. Useful when a piece of text's

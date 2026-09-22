@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:femora/models/health_store.dart';
 import 'package:femora/models/pcos.dart';
 import 'package:femora/screens/pcos_assessment_screen.dart';
 import 'package:femora/services/api_service.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const _fakeResponse = {
   'probability': 0.8123,
@@ -23,8 +25,11 @@ const _fakeResponse = {
   'disclaimer': 'Not a medical diagnosis.',
 };
 
-Widget _app(PcosState state) => ChangeNotifierProvider.value(
-      value: state,
+Widget _app(PcosState state) => MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: state),
+        ChangeNotifierProvider.value(value: HealthStore()),
+      ],
       child: const MaterialApp(home: PCOSAssessmentScreen()),
     );
 
@@ -50,6 +55,8 @@ Future<void> _fillQuestionnaire(WidgetTester tester) async {
 }
 
 void main() {
+  setUp(() => SharedPreferences.setMockInitialValues({}));
+
   testWidgets('questionnaire sends answers and shows the model result', (tester) async {
     tester.view.physicalSize = const Size(1170, 2532);
     tester.view.devicePixelRatio = 2; // wider logical width: the test font renders much wider than Inter
