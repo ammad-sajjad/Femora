@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/lang.dart';
 import '../models/health_store.dart';
 import '../models/report_reader.dart';
 import '../services/api_service.dart';
@@ -68,19 +69,24 @@ class _BodyState extends State<_Body> {
 
   Future<bool> _consent(HealthStore store) async {
     if (store.profile.reportReaderConsent) return true;
+    final language = store.profile.language;
     final ok = await showDialog<bool>(
       context: context,
       builder: (d) => AlertDialog(
         key: const Key('reader_consent'),
-        title: const Text('Before you send a photo'),
-        content: const Text(
-          'To read the report, the photo is sent through the Femora server to Google\'s Gemini AI. Femora does not keep the photo, and only the explanation is saved on this phone.\n\n'
-          'Google may keep what it receives for a while, and on its free service it may use it to improve its products. '
-          'Hide or cover your name, ID number, phone number and address before you take the photo, and do not send anything you are not comfortable sharing.',
+        title: Text(t(language, 'Before you send a photo', 'تصویر بھیجنے سے پہلے')),
+        content: Text(
+          t(language,
+              'To read the report, the photo is sent through the Femora server to Google\'s Gemini AI. Femora does not keep the photo, and only the explanation is saved on this phone.\n\n'
+              'Google may keep what it receives for a while, and on its free service it may use it to improve its products. '
+              'Hide or cover your name, ID number, phone number and address before you take the photo, and do not send anything you are not comfortable sharing.',
+              'رپورٹ پڑھنے کے لیے، تصویر Femora سرور کے ذریعے Google کے Gemini AI کو بھیجی جاتی ہے۔ Femora تصویر محفوظ نہیں رکھتا، اور صرف وضاحت اس فون پر محفوظ ہوتی ہے۔\n\n'
+              'Google اسے کچھ عرصے کے لیے رکھ سکتا ہے، اور اپنی مفت سروس پر یہ اسے اپنی مصنوعات بہتر بنانے کے لیے استعمال کر سکتا ہے۔ '
+              'تصویر لینے سے پہلے اپنا نام، شناختی نمبر، فون نمبر اور پتہ چھپا دیں یا ڈھانپ دیں، اور ایسی کوئی چیز نہ بھیجیں جو آپ شیئر کرنے میں آرام دہ نہیں ہیں۔'),
         ),
         actions: [
-          TextButton(key: const Key('consent_no'), onPressed: () => Navigator.pop(d, false), child: const Text('Not now')),
-          TextButton(key: const Key('consent_agree'), onPressed: () => Navigator.pop(d, true), child: const Text('I understand, continue')),
+          TextButton(key: const Key('consent_no'), onPressed: () => Navigator.pop(d, false), child: Text(t(language, 'Not now', 'ابھی نہیں'))),
+          TextButton(key: const Key('consent_agree'), onPressed: () => Navigator.pop(d, true), child: Text(t(language, 'I understand, continue', 'میں سمجھ گئی، جاری رکھیں'))),
         ],
       ),
     );
@@ -106,6 +112,7 @@ class _BodyState extends State<_Body> {
   Widget build(BuildContext context) {
     final st = context.watch<ReportReaderState>();
     final r = st.current;
+    final language = context.watch<HealthStore>().profile.language;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -113,32 +120,32 @@ class _BodyState extends State<_Body> {
         elevation: 0,
         foregroundColor: AppColors.textDark,
         leading: IconButton(key: const Key('reader_back'), icon: const Icon(Icons.arrow_back_rounded), onPressed: () => Navigator.maybePop(context)),
-        title: const Text('Explain my report', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700)),
+        title: Text(t(language, 'Explain my report', 'میری رپورٹ سمجھائیں'), style: const TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700)),
       ),
       body: SafeArea(
         child: st.busy
-            ? _working()
+            ? _working(language)
             : ListView(
                 padding: const EdgeInsets.fromLTRB(18, 4, 18, 40),
                 children: [
                   if (st.error != null) _errorBox(st.error!),
-                  if (r != null) ..._result(r) else ..._start(st),
+                  if (r != null) ..._result(r) else ..._start(st, language),
                 ],
               ),
       ),
     );
   }
 
-  Widget _working() => Center(
+  Widget _working(String language) => Center(
         key: const Key('reader_working'),
         child: Padding(
           padding: const EdgeInsets.all(32),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             const CircularProgressIndicator(color: AppColors.primaryBerry),
             const SizedBox(height: 18),
-            Text('Reading your report…', style: _s(16, w: FontWeight.w700)),
+            Text(t(language, 'Reading your report…', 'آپ کی رپورٹ پڑھی جا رہی ہے…'), style: _s(16, w: FontWeight.w700)),
             const SizedBox(height: 6),
-            Text('This can take up to a minute. Please keep the app open.', textAlign: TextAlign.center, style: _s(12.5, c: AppColors.textMuted, h: 1.4)),
+            Text(t(language, 'This can take up to a minute. Please keep the app open.', 'اس میں ایک منٹ تک لگ سکتا ہے۔ براہِ کرم ایپ کھلی رکھیں۔'), textAlign: TextAlign.center, style: _s(12.5, c: AppColors.textMuted, h: 1.4)),
           ]),
         ),
       );
@@ -153,7 +160,7 @@ class _BodyState extends State<_Body> {
 
   // ------------------------------------------------------------------ before reading
 
-  List<Widget> _start(ReportReaderState st) {
+  List<Widget> _start(ReportReaderState st, String language) {
     final store = context.watch<HealthStore>();
     return [
       Container(
@@ -163,22 +170,22 @@ class _BodyState extends State<_Body> {
           Row(children: [
             const Icon(Icons.document_scanner_outlined, color: AppColors.primaryBerry),
             const SizedBox(width: 8),
-            Expanded(child: Text('Understand a medical report', style: _s(17, w: FontWeight.w700))),
+            Expanded(child: Text(t(language, 'Understand a medical report', 'میڈیکل رپورٹ سمجھیں'), style: _s(17, w: FontWeight.w700))),
           ]),
           const SizedBox(height: 8),
           Text(
-            'Take a clear photo of a blood test, hormone test, ultrasound report or prescription. I will explain it in '
-            '${store.profile.language == 'ur' ? 'Urdu' : 'simple English'} and suggest questions for your doctor.',
+            t(language, 'Take a clear photo of a blood test, hormone test, ultrasound report or prescription. I will explain it in ${language == 'ur' ? 'Urdu' : 'simple English'} and suggest questions for your doctor.',
+                'خون کے ٹیسٹ، ہارمون ٹیسٹ، الٹراساؤنڈ رپورٹ یا نسخے کی واضح تصویر لیں۔ میں اسے اردو میں سمجھاؤں گی اور آپ کے ڈاکٹر کے لیے سوالات تجویز کروں گی۔'),
             style: _s(13, c: AppColors.textMuted, h: 1.45),
           ),
           const SizedBox(height: 10),
-          Text('Tip: lay the page flat in good light, and cover your name and ID number first.', style: _s(12, c: AppColors.textLight, h: 1.4)),
+          Text(t(language, 'Tip: lay the page flat in good light, and cover your name and ID number first.', 'تجویز: صفحے کو اچھی روشنی میں سیدھا رکھیں، اور پہلے اپنا نام اور شناختی نمبر چھپائیں۔'), style: _s(12, c: AppColors.textLight, h: 1.4)),
           const SizedBox(height: 14),
           if (_pages.isEmpty)
             Row(children: [
-              if (!kIsWeb) Expanded(child: _pickButton('reader_camera', Icons.photo_camera_outlined, 'Take a photo', () => _pick(true))),
+              if (!kIsWeb) Expanded(child: _pickButton('reader_camera', Icons.photo_camera_outlined, t(language, 'Take a photo', 'تصویر لیں'), () => _pick(true))),
               if (!kIsWeb) const SizedBox(width: 10),
-              Expanded(child: _pickButton('reader_gallery', Icons.photo_library_outlined, 'Choose photos', () => _pick(false))),
+              Expanded(child: _pickButton('reader_gallery', Icons.photo_library_outlined, t(language, 'Choose photos', 'تصاویر منتخب کریں'), () => _pick(false))),
             ])
           else ...[
             SizedBox(
@@ -206,12 +213,13 @@ class _BodyState extends State<_Body> {
               ]),
             ),
             const SizedBox(height: 6),
-            Text('${_pages.length} page${_pages.length == 1 ? '' : 's'} ready (up to ${ReportReaderScreen.maxPages})', key: const Key('reader_count'), style: _s(12, c: AppColors.textMuted)),
+            Text(t(language, '${_pages.length} page${_pages.length == 1 ? '' : 's'} ready (up to ${ReportReaderScreen.maxPages})', '${_pages.length} صفح(ات) تیار (${ReportReaderScreen.maxPages} تک)'),
+                key: const Key('reader_count'), style: _s(12, c: AppColors.textMuted)),
             const SizedBox(height: 10),
             if (_pages.length < ReportReaderScreen.maxPages)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
-                child: _pickButton('reader_add', Icons.add_photo_alternate_outlined, 'Add another page', () => _pick(!kIsWeb)),
+                child: _pickButton('reader_add', Icons.add_photo_alternate_outlined, t(language, 'Add another page', 'مزید صفحہ شامل کریں'), () => _pick(!kIsWeb)),
               ),
             SizedBox(
               width: double.infinity,
@@ -223,7 +231,7 @@ class _BodyState extends State<_Body> {
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
                 onPressed: _explain,
-                child: const Text('Explain this report', style: TextStyle(fontWeight: FontWeight.w700)),
+                child: Text(t(language, 'Explain this report', 'یہ رپورٹ سمجھائیں'), style: const TextStyle(fontWeight: FontWeight.w700)),
               ),
             ),
           ],
@@ -231,12 +239,13 @@ class _BodyState extends State<_Body> {
       ),
       if (store.reports.isNotEmpty) ...[
         const SizedBox(height: 22),
-        Text('Reports I explained before', style: _s(14, w: FontWeight.w700)),
+        Text(t(language, 'Reports I explained before', 'پہلے سمجھائی گئی رپورٹس'), style: _s(14, w: FontWeight.w700)),
         const SizedBox(height: 8),
-        for (var i = 0; i < store.reports.length; i++) _pastTile(i, store.reports[i], store),
+        for (var i = 0; i < store.reports.length; i++) _pastTile(i, store.reports[i], store, language),
       ],
       const SizedBox(height: 16),
-      Text('Femora is not a laboratory or a doctor. It can misread a photo, so always check the values against your report.', style: _s(11.5, c: AppColors.textLight, h: 1.4)),
+      Text(t(language, 'Femora is not a laboratory or a doctor. It can misread a photo, so always check the values against your report.',
+          'Femora کوئی لیبارٹری یا ڈاکٹر نہیں ہے۔ یہ تصویر غلط پڑھ سکتا ہے، اس لیے ہمیشہ اپنی رپورٹ سے اقدار کی تصدیق کریں۔'), style: _s(11.5, c: AppColors.textLight, h: 1.4)),
     ];
   }
 
@@ -252,7 +261,7 @@ class _BodyState extends State<_Body> {
         label: Text(label),
       );
 
-  Widget _pastTile(int i, ExplainedReport r, HealthStore store) => Container(
+  Widget _pastTile(int i, ExplainedReport r, HealthStore store, String language) => Container(
         key: Key('reader_past_$i'),
         margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(color: AppColors.cardWhite, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.surfaceBorder)),
@@ -261,8 +270,10 @@ class _BodyState extends State<_Body> {
           child: ListTile(
             onTap: () => context.read<ReportReaderState>().show(r),
             leading: Icon(r.urgency == 'urgent' ? Icons.priority_high_rounded : Icons.description_outlined, color: r.urgency == 'urgent' ? const Color(0xFFC62828) : AppColors.primaryBerry),
-            title: Text(r.title, style: _s(14, w: FontWeight.w600)),
-            subtitle: Text('${HealthStore.ago(r.date, store.now())} · ${r.outOfRange.length} outside range', style: _s(12, c: AppColors.textMuted)),
+            title: Text(r.titleIn(language), style: _s(14, w: FontWeight.w600)),
+            subtitle: Text(
+                t(language, '${HealthStore.ago(r.date, store.now())} · ${r.outOfRange.length} outside range', '${HealthStore.ago(r.date, store.now(), language: 'ur')} · ${r.outOfRange.length} حد سے باہر'),
+                style: _s(12, c: AppColors.textMuted)),
             trailing: IconButton(key: Key('reader_delete_$i'), icon: const Icon(Icons.delete_outline_rounded, size: 20), onPressed: () => store.removeReport(r)),
           ),
         ),
@@ -281,18 +292,19 @@ class _BodyState extends State<_Body> {
 
   List<Widget> _result(ExplainedReport r) {
     final voice = context.read<VoiceController>();
+    final language = r.language; // the report's own language, so its chrome always matches its content
     return [
-      if (r.urgency != 'none') _urgencyBanner(r.urgency),
+      if (r.urgency != 'none') _urgencyBanner(r.urgency, language),
       Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(color: AppColors.cardWhite, borderRadius: BorderRadius.circular(24), boxShadow: AppTheme.softShadow),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            Expanded(child: Text(r.title, key: const Key('reader_kind'), style: _s(18, w: FontWeight.w700))),
+            Expanded(child: Text(r.titleIn(language), key: const Key('reader_kind'), style: _s(18, w: FontWeight.w700))),
             if (r.readable)
               IconButton(
                 key: const Key('reader_speak'),
-                tooltip: 'Read aloud',
+                tooltip: t(language, 'Read aloud', 'بلند آواز سے پڑھیں'),
                 icon: const Icon(Icons.volume_up_rounded, color: AppColors.primaryBerry),
                 onPressed: () => voice.speak(r.summary, language: r.language, natural: false),
               ),
@@ -306,13 +318,13 @@ class _BodyState extends State<_Body> {
       ),
       if (r.findings.isNotEmpty) ...[
         const SizedBox(height: 18),
-        Text(r.kind == 'prescription' ? 'Medicines on the prescription' : 'What the report shows', style: _s(15, w: FontWeight.w700)),
+        Text(r.kind == 'prescription' ? t(language, 'Medicines on the prescription', 'نسخے پر موجود دوائیں') : t(language, 'What the report shows', 'رپورٹ کیا ظاہر کرتی ہے'), style: _s(15, w: FontWeight.w700)),
         const SizedBox(height: 8),
-        for (var i = 0; i < r.findings.length; i++) _findingTile(i, r.findings[i], r.kind == 'prescription'),
+        for (var i = 0; i < r.findings.length; i++) _findingTile(i, r.findings[i], r.kind == 'prescription', language),
       ],
       if (r.questions.isNotEmpty) ...[
         const SizedBox(height: 18),
-        Text('Questions to ask your doctor', style: _s(15, w: FontWeight.w700)),
+        Text(t(language, 'Questions to ask your doctor', 'ڈاکٹر سے پوچھنے کے سوالات'), style: _s(15, w: FontWeight.w700)),
         const SizedBox(height: 6),
         for (final q in r.questions)
           Padding(
@@ -340,9 +352,12 @@ class _BodyState extends State<_Body> {
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
-            onPressed: () => Navigator.pop(context, 'Please explain my ${r.title.toLowerCase()} in simple words, and tell me what I should ask my doctor.'),
+            onPressed: () => Navigator.pop(
+                context,
+                t(language, 'Please explain my ${r.title.toLowerCase()} in simple words, and tell me what I should ask my doctor.',
+                    'براہِ کرم میری ${r.titleIn(language)} آسان الفاظ میں سمجھائیں، اور بتائیں کہ مجھے اپنے ڈاکٹر سے کیا پوچھنا چاہیے۔')),
             icon: const Icon(Icons.auto_awesome_rounded, size: 18),
-            label: const Text('Ask Femora about this', style: TextStyle(fontWeight: FontWeight.w700)),
+            label: Text(t(language, 'Ask Femora about this', 'اس بارے میں Femora سے پوچھیں'), style: const TextStyle(fontWeight: FontWeight.w700)),
           ),
         ),
       const SizedBox(height: 8),
@@ -356,13 +371,13 @@ class _BodyState extends State<_Body> {
               padding: const EdgeInsets.symmetric(vertical: 13),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
           onPressed: _startOver,
-          child: const Text('Read another report'),
+          child: Text(t(language, 'Read another report', 'دوسری رپورٹ پڑھیں')),
         ),
       ),
     ];
   }
 
-  Widget _urgencyBanner(String urgency) {
+  Widget _urgencyBanner(String urgency, String language) {
     final urgent = urgency == 'urgent';
     final color = urgent ? const Color(0xFFC62828) : const Color(0xFFE08A1E);
     return Container(
@@ -375,9 +390,14 @@ class _BodyState extends State<_Body> {
         const SizedBox(width: 10),
         Expanded(
           child: Text(
-            urgent
-                ? 'This report has a value that may need a doctor today. Please contact your doctor or go to a hospital, and do not wait for the app.'
-                : 'Some values are outside their range. Please book a visit with your doctor soon to talk about them.',
+            t(
+                language,
+                urgent
+                    ? 'This report has a value that may need a doctor today. Please contact your doctor or go to a hospital, and do not wait for the app.'
+                    : 'Some values are outside their range. Please book a visit with your doctor soon to talk about them.',
+                urgent
+                    ? 'اس رپورٹ میں ایک قدر ایسی ہے جس کے لیے آج ہی ڈاکٹر کی ضرورت ہو سکتی ہے۔ براہِ کرم اپنے ڈاکٹر سے رابطہ کریں یا ہسپتال جائیں، اور ایپ کا انتظار نہ کریں۔'
+                    : 'کچھ اقدار اپنی حد سے باہر ہیں۔ براہِ کرم جلد اپنے ڈاکٹر سے ملاقات کریں اور ان کے بارے میں بات کریں۔'),
             style: _s(13, w: FontWeight.w600, c: color, h: 1.45),
           ),
         ),
@@ -385,7 +405,7 @@ class _BodyState extends State<_Body> {
     );
   }
 
-  Widget _findingTile(int i, ReportFinding f, bool prescription) {
+  Widget _findingTile(int i, ReportFinding f, bool prescription, String language) {
     final color = _statusColors[f.status] ?? AppColors.textMuted;
     final measured = [f.value, f.unit].where((t) => t.isNotEmpty).join(' ');
     return Container(
@@ -400,13 +420,13 @@ class _BodyState extends State<_Body> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
               decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12)),
-              child: Text(f.status, key: Key('finding_status_$i'), style: _s(11.5, w: FontWeight.w700, c: color)),
+              child: Text(f.statusIn(language), key: Key('finding_status_$i'), style: _s(11.5, w: FontWeight.w700, c: color)),
             ),
         ]),
         if (measured.isNotEmpty || (f.reference.isNotEmpty && !prescription)) ...[
           const SizedBox(height: 3),
           Text(
-            [if (measured.isNotEmpty) measured, if (f.reference.isNotEmpty && !prescription) 'printed range ${f.reference}'].join('  ·  '),
+            [if (measured.isNotEmpty) measured, if (f.reference.isNotEmpty && !prescription) t(language, 'printed range ${f.reference}', 'رینج ${f.reference}')].join('  ·  '),
             style: _s(12.5, w: FontWeight.w600, c: AppColors.textMuted),
           ),
         ],

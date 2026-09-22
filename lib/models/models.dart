@@ -15,6 +15,23 @@ class SymptomItem {
     required this.icon,
     this.isSelected = false,
   });
+
+  static const _namesUr = {
+    'cramps': 'درد',
+    'bloating': 'پھولنا',
+    'headache': 'سر درد',
+    'fatigue': 'تھکاوٹ',
+    'acne': 'کیل مہاسے',
+    'backache': 'کمر درد',
+    'tender': 'حساسیت',
+    'nausea': 'متلی',
+    'hairloss': 'بالوں کا گرنا',
+    'excesshair': 'زائد بال',
+  };
+
+  /// [name], but in Urdu when asked: for on-screen display only. The stored log always keeps the English
+  /// [name] (lower-cased), since it is matched by id elsewhere (hormonal insights, the companion context).
+  String nameIn(String language) => language == 'ur' ? (_namesUr[id] ?? name) : name;
 }
 
 /// The moods a user can log (stored as the id).

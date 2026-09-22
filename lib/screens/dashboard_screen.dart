@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/lang.dart';
 import '../models/analytics.dart';
 import '../models/health_store.dart';
 import '../models/hormone_insights.dart';
@@ -16,6 +17,9 @@ import 'trends_screen.dart';
 
 /// Scope 6.9: one place to see cycle history, symptom patterns, hormonal trends and how well the predictions did,
 /// with a way to open the downloadable health report.
+///
+/// The layout and headings here are bilingual; the cards themselves (charts, hormone patterns and flags) are
+/// still English-only pending a native speaker's review of that clinical wording.
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
@@ -38,6 +42,7 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = context.watch<HealthStore>();
+    final language = store.profile.language;
     final engine = store.cycle;
     final history = CycleHistory.of(engine);
     final backtest = CycleBacktest.compute(store.periods);
@@ -50,24 +55,24 @@ class DashboardScreen extends StatelessWidget {
         elevation: 0,
         foregroundColor: AppColors.textDark,
         leading: IconButton(key: const Key('dashboard_back'), icon: const Icon(Icons.arrow_back_rounded), onPressed: () => Navigator.maybePop(context)),
-        title: const Text('Health dashboard', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700)),
+        title: Text(t(language, 'Health dashboard', 'ہیلتھ ڈیش بورڈ'), style: const TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700)),
       ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.only(bottom: 40),
           children: [
             CycleAtAGlance(engine: engine, history: history),
-            const DashboardSectionTitle('Your cycle'),
+            DashboardSectionTitle(t(language, 'Your cycle', 'آپ کا سائیکل')),
             CycleHistoryChartCard(history: history),
             PredictionAnalyticsCard(backtest: backtest),
-            const DashboardSectionTitle('Symptoms and mood, last 30 days'),
+            DashboardSectionTitle(t(language, 'Symptoms and mood, last 30 days', 'علامات اور موڈ، پچھلے 30 دن')),
             const SizedBox(height: 12),
             TrendSummaryTiles(stats: stats),
             MoodTrendCard(stats: stats),
             SleepTrendCard(stats: stats),
             StressEnergyCard(stats: stats),
             SymptomFrequencyCard(stats: stats),
-            const DashboardSectionTitle('Hormonal trends'),
+            DashboardSectionTitle(t(language, 'Hormonal trends', 'ہارمونل رجحانات')),
             HormoneCurveCard(engine: engine),
             PhaseAveragesCard(insights: insights),
             if (engine.hasHistory) PhaseSymptomTable(insights: insights),
@@ -75,23 +80,26 @@ class DashboardScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
                 child: Text(
-                  '${insights.flags.length} symptom${insights.flags.length == 1 ? '' : 's'} worth checking and ${insights.patterns.length} pattern${insights.patterns.length == 1 ? '' : 's'} found. Open Hormonal insights for the details.',
+                  t(language, '${insights.flags.length} symptom${insights.flags.length == 1 ? '' : 's'} worth checking and ${insights.patterns.length} pattern${insights.patterns.length == 1 ? '' : 's'} found. Open Hormonal insights for the details.',
+                      '${insights.flags.length} قابلِ توجہ علامات اور ${insights.patterns.length} رجحانات ملے۔ تفصیلات کے لیے ہارمونل بصیرت کھولیں۔'),
                   key: const Key('dash_insight_count'),
                   style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, color: AppColors.textMuted, height: 1.4),
                 ),
               ),
-            const DashboardSectionTitle('Results'),
+            DashboardSectionTitle(t(language, 'Results', 'نتائج')),
             const SizedBox(height: 0),
             LatestResultsCard(store: store),
-            const DashboardSectionTitle('More'),
-            _link(context, const Key('dash_open_report'), Icons.description_outlined, 'Health report (PDF)', const ReportScreen()),
-            _link(context, const Key('dash_open_trends'), Icons.show_chart_rounded, 'My trends (7, 30 or 90 days)', const TrendsScreen()),
-            _link(context, const Key('dash_open_insights'), Icons.bubble_chart_outlined, 'Hormonal insights', const HormoneInsightsScreen()),
-            _link(context, const Key('dash_open_reminders'), Icons.notifications_active_outlined, 'Reminders', const RemindersScreen()),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(24, 16, 24, 0),
-              child: Text('Everything here comes from what you logged and the checks you did. It is not a diagnosis; talk to a doctor about anything that worries you.',
-                  style: TextStyle(fontFamily: 'Inter', fontSize: 11, color: AppColors.textLight, height: 1.4)),
+            DashboardSectionTitle(t(language, 'More', 'مزید')),
+            _link(context, const Key('dash_open_report'), Icons.description_outlined, t(language, 'Health report (PDF)', 'ہیلتھ رپورٹ (PDF)'), const ReportScreen()),
+            _link(context, const Key('dash_open_trends'), Icons.show_chart_rounded, t(language, 'My trends (7, 30 or 90 days)', 'میرے رجحانات (7، 30 یا 90 دن)'), const TrendsScreen()),
+            _link(context, const Key('dash_open_insights'), Icons.bubble_chart_outlined, t(language, 'Hormonal insights', 'ہارمونل بصیرت'), const HormoneInsightsScreen()),
+            _link(context, const Key('dash_open_reminders'), Icons.notifications_active_outlined, t(language, 'Reminders', 'یاد دہانیاں'), const RemindersScreen()),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+              child: Text(
+                  t(language, 'Everything here comes from what you logged and the checks you did. It is not a diagnosis; talk to a doctor about anything that worries you.',
+                      'یہاں سب کچھ آپ کے درج کردہ اندراجات اور آپ کے کیے گئے چیکس سے ہے۔ یہ تشخیص نہیں ہے؛ جو بھی بات آپ کو پریشان کرے اس کے بارے میں ڈاکٹر سے بات کریں۔'),
+                  style: const TextStyle(fontFamily: 'Inter', fontSize: 11, color: AppColors.textLight, height: 1.4)),
             ),
           ],
         ),

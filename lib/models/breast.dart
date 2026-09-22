@@ -84,6 +84,18 @@ const breastSymptoms = {
   'breast_pain': 'Breast pain',
 };
 
+/// [breastSymptoms], in Urdu, for on-screen display only: the keys are what is actually stored and matched
+/// elsewhere (the health report, the companion context), so those keep the English map above.
+const breastSymptomsUr = {
+  'breast_lump': 'بریسٹ میں نئی گلٹی یا گاڑھا پن',
+  'armpit_lump': 'بغل میں گلٹی',
+  'nipple_discharge': 'نپل سے رطوبت یا خون (دودھ نہیں)',
+  'nipple_change': 'نپل کا اندر دھنس جانا یا بدل جانا',
+  'skin_change': 'جلد پر گڑھے، سرخی یا نارنجی چھلکے جیسی ساخت',
+  'shape_change': 'بریسٹ کے سائز یا شکل میں تبدیلی',
+  'breast_pain': 'بریسٹ میں درد',
+};
+
 class BreastRiskAnswers {
   final int age;
   final double heightCm;

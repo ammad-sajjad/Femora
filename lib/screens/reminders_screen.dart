@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/lang.dart';
 import '../models/health_store.dart';
 import '../models/reminders.dart';
 import '../models/self_exam.dart';
@@ -8,16 +9,22 @@ import '../theme/app_theme.dart';
 
 const _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const _daysUr = ['پیر', 'منگل', 'بدھ', 'جمعرات', 'جمعہ', 'ہفتہ', 'اتوار'];
+const _monthsUr = ['جنوری', 'فروری', 'مارچ', 'اپریل', 'مئی', 'جون', 'جولائی', 'اگست', 'ستمبر', 'اکتوبر', 'نومبر', 'دسمبر'];
 
-String fmtTime(int h, int m) {
+String fmtTime(int h, int m, {String language = 'en'}) {
   final hour = h % 12 == 0 ? 12 : h % 12;
-  return '$hour:${m.toString().padLeft(2, '0')} ${h < 12 ? 'AM' : 'PM'}';
+  final mm = m.toString().padLeft(2, '0');
+  return language == 'ur' ? '$hour:$mm ${h < 12 ? 'صبح' : 'شام'}' : '$hour:$mm ${h < 12 ? 'AM' : 'PM'}';
 }
 
 TextStyle _s(double size, {FontWeight w = FontWeight.w400, Color c = AppColors.textDark, double? h}) =>
     TextStyle(fontFamily: 'Inter', fontSize: size, fontWeight: w, color: c, height: h);
 
 /// Scope 6.8: reminders for the next period, the fertile window, logging your day, medication and the monthly self-exam.
+///
+/// The screen's own layout is bilingual; the reminder text itself (what appears in "Coming up", and in the
+/// phone notification when it arrives) is still English-only pending a native speaker's review.
 class RemindersScreen extends StatelessWidget {
   const RemindersScreen({super.key});
 
@@ -36,7 +43,7 @@ class RemindersScreen extends StatelessWidget {
     if (t != null) await done(t.hour, t.minute);
   }
 
-  Future<void> _addMedication(BuildContext context) async {
+  Future<void> _addMedication(BuildContext context, String language) async {
     final store = context.read<HealthStore>();
     final state = context.read<RemindersState>();
     final name = TextEditingController();
@@ -46,12 +53,12 @@ class RemindersScreen extends StatelessWidget {
       context: context,
       builder: (dialog) => StatefulBuilder(
         builder: (dialog, setState) => AlertDialog(
-          title: const Text('Medication reminder'),
+          title: Text(t(language, 'Medication reminder', 'دوائی کی یاد دہانی')),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextField(key: const Key('med_name'), controller: name, maxLength: ReminderSettings.maxNameLength, decoration: const InputDecoration(labelText: 'Name of the medicine')),
+              TextField(key: const Key('med_name'), controller: name, maxLength: ReminderSettings.maxNameLength, decoration: InputDecoration(labelText: t(language, 'Name of the medicine', 'دوائی کا نام'))),
               const SizedBox(height: 4),
               OutlinedButton.icon(
                 key: const Key('med_pick_time'),
@@ -60,21 +67,22 @@ class RemindersScreen extends StatelessWidget {
                   if (t != null) setState(() => (hour, minute) = (t.hour, t.minute));
                 },
                 icon: const Icon(Icons.access_time_rounded),
-                label: Text('Every day at ${fmtTime(hour, minute)}'),
+                label: Text(t(language, 'Every day at ${fmtTime(hour, minute)}', 'روزانہ ${fmtTime(hour, minute, language: 'ur')} بجے')),
               ),
               const SizedBox(height: 8),
-              Text('Femora only reminds you. Ask your doctor or pharmacist how to take any medicine.', style: _s(11.5, c: AppColors.textMuted, h: 1.35)),
+              Text(t(language, 'Femora only reminds you. Ask your doctor or pharmacist how to take any medicine.', 'Femora صرف یاد دہانی کراتا ہے۔ کوئی بھی دوا لینے کا طریقہ اپنے ڈاکٹر یا فارماسسٹ سے پوچھیں۔'),
+                  style: _s(11.5, c: AppColors.textMuted, h: 1.35)),
             ],
           ),
           actions: [
-            TextButton(key: const Key('med_cancel'), onPressed: () => Navigator.pop(dialog, 'cancelled'), child: const Text('Cancel')),
+            TextButton(key: const Key('med_cancel'), onPressed: () => Navigator.pop(dialog, 'cancelled'), child: Text(t(language, 'Cancel', 'منسوخ کریں'))),
             FilledButton(
               key: const Key('med_confirm'),
               onPressed: () async {
                 final e = await state.addMedication(name.text, hour, minute, store.cycle);
                 if (dialog.mounted) Navigator.pop(dialog, e);
               },
-              child: const Text('Add'),
+              child: Text(t(language, 'Add', 'شامل کریں')),
             ),
           ],
         ),
@@ -88,6 +96,7 @@ class RemindersScreen extends StatelessWidget {
     final state = context.watch<RemindersState>();
     final store = context.watch<HealthStore>();
     final exam = context.watch<SelfExamState>();
+    final language = store.profile.language;
     final engine = store.cycle;
     final s = state.settings;
     final upcoming = state.upcoming(engine);
@@ -116,7 +125,7 @@ class RemindersScreen extends StatelessWidget {
         elevation: 0,
         foregroundColor: AppColors.textDark,
         leading: IconButton(key: const Key('reminders_back'), icon: const Icon(Icons.arrow_back_rounded), onPressed: () => Navigator.maybePop(context)),
-        title: const Text('Reminders', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700)),
+        title: Text(t(language, 'Reminders', 'یاد دہانیاں'), style: const TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700)),
       ),
       body: SafeArea(
         child: ListView(
@@ -128,13 +137,17 @@ class RemindersScreen extends StatelessWidget {
                 margin: const EdgeInsets.fromLTRB(18, 4, 18, 0),
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(color: AppColors.aiInsightBg, borderRadius: BorderRadius.circular(16)),
-                child: Text('Reminders are sent by the Femora app on your phone. You can set them up here, but they only arrive on Android or iPhone.', style: _s(12.5, h: 1.4)),
+                child: Text(
+                    t(language, 'Reminders are sent by the Femora app on your phone. You can set them up here, but they only arrive on Android or iPhone.',
+                        'یاد دہانیاں Femora ایپ آپ کے فون پر بھیجتی ہے۔ آپ انہیں یہاں سیٹ کر سکتی ہیں، لیکن یہ صرف Android یا iPhone پر موصول ہوتی ہیں۔'),
+                    style: _s(12.5, h: 1.4)),
               ),
             card(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  switchRow('Period coming up', 'A reminder before your next period is expected.', s.period, (v) => _change(context, s.copyWith(period: v)), const Key('rem_period')),
+                  switchRow(t(language, 'Period coming up', 'پیریڈ آنے والا ہے'), t(language, 'A reminder before your next period is expected.', 'آپ کے اگلے متوقع پیریڈ سے پہلے ایک یاد دہانی۔'), s.period,
+                      (v) => _change(context, s.copyWith(period: v)), const Key('rem_period')),
                   if (s.period) ...[
                     Wrap(
                       spacing: 8,
@@ -142,7 +155,7 @@ class RemindersScreen extends StatelessWidget {
                         for (final n in [0, 1, 2, 3])
                           ChoiceChip(
                             key: Key('rem_before_$n'),
-                            label: Text(n == 0 ? 'On the day' : '$n day${n == 1 ? '' : 's'} before'),
+                            label: Text(n == 0 ? t(language, 'On the day', 'اسی دن') : t(language, '$n day${n == 1 ? '' : 's'} before', '$n دن پہلے')),
                             selected: s.periodDaysBefore == n,
                             selectedColor: const Color(0xFFFFDFE8),
                             onSelected: (_) => _change(context, s.copyWith(periodDaysBefore: n)),
@@ -150,10 +163,22 @@ class RemindersScreen extends StatelessWidget {
                       ],
                     ),
                     if (!engine.hasHistory)
-                      Padding(padding: const EdgeInsets.only(top: 8), child: Text('Log the first day of your last period in the Cycle tab so there is a date to remind you about.', key: const Key('rem_need_period'), style: _s(12, c: AppColors.textMuted, h: 1.35))),
+                      Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(
+                              t(language, 'Log the first day of your last period in the Cycle tab so there is a date to remind you about.',
+                                  'سائیکل ٹیب میں اپنے آخری پیریڈ کا پہلا دن درج کریں تاکہ یاد دہانی کے لیے ایک تاریخ موجود ہو۔'),
+                              key: const Key('rem_need_period'),
+                              style: _s(12, c: AppColors.textMuted, h: 1.35))),
                   ],
                   const Divider(height: 22),
-                  switchRow('Fertile window and ovulation', 'When your estimated fertile window starts and on your estimated ovulation day. An estimate, not contraception.', s.fertile, (v) => _change(context, s.copyWith(fertile: v)), const Key('rem_fertile')),
+                  switchRow(
+                      t(language, 'Fertile window and ovulation', 'زرخیز دورانیہ اور بیضہ دانی'),
+                      t(language, 'When your estimated fertile window starts and on your estimated ovulation day. An estimate, not contraception.',
+                          'جب آپ کا تخمینی زرخیز دورانیہ شروع ہو اور آپ کے تخمینی بیضہ دانی کے دن۔ یہ ایک تخمینہ ہے، مانع حمل طریقہ نہیں۔'),
+                      s.fertile,
+                      (v) => _change(context, s.copyWith(fertile: v)),
+                      const Key('rem_fertile')),
                 ],
               ),
             ),
@@ -161,7 +186,8 @@ class RemindersScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  switchRow('Log my day', 'A daily nudge to log symptoms, mood and sleep.', s.dailyLog, (v) => _change(context, s.copyWith(dailyLog: v)), const Key('rem_daily')),
+                  switchRow(t(language, 'Log my day', 'میرا دن درج کریں'), t(language, 'A daily nudge to log symptoms, mood and sleep.', 'علامات، موڈ اور نیند درج کرنے کی روزانہ یاد دہانی۔'), s.dailyLog,
+                      (v) => _change(context, s.copyWith(dailyLog: v)), const Key('rem_daily')),
                   if (s.dailyLog)
                     Align(
                       alignment: Alignment.centerLeft,
@@ -169,13 +195,15 @@ class RemindersScreen extends StatelessWidget {
                         key: const Key('rem_daily_time'),
                         onPressed: () => _pickTime(context, s.dailyHour, s.dailyMinute, (h, m) => _change(context, s.copyWith(dailyHour: h, dailyMinute: m))),
                         icon: const Icon(Icons.access_time_rounded, size: 18),
-                        label: Text('Every day at ${fmtTime(s.dailyHour, s.dailyMinute)}'),
+                        label: Text(t(language, 'Every day at ${fmtTime(s.dailyHour, s.dailyMinute)}', 'روزانہ ${fmtTime(s.dailyHour, s.dailyMinute, language: 'ur')} بجے')),
                       ),
                     ),
                   const Divider(height: 22),
                   switchRow(
-                    'Monthly breast self-exam',
-                    exam.lastExam == null ? 'A monthly reminder to check your breasts.' : 'A monthly reminder, on the day of your last exam.',
+                    t(language, 'Monthly breast self-exam', 'ماہانہ بریسٹ سیلف ایگزام'),
+                    exam.lastExam == null
+                        ? t(language, 'A monthly reminder to check your breasts.', 'اپنے بریسٹ چیک کرنے کی ماہانہ یاد دہانی۔')
+                        : t(language, 'A monthly reminder, on the day of your last exam.', 'آپ کے آخری معائنے کے دن، ایک ماہانہ یاد دہانی۔'),
                     exam.reminderOn,
                     (v) async {
                       final err = await exam.setReminder(v);
@@ -190,9 +218,9 @@ class RemindersScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Medication', style: _s(15, w: FontWeight.w700)),
+                  Text(t(language, 'Medication', 'دوائی'), style: _s(15, w: FontWeight.w700)),
                   const SizedBox(height: 2),
-                  Text('Daily reminders for medicines or supplements you take.', style: _s(12, c: AppColors.textMuted)),
+                  Text(t(language, 'Daily reminders for medicines or supplements you take.', 'آپ کی لی جانے والی دوائیوں یا سپلیمنٹس کی روزانہ یاد دہانیاں۔'), style: _s(12, c: AppColors.textMuted)),
                   for (final m in s.medications)
                     Padding(
                       padding: const EdgeInsets.only(top: 8),
@@ -209,7 +237,7 @@ class RemindersScreen extends StatelessWidget {
                                     final err = await state.setMedicationTime(m.id, h, min, store.cycle);
                                     if (err != null && context.mounted) _say(context, err);
                                   }),
-                                  child: Text('Every day at ${fmtTime(m.hour, m.minute)}', style: _s(12, c: AppColors.primaryBerry, w: FontWeight.w600)),
+                                  child: Text(t(language, 'Every day at ${fmtTime(m.hour, m.minute)}', 'روزانہ ${fmtTime(m.hour, m.minute, language: 'ur')} بجے'), style: _s(12, c: AppColors.primaryBerry, w: FontWeight.w600)),
                                 ),
                               ],
                             ),
@@ -228,8 +256,9 @@ class RemindersScreen extends StatelessWidget {
                       ),
                     ),
                   const SizedBox(height: 6),
-                  TextButton.icon(key: const Key('med_add'), onPressed: () => _addMedication(context), icon: const Icon(Icons.add_rounded), label: const Text('Add a medication reminder')),
-                  Text('Femora only reminds you. It does not suggest medicines or doses; ask your doctor or pharmacist.', style: _s(11, c: AppColors.textLight, h: 1.35)),
+                  TextButton.icon(key: const Key('med_add'), onPressed: () => _addMedication(context, language), icon: const Icon(Icons.add_rounded), label: Text(t(language, 'Add a medication reminder', 'دوائی کی یاد دہانی شامل کریں'))),
+                  Text(t(language, 'Femora only reminds you. It does not suggest medicines or doses; ask your doctor or pharmacist.', 'Femora صرف یاد دہانی کراتا ہے۔ یہ دوائیں یا خوراک تجویز نہیں کرتا؛ اپنے ڈاکٹر یا فارماسسٹ سے پوچھیں۔'),
+                      style: _s(11, c: AppColors.textLight, h: 1.35)),
                 ],
               ),
             ),
@@ -238,10 +267,10 @@ class RemindersScreen extends StatelessWidget {
                 key: const Key('rem_upcoming'),
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Coming up', style: _s(15, w: FontWeight.w700)),
+                  Text(t(language, 'Coming up', 'آنے والی'), style: _s(15, w: FontWeight.w700)),
                   const SizedBox(height: 6),
                   if (upcoming.isEmpty)
-                    Text('No reminders are set. Switch one on above.', key: const Key('rem_none'), style: _s(12.5, c: AppColors.textMuted))
+                    Text(t(language, 'No reminders are set. Switch one on above.', 'کوئی یاد دہانی سیٹ نہیں ہے۔ اوپر سے کوئی ایک آن کریں۔'), key: const Key('rem_none'), style: _s(12.5, c: AppColors.textMuted))
                   else
                     for (final r in upcoming.take(8))
                       Padding(
@@ -252,10 +281,14 @@ class RemindersScreen extends StatelessWidget {
                             SizedBox(
                               width: 118,
                               child: Text(
-                                r.repeatsDaily ? 'Every day, ${fmtTime(r.when.hour, r.when.minute)}' : '${_days[r.when.weekday - 1]} ${r.when.day} ${_months[r.when.month - 1]}, ${fmtTime(r.when.hour, r.when.minute)}',
+                                r.repeatsDaily
+                                    ? t(language, 'Every day, ${fmtTime(r.when.hour, r.when.minute)}', 'روزانہ، ${fmtTime(r.when.hour, r.when.minute, language: 'ur')}')
+                                    : t(language, '${_days[r.when.weekday - 1]} ${r.when.day} ${_months[r.when.month - 1]}, ${fmtTime(r.when.hour, r.when.minute)}',
+                                        '${_daysUr[r.when.weekday - 1]} ${r.when.day} ${_monthsUr[r.when.month - 1]}, ${fmtTime(r.when.hour, r.when.minute, language: 'ur')}'),
                                 style: _s(11.5, c: AppColors.primaryBerry, w: FontWeight.w700, h: 1.3),
                               ),
                             ),
+                            // The reminder's own title and body (what a phone notification would show) are still English-only.
                             Expanded(child: Text(r.kind == ReminderKind.medication ? '${r.title}: ${r.body}' : r.title, style: _s(12.5, h: 1.3))),
                           ],
                         ),
@@ -265,7 +298,10 @@ class RemindersScreen extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-              child: Text('Reminders are scheduled on your phone and never leave it. Period and fertile-window dates are estimates that move when you log a new period.', style: _s(11, c: AppColors.textLight, h: 1.4)),
+              child: Text(
+                  t(language, 'Reminders are scheduled on your phone and never leave it. Period and fertile-window dates are estimates that move when you log a new period.',
+                      'یاد دہانیاں آپ کے فون پر شیڈول ہوتی ہیں اور کبھی اس سے باہر نہیں جاتیں۔ پیریڈ اور زرخیز دورانیے کی تاریخیں تخمینے ہیں جو نیا پیریڈ درج کرنے پر بدل جاتی ہیں۔'),
+                  style: _s(11, c: AppColors.textLight, h: 1.4)),
             ),
           ],
         ),

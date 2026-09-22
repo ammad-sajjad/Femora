@@ -56,6 +56,16 @@ extension CyclePhaseText on CyclePhase {
         CyclePhase.ovulation => 'Around ovulation. This is the most fertile part of the cycle.',
         CyclePhase.luteal => 'Progesterone is higher. Tiredness, bloating and mood changes are common before a period.',
       };
+
+  /// [tip], but in Urdu when asked: for on-screen display only, same rule as [labelIn].
+  String tipIn(String language) => language == 'ur'
+      ? switch (this) {
+          CyclePhase.menstrual => 'آپ کا پیریڈ چل رہا ہے۔ آرام، گرمائش اور آئرن سے بھرپور خوراک درد اور تھکاوٹ میں مدد دے سکتی ہے۔',
+          CyclePhase.follicular => 'پیریڈ کے بعد ایسٹروجن بڑھ رہا ہے۔ بہت سی خواتین اب زیادہ توانا محسوس کرتی ہیں۔',
+          CyclePhase.ovulation => 'بیضہ دانی کے قریب۔ یہ سائیکل کا سب سے زرخیز حصہ ہے۔',
+          CyclePhase.luteal => 'پروجیسٹرون زیادہ ہے۔ پیریڈ سے پہلے تھکاوٹ، پھولنا اور موڈ میں تبدیلی عام ہے۔',
+        }
+      : tip;
 }
 
 /// A point worth telling the user about (never a diagnosis).
