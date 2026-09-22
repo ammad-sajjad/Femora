@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/lang.dart';
+import '../models/health_store.dart';
 import '../models/self_exam.dart';
 import '../theme/app_theme.dart';
 
@@ -100,14 +102,14 @@ class _SelfExamGuideScreenState extends State<SelfExamGuideScreen> {
   void _goTo(int page) =>
       _controller.animateToPage(page, duration: const Duration(milliseconds: 280), curve: Curves.easeOut);
 
-  Future<void> _complete() async {
+  Future<void> _complete(String language) async {
     await context.read<SelfExamState>().logExam();
     if (!mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     Navigator.pop(context);
     messenger.showSnackBar(
-      const SnackBar(
-        content: Text('Self-exam logged. Your next one is due in 30 days.'),
+      SnackBar(
+        content: Text(t(language, 'Self-exam logged. Your next one is due in 30 days.', 'سیلف ایگزام درج ہو گیا۔ آپ کا اگلا معائنہ 30 دن میں واجب ہے۔')),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -116,6 +118,7 @@ class _SelfExamGuideScreenState extends State<SelfExamGuideScreen> {
   @override
   Widget build(BuildContext context) {
     final isLast = _page == _pageCount - 1;
+    final language = context.watch<HealthStore>().profile.language;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -124,9 +127,9 @@ class _SelfExamGuideScreenState extends State<SelfExamGuideScreen> {
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textDark, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Self-Exam Guide',
-          style: TextStyle(fontFamily: 'Inter', fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.textDark),
+        title: Text(
+          t(language, 'Self-Exam Guide', 'سیلف ایگزام گائیڈ'),
+          style: const TextStyle(fontFamily: 'Inter', fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.textDark),
         ),
         centerTitle: true,
       ),
@@ -180,9 +183,9 @@ class _SelfExamGuideScreenState extends State<SelfExamGuideScreen> {
                           side: const BorderSide(color: AppColors.primaryBerry, width: 1.5),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
                         ),
-                        child: const Text(
-                          'Back',
-                          style: TextStyle(fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.primaryBerry),
+                        child: Text(
+                          t(language, 'Back', 'واپس'),
+                          style: const TextStyle(fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.primaryBerry),
                         ),
                       ),
                     ),
@@ -191,7 +194,7 @@ class _SelfExamGuideScreenState extends State<SelfExamGuideScreen> {
                   Expanded(
                     flex: 2,
                     child: GestureDetector(
-                      onTap: isLast ? _complete : () => _goTo(_page + 1),
+                      onTap: isLast ? () => _complete(language) : () => _goTo(_page + 1),
                       child: Container(
                         height: 50,
                         alignment: Alignment.center,
@@ -201,7 +204,7 @@ class _SelfExamGuideScreenState extends State<SelfExamGuideScreen> {
                           boxShadow: AppTheme.buttonShadow,
                         ),
                         child: Text(
-                          isLast ? "I've Done My Self-Exam" : (_page == 0 ? 'Start' : 'Next'),
+                          isLast ? t(language, "I've Done My Self-Exam", 'میں نے اپنا سیلف ایگزام کر لیا ہے') : (_page == 0 ? t(language, 'Start', 'شروع کریں') : t(language, 'Next', 'اگلا')),
                           style: const TextStyle(fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white),
                         ),
                       ),

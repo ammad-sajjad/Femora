@@ -16,6 +16,11 @@ class ReportFinding {
 
   bool get outOfRange => status == 'low' || status == 'high' || status == 'abnormal' || status == 'critical';
 
+  static const _statusUr = {'normal': 'نارمل', 'low': 'کم', 'high': 'زیادہ', 'abnormal': 'غیر معمولی', 'critical': 'تشویشناک', 'unknown': 'نامعلوم'};
+
+  /// [status], but in Urdu when asked: for on-screen display only.
+  String statusIn(String language) => language == 'ur' ? (_statusUr[status] ?? status) : status;
+
   factory ReportFinding.fromJson(Map<String, dynamic> j) => ReportFinding(
         name: j['name'] as String,
         value: (j['value'] as String?) ?? '',
@@ -61,7 +66,21 @@ class ExplainedReport {
     'unreadable': 'Could not read',
   };
 
+  static const _titlesUr = {
+    'blood_test': 'خون کا ٹیسٹ',
+    'urine_test': 'پیشاب کا ٹیسٹ',
+    'hormone_test': 'ہارمون ٹیسٹ',
+    'ultrasound_report': 'الٹراساؤنڈ رپورٹ',
+    'prescription': 'نسخہ',
+    'other_medical': 'میڈیکل رپورٹ',
+    'not_medical': 'میڈیکل رپورٹ نہیں',
+    'unreadable': 'پڑھی نہیں جا سکی',
+  };
+
   String get title => _titles[kind] ?? 'Medical report';
+
+  /// [title], but in Urdu when asked: for on-screen display only.
+  String titleIn(String language) => language == 'ur' ? (_titlesUr[kind] ?? 'میڈیکل رپورٹ') : title;
 
   /// Something to read here: false for a photo that was not a report or was too unclear.
   bool get readable => kind != 'not_medical' && kind != 'unreadable';

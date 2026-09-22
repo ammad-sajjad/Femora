@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/lang.dart';
 import '../models/chat_state.dart';
 import '../models/health_store.dart';
 import '../models/insights.dart';
@@ -38,6 +39,7 @@ class PCOSAssessmentScreen extends StatelessWidget {
     final pcos = context.watch<PcosState>();
     final result = pcos.result;
     final answers = pcos.lastAnswers;
+    final language = context.watch<HealthStore>().profile.language;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -56,10 +58,10 @@ class PCOSAssessmentScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
-                      'PCOS Risk Assessment',
-                      style: TextStyle(
+                      t(language, 'PCOS Risk Assessment', 'PCOS رسک جائزہ'),
+                      style: const TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
@@ -67,10 +69,10 @@ class PCOSAssessmentScreen extends StatelessWidget {
                         letterSpacing: -0.5,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      'Hormonal trends and lifestyle insights.',
-                      style: TextStyle(
+                      t(language, 'Hormonal trends and lifestyle insights.', 'ہارمونل رجحانات اور طرزِ زندگی کی بصیرت۔'),
+                      style: const TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 14,
                         color: AppColors.textMuted,
@@ -85,8 +87,8 @@ class PCOSAssessmentScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: result == null
-                    ? _buildStartCard(context)
-                    : _buildResultCard(context, result),
+                    ? _buildStartCard(context, language)
+                    : _buildResultCard(context, result, language),
               ),
               if (result != null && answers != null) ...[
                 const SizedBox(height: 18),
@@ -114,7 +116,7 @@ class PCOSAssessmentScreen extends StatelessWidget {
                 const SizedBox(height: 18),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: _buildGuidanceSection(result),
+                  child: _buildGuidanceSection(result, language),
                 ),
               ],
             ],
@@ -124,7 +126,7 @@ class PCOSAssessmentScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStartCard(BuildContext context) {
+  Widget _buildStartCard(BuildContext context, String language) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 22),
@@ -149,9 +151,9 @@ class PCOSAssessmentScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Check Your PCOS Risk',
-            style: TextStyle(
+          Text(
+            t(language, 'Check Your PCOS Risk', 'اپنا PCOS رسک چیک کریں'),
+            style: const TextStyle(
               fontFamily: 'Inter',
               fontSize: 18,
               fontWeight: FontWeight.w700,
@@ -159,11 +161,11 @@ class PCOSAssessmentScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Answer a few quick questions about your cycle, symptoms and lifestyle. '
-            'Our AI model, trained on 541 clinical records, estimates your risk in seconds.',
+          Text(
+            t(language, 'Answer a few quick questions about your cycle, symptoms and lifestyle. Our AI model, trained on 541 clinical records, estimates your risk in seconds.',
+                'اپنے سائیکل، علامات اور طرزِ زندگی کے بارے میں چند فوری سوالات کے جواب دیں۔ ہمارا AI ماڈل، جو 541 طبی ریکارڈز پر تربیت یافتہ ہے، سیکنڈوں میں آپ کا رسک بتاتا ہے۔'),
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               fontFamily: 'Inter',
               fontSize: 13.5,
               color: AppColors.textMuted,
@@ -172,7 +174,7 @@ class PCOSAssessmentScreen extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           _buildPrimaryButton(
-            label: 'Start Assessment',
+            label: t(language, 'Start Assessment', 'جائزہ شروع کریں'),
             onTap: () => _openQuestionnaire(context),
           ),
         ],
@@ -180,7 +182,7 @@ class PCOSAssessmentScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildResultCard(BuildContext context, PcosResult result) {
+  Widget _buildResultCard(BuildContext context, PcosResult result, String language) {
     final (badgeBg, badgeText, badgeIcon) = switch (result.riskLevel) {
       RiskLevel.low => (const Color(0xFFD4F8E5), AppColors.greenSuccess, Icons.check_circle_outline_rounded),
       RiskLevel.medium => (AppColors.purpleTagBg, AppColors.purpleTagText, Icons.warning_amber_rounded),
@@ -198,9 +200,9 @@ class PCOSAssessmentScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Text(
-            'Risk Assessment',
-            style: TextStyle(
+          Text(
+            t(language, 'Risk Assessment', 'رسک جائزہ'),
+            style: const TextStyle(
               fontFamily: 'Inter',
               fontSize: 16,
               fontWeight: FontWeight.w700,
@@ -268,9 +270,9 @@ class PCOSAssessmentScreen extends StatelessWidget {
           TextButton.icon(
             onPressed: () => _openQuestionnaire(context),
             icon: const Icon(Icons.refresh_rounded, size: 18, color: AppColors.primaryBerry),
-            label: const Text(
-              'Retake Assessment',
-              style: TextStyle(
+            label: Text(
+              t(language, 'Retake Assessment', 'دوبارہ جائزہ لیں'),
+              style: const TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -283,7 +285,7 @@ class PCOSAssessmentScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGuidanceSection(PcosResult result) {
+  Widget _buildGuidanceSection(PcosResult result, String language) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -311,9 +313,9 @@ class PCOSAssessmentScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
-                'Actionable Guidance',
-                style: TextStyle(
+              Text(
+                t(language, 'Actionable Guidance', 'قابلِ عمل رہنمائی'),
+                style: const TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 16,
                   fontWeight: FontWeight.w700,

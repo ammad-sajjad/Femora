@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/lang.dart';
+import '../models/health_store.dart';
 import '../models/pcos.dart';
 import '../theme/app_theme.dart';
 import '../widgets/questionnaire_widgets.dart';
 
+/// The questionnaire (questions, options, buttons) is bilingual; the result screen's guidance text is not yet.
 class PCOSQuestionnaireScreen extends StatefulWidget {
   const PCOSQuestionnaireScreen({super.key});
 
@@ -33,11 +36,11 @@ class _PCOSQuestionnaireScreenState extends State<PCOSQuestionnaireScreen> {
   bool _showMissingChoices = false;
 
   static const _symptomOptions = [
-    ('weight_gain', 'Weight Gain', Icons.monitor_weight_outlined),
-    ('hair_growth', 'Excess Facial / Body Hair', Icons.face_retouching_natural_outlined),
-    ('skin_darkening', 'Skin Darkening', Icons.contrast_outlined),
-    ('hair_loss', 'Hair Thinning / Loss', Icons.content_cut_outlined),
-    ('pimples', 'Acne / Pimples', Icons.auto_awesome_outlined),
+    ('weight_gain', 'Weight Gain', 'وزن میں اضافہ', Icons.monitor_weight_outlined),
+    ('hair_growth', 'Excess Facial / Body Hair', 'چہرے/جسم پر زائد بال', Icons.face_retouching_natural_outlined),
+    ('skin_darkening', 'Skin Darkening', 'جلد کا سیاہ ہونا', Icons.contrast_outlined),
+    ('hair_loss', 'Hair Thinning / Loss', 'بالوں کا پتلا ہونا / گرنا', Icons.content_cut_outlined),
+    ('pimples', 'Acne / Pimples', 'کیل مہاسے', Icons.auto_awesome_outlined),
   ];
 
   @override
@@ -73,11 +76,11 @@ class _PCOSQuestionnaireScreenState extends State<PCOSQuestionnaireScreen> {
     super.dispose();
   }
 
-  Future<void> _submit() async {
+  Future<void> _submit(String language) async {
     final choicesAnswered = _irregularCycle != null && _fastFood != null && _regularExercise != null;
     setState(() => _showMissingChoices = !choicesAnswered);
     if (!_formKey.currentState!.validate() || !choicesAnswered) {
-      _showSnack('Please answer all required questions.');
+      _showSnack(t(language, 'Please answer all required questions.', 'براہِ کرم تمام ضروری سوالات کے جواب دیں۔'));
       return;
     }
 
@@ -116,6 +119,7 @@ class _PCOSQuestionnaireScreenState extends State<PCOSQuestionnaireScreen> {
   @override
   Widget build(BuildContext context) {
     final isLoading = context.watch<PcosState>().isLoading;
+    final language = context.watch<HealthStore>().profile.language;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -124,9 +128,9 @@ class _PCOSQuestionnaireScreenState extends State<PCOSQuestionnaireScreen> {
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textDark, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'PCOS Risk Check',
-          style: TextStyle(
+        title: Text(
+          t(language, 'PCOS Risk Check', 'PCOS رسک چیک'),
+          style: const TextStyle(
             fontFamily: 'Inter',
             fontSize: 17,
             fontWeight: FontWeight.w700,
@@ -140,38 +144,38 @@ class _PCOSQuestionnaireScreenState extends State<PCOSQuestionnaireScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
           children: [
-            const Text(
-              'Answer a few questions about your body, cycle and lifestyle. '
-              'It takes about 2 minutes.',
-              style: TextStyle(fontFamily: 'Inter', fontSize: 14, color: AppColors.textMuted, height: 1.4),
+            Text(
+              t(language, 'Answer a few questions about your body, cycle and lifestyle. It takes about 2 minutes.',
+                  'اپنے جسم، سائیکل اور طرزِ زندگی کے بارے میں چند سوالات کے جواب دیں۔ اس میں تقریباً 2 منٹ لگتے ہیں۔'),
+              style: const TextStyle(fontFamily: 'Inter', fontSize: 14, color: AppColors.textMuted, height: 1.4),
             ),
             const SizedBox(height: 18),
 
             // Section 1: Body measurements
             QuestionSection(
               icon: Icons.straighten_rounded,
-              title: 'About You',
+              title: t(language, 'About You', 'آپ کے بارے میں'),
               children: [
                 Row(
                   children: [
-                    Expanded(child: NumberField(controller: _ageController, label: 'Age', unit: 'years', min: 12, max: 60, integer: true)),
+                    Expanded(child: NumberField(controller: _ageController, label: t(language, 'Age', 'عمر'), unit: t(language, 'years', 'سال'), min: 12, max: 60, integer: true)),
                     const SizedBox(width: 12),
-                    Expanded(child: NumberField(controller: _heightController, label: 'Height', unit: 'cm', min: 120, max: 210)),
+                    Expanded(child: NumberField(controller: _heightController, label: t(language, 'Height', 'قد'), unit: t(language, 'cm', 'سینٹی میٹر'), min: 120, max: 210)),
                   ],
                 ),
                 const SizedBox(height: 12),
-                NumberField(controller: _weightController, label: 'Weight', unit: 'kg', min: 25, max: 200),
+                NumberField(controller: _weightController, label: t(language, 'Weight', 'وزن'), unit: t(language, 'kg', 'کلوگرام'), min: 25, max: 200),
                 const SizedBox(height: 16),
-                const Text(
-                  'Optional — improves accuracy',
-                  style: TextStyle(fontFamily: 'Inter', fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.textLight),
+                Text(
+                  t(language, 'Optional — improves accuracy', 'اختیاری — درستگی بہتر بناتا ہے'),
+                  style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.textLight),
                 ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Expanded(child: NumberField(controller: _waistController, label: 'Waist', unit: 'inches', min: 15, max: 70, required: false)),
+                    Expanded(child: NumberField(controller: _waistController, label: t(language, 'Waist', 'کمر'), unit: t(language, 'inches', 'انچ'), min: 15, max: 70, required: false)),
                     const SizedBox(width: 12),
-                    Expanded(child: NumberField(controller: _hipController, label: 'Hip', unit: 'inches', min: 15, max: 80, required: false)),
+                    Expanded(child: NumberField(controller: _hipController, label: t(language, 'Hip', 'کولہا'), unit: t(language, 'inches', 'انچ'), min: 15, max: 80, required: false)),
                   ],
                 ),
               ],
@@ -181,23 +185,24 @@ class _PCOSQuestionnaireScreenState extends State<PCOSQuestionnaireScreen> {
             // Section 2: Menstrual cycle
             QuestionSection(
               icon: Icons.water_drop_outlined,
-              title: 'Your Cycle',
+              title: t(language, 'Your Cycle', 'آپ کا سائیکل'),
               children: [
-                QuestionLabel('How regular are your periods?', missing: _showMissingChoices && _irregularCycle == null),
+                QuestionLabel(t(language, 'How regular are your periods?', 'آپ کے پیریڈز کتنے باقاعدہ ہیں؟'), missing: _showMissingChoices && _irregularCycle == null),
                 const SizedBox(height: 10),
                 ChoiceRow(
-                  options: const ['Regular', 'Irregular'],
+                  options: tList(language, const ['Regular', 'Irregular'], const ['باقاعدہ', 'بے قاعدہ']),
                   selectedIndex: _irregularCycle == null ? null : (_irregularCycle! ? 1 : 0),
                   onSelected: (i) => setState(() => _irregularCycle = i == 1),
                 ),
                 const SizedBox(height: 6),
-                const QuestionHint(
-                  'Irregular = cycles shorter than 21 or longer than 35 days, or varying a lot month to month.',
+                QuestionHint(
+                  t(language, 'Irregular = cycles shorter than 21 or longer than 35 days, or varying a lot month to month.',
+                      'بے قاعدہ = 21 دن سے کم یا 35 دن سے زیادہ سائیکل، یا مہینے بہ مہینے بہت زیادہ فرق۔'),
                 ),
                 const SizedBox(height: 18),
-                const QuestionLabel('How many days does your period usually last?'),
+                QuestionLabel(t(language, 'How many days does your period usually last?', 'آپ کا پیریڈ عام طور پر کتنے دن رہتا ہے؟')),
                 const SizedBox(height: 10),
-                _buildStepper(),
+                _buildStepper(language),
               ],
             ),
             const SizedBox(height: 16),
@@ -205,12 +210,12 @@ class _PCOSQuestionnaireScreenState extends State<PCOSQuestionnaireScreen> {
             // Section 3: Symptoms
             QuestionSection(
               icon: Icons.spa_outlined,
-              title: 'Symptoms',
-              subtitle: 'Select any you have noticed in the past 6 months',
+              title: t(language, 'Symptoms', 'علامات'),
+              subtitle: t(language, 'Select any you have noticed in the past 6 months', 'پچھلے 6 مہینوں میں محسوس کی گئی کوئی بھی علامت منتخب کریں'),
               children: [
-                for (final (key, label, icon) in _symptomOptions) ...[
+                for (final (key, en, ur, icon) in _symptomOptions) ...[
                   SelectTile(
-                    label: label,
+                    label: t(language, en, ur),
                     icon: icon,
                     selected: _symptoms[key]!,
                     onTap: () => setState(() => _symptoms[key] = !_symptoms[key]!),
@@ -224,20 +229,20 @@ class _PCOSQuestionnaireScreenState extends State<PCOSQuestionnaireScreen> {
             // Section 4: Lifestyle
             QuestionSection(
               icon: Icons.self_improvement_rounded,
-              title: 'Lifestyle',
+              title: t(language, 'Lifestyle', 'طرزِ زندگی'),
               children: [
-                QuestionLabel('Do you eat fast food often?', missing: _showMissingChoices && _fastFood == null),
+                QuestionLabel(t(language, 'Do you eat fast food often?', 'کیا آپ اکثر فاسٹ فوڈ کھاتی ہیں؟'), missing: _showMissingChoices && _fastFood == null),
                 const SizedBox(height: 10),
                 ChoiceRow(
-                  options: const ['Yes', 'No'],
+                  options: tList(language, const ['Yes', 'No'], const ['جی ہاں', 'نہیں']),
                   selectedIndex: _fastFood == null ? null : (_fastFood! ? 0 : 1),
                   onSelected: (i) => setState(() => _fastFood = i == 0),
                 ),
                 const SizedBox(height: 18),
-                QuestionLabel('Do you exercise regularly?', missing: _showMissingChoices && _regularExercise == null),
+                QuestionLabel(t(language, 'Do you exercise regularly?', 'کیا آپ باقاعدگی سے ورزش کرتی ہیں؟'), missing: _showMissingChoices && _regularExercise == null),
                 const SizedBox(height: 10),
                 ChoiceRow(
-                  options: const ['Yes', 'No'],
+                  options: tList(language, const ['Yes', 'No'], const ['جی ہاں', 'نہیں']),
                   selectedIndex: _regularExercise == null ? null : (_regularExercise! ? 0 : 1),
                   onSelected: (i) => setState(() => _regularExercise = i == 0),
                 ),
@@ -245,12 +250,13 @@ class _PCOSQuestionnaireScreenState extends State<PCOSQuestionnaireScreen> {
             ),
             const SizedBox(height: 22),
 
-            SubmitButton(label: 'Calculate My Risk', loading: isLoading, onTap: _submit),
+            SubmitButton(label: t(language, 'Calculate My Risk', 'میرا رسک معلوم کریں'), loading: isLoading, onTap: () => _submit(language)),
             const SizedBox(height: 14),
-            const Text(
-              'Your answers are analysed by an AI model for risk awareness only. This is not a medical diagnosis.',
+            Text(
+              t(language, 'Your answers are analysed by an AI model for risk awareness only. This is not a medical diagnosis.',
+                  'آپ کے جوابات کا تجزیہ صرف آگاہی کے لیے ایک AI ماڈل کرتا ہے۔ یہ طبی تشخیص نہیں ہے۔'),
               textAlign: TextAlign.center,
-              style: TextStyle(fontFamily: 'Inter', fontSize: 11.5, color: AppColors.textLight, height: 1.4),
+              style: const TextStyle(fontFamily: 'Inter', fontSize: 11.5, color: AppColors.textLight, height: 1.4),
             ),
           ],
         ),
@@ -258,7 +264,7 @@ class _PCOSQuestionnaireScreenState extends State<PCOSQuestionnaireScreen> {
     );
   }
 
-  Widget _buildStepper() {
+  Widget _buildStepper(String language) {
     Widget button(IconData icon, VoidCallback? onTap) => GestureDetector(
           onTap: onTap,
           child: Container(
@@ -277,7 +283,7 @@ class _PCOSQuestionnaireScreenState extends State<PCOSQuestionnaireScreen> {
         button(Icons.remove_rounded, _periodDays > 1 ? () => setState(() => _periodDays--) : null),
         Expanded(
           child: Text(
-            '$_periodDays ${_periodDays == 1 ? 'day' : 'days'}',
+            t(language, '$_periodDays ${_periodDays == 1 ? 'day' : 'days'}', '$_periodDays دن'),
             textAlign: TextAlign.center,
             style: const TextStyle(fontFamily: 'Inter', fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textDark),
           ),

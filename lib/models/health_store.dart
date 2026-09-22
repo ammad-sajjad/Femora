@@ -456,8 +456,13 @@ class HealthStore extends ChangeNotifier {
 
   bool get hasAnyResult => pcos != null || breastRisk != null || scan != null;
 
-  static String ago(DateTime then, DateTime now) {
+  static String ago(DateTime then, DateTime now, {String language = 'en'}) {
     final days = DateTime(now.year, now.month, now.day).difference(DateTime(then.year, then.month, then.day)).inDays;
+    if (language == 'ur') {
+      if (days <= 0) return 'آج';
+      if (days == 1) return 'کل';
+      return '$days دن پہلے';
+    }
     if (days <= 0) return 'today';
     if (days == 1) return 'yesterday';
     return '$days days ago';

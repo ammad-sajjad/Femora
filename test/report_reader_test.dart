@@ -453,7 +453,7 @@ void main() {
       rig.store.profile.language = 'ur';
       rig.server.report = reportJson(language: 'ur', summary: 'یہ خون کا ٹیسٹ ہے۔');
       await rig.open(tester);
-      expect(find.textContaining('Urdu'), findsWidgets);
+      expect(find.textContaining('اردو'), findsWidgets); // the intro text itself is now in Urdu, not just the report
       await _pickAndExplain(tester);
       expect(utf8.decode(rig.server.reads.single.bodyBytes, allowMalformed: true), contains('\r\n\r\nur\r\n'));
       expect(find.text('یہ خون کا ٹیسٹ ہے۔'), findsOneWidget);
