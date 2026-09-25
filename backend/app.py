@@ -18,6 +18,7 @@ from PIL import Image, ImageOps, UnidentifiedImageError
 from pydantic import BaseModel, Field
 
 import companion
+import lesion_outline
 import report_reader
 
 MODELS = Path(__file__).parent / "models"
@@ -161,7 +162,8 @@ def pcos_guidance(a: PcosAnswers, bmi: float, level: str) -> list[Guidance]:
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "models": ["pcos", "breast_scan", "breast_risk"], "companion": companion.api_key() is not None}
+    models = ["pcos", "breast_scan", "breast_risk"] + (["lesion_outline"] if outliner is not None else [])
+    return {"status": "ok", "models": models, "companion": companion.api_key() is not None}
 
 
 def pcos_values(a: PcosAnswers) -> dict[str, float]:
@@ -276,6 +278,7 @@ breast_meta = json.loads((MODELS / "breast_meta.json").read_text())
 breast_session = ort.InferenceSession(str(MODELS / breast_meta["onnx_file"]), providers=["CPUExecutionProvider"])
 # The "is this an ultrasound?" gate ships with models trained by notebook version 7 onwards
 breast_gate = dict(np.load(MODELS / breast_meta["gate_file"])) if "gate_file" in breast_meta else None
+outliner = lesion_outline.load()   # optional second model that draws the lesion's outline
 
 SCAN_CLASSES = breast_meta["classes"]  # normal, benign, malignant
 MALIGNANT = SCAN_CLASSES.index("malignant")
@@ -304,6 +307,7 @@ class BreastScanResult(BaseModel):
     confidence: float  # calibrated probability of the predicted class
     probabilities: list[ScanProbability]
     heatmap_jpeg: str | None  # base64 JPEG of the scan with the model's focus overlaid (benign / malignant only)
+    outline: lesion_outline.LesionOutline | None = None  # the lesion's edge, shape and relative size (benign / malignant only)
     summary: str  # plain-language explanation, also handed to the AI companion
     guidance: list[Guidance]
     model_accuracy: float  # accuracy on held-out test scans, shown for context
@@ -449,6 +453,7 @@ def predict_breast_scan(image: UploadFile = File(...)):
         probabilities=[ScanProbability(key=c, label=c.capitalize(), probability=round(float(v), 4))
                        for c, v in zip(SCAN_CLASSES, p)],
         heatmap_jpeg=heatmap_jpeg(gray, cam[0, k]) if prediction != "normal" else None,
+        outline=outliner.outline(gray) if outliner is not None and prediction != "normal" else None,
         summary=scan_summary(prediction, p, accuracy),
         guidance=scan_guidance(prediction),
         model_accuracy=accuracy,

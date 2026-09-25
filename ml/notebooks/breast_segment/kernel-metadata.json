@@ -1,0 +1,17 @@
+{
+  "id": "ammad0/femora-breast-lesion-outline-unet",
+  "title": "Femora Breast Lesion Outline UNet",
+  "code_file": "notebook.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "machine_shape": "NvidiaTeslaT4",
+  "dataset_sources": [
+    "aryashah2k/breast-ultrasound-images-dataset",
+    "orvile/bus-bra-a-breast-ultrasound-dataset"
+  ],
+  "competition_sources": [],
+  "kernel_sources": []
+}
