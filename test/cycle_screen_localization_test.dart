@@ -90,6 +90,7 @@ void main() {
     await tester.pumpWidget(h.widget);
     final engine = CycleEngine(h.store.periods, _now);
     expect(engine.phase, isNotNull);
-    expect(find.text(engine.phase!.tipIn('ur')), findsOneWidget);
+    expect(find.text(engine.phase!.tipIn('ur')), findsNWidgets(2)); // on the summary card and the log card
+    expect(find.text(engine.phase!.tip), findsNothing);
   });
 }

@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../l10n/lang.dart';
+import '../models/health_store.dart';
 import '../theme/app_theme.dart';
 
 class HormoneChartWidget extends StatelessWidget {
@@ -6,6 +10,7 @@ class HormoneChartWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final language = Provider.of<HealthStore?>(context)?.profile.language ?? 'en';
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       decoration: BoxDecoration(
@@ -19,9 +24,9 @@ class HormoneChartWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Hormonal Trends',
-                style: TextStyle(
+              Text(
+                t(language, 'Hormonal Trends', 'ہارمونل رجحانات'),
+                style: const TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -34,9 +39,9 @@ class HormoneChartWidget extends StatelessWidget {
                   color: const Color(0xFFF0EDF5),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text(
-                  '28 DAY CYCLE',
-                  style: TextStyle(
+                child: Text(
+                  t(language, '28 DAY CYCLE', '28 دن کا سائیکل'),
+                  style: const TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -47,7 +52,13 @@ class HormoneChartWidget extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 4),
+          Text(
+            t(language, 'How these hormones typically rise and fall in a cycle (textbook shapes, not your measured levels). In PCOS, LH is often high relative to FSH.',
+                'ایک سائیکل میں یہ ہارمون عموماً کیسے بڑھتے اور گھٹتے ہیں (نصابی شکلیں، آپ کی ناپی ہوئی سطحیں نہیں)۔ PCOS میں LH اکثر FSH کے مقابلے میں زیادہ ہوتا ہے۔'),
+            style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: AppColors.textMuted, height: 1.35),
+          ),
+          const SizedBox(height: 14),
           SizedBox(
             height: 160,
             width: double.infinity,
@@ -81,7 +92,7 @@ class HormoneChartWidget extends StatelessWidget {
               const SizedBox(width: 18),
               _buildLegendItem(AppColors.chartFSH, 'FSH'),
               const SizedBox(width: 18),
-              _buildLegendItem(AppColors.chartEstrogen, 'Estrogen'),
+              _buildLegendItem(AppColors.chartEstrogen, t(language, 'Estrogen', 'ایسٹروجن')),
             ],
           ),
         ],

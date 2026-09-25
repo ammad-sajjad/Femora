@@ -30,6 +30,14 @@ class HomeDashboardScreen extends StatelessWidget {
     return t(language, '$days days ago', '$days دن پہلے');
   }
 
+  // Result levels and scan titles in the app language (the server sends English)
+  static String _levelIn(String level, String language) =>
+      language == 'ur' ? const {'low': 'کم', 'medium': 'درمیانہ', 'high': 'زیادہ'}[level] ?? level : _cap(level);
+
+  static String _scanTitleIn(String prediction, String title, String language) => language == 'ur'
+      ? const {'normal': 'غالباً نارمل', 'benign': 'غالباً بے ضرر', 'malignant': 'مشکوک علامت'}[prediction] ?? title
+      : title;
+
   static String _cap(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
   /// One short, rule-based suggestion for what to do next. The most important thing comes first.
@@ -270,15 +278,15 @@ class HomeDashboardScreen extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             _row(context, const Key('home_pcos'), Icons.bubble_chart_outlined, t(language, 'PCOS risk', 'PCOS رسک'),
-                pcos == null ? t(language, 'Not checked yet', 'ابھی چیک نہیں ہوا') : '${_cap(pcos.level)} · ${pcos.percent}%', pcos == null ? null : ago(pcos.date, now, language: language), 2),
+                pcos == null ? t(language, 'Not checked yet', 'ابھی چیک نہیں ہوا') : '${_levelIn(pcos.level, language)} · ${pcos.percent}%', pcos == null ? null : ago(pcos.date, now, language: language), 2),
             _row(context, const Key('home_scan'), Icons.monitor_heart_outlined, t(language, 'Breast ultrasound', 'بریسٹ الٹراساؤنڈ'),
-                scan == null ? t(language, 'Not scanned yet', 'ابھی اسکین نہیں ہوا') : '${scan.title} · ${(scan.confidence * 100).round()}%', scan == null ? null : ago(scan.date, now, language: language), 3),
+                scan == null ? t(language, 'Not scanned yet', 'ابھی اسکین نہیں ہوا') : '${_scanTitleIn(scan.prediction, scan.title, language)} · ${(scan.confidence * 100).round()}%', scan == null ? null : ago(scan.date, now, language: language), 3),
             _row(
                 context,
                 const Key('home_risk'),
                 Icons.favorite_border_rounded,
                 t(language, 'Breast cancer risk', 'بریسٹ کینسر رسک'),
-                risk == null ? t(language, 'Not checked yet', 'ابھی چیک نہیں ہوا') : '${_cap(risk.level)} · ${risk.relativeRisk.toStringAsFixed(2)}× average',
+                risk == null ? t(language, 'Not checked yet', 'ابھی چیک نہیں ہوا') : t(language, '${_cap(risk.level)} · ${risk.relativeRisk.toStringAsFixed(2)}× average', '${_levelIn(risk.level, 'ur')} · اوسط کا ${risk.relativeRisk.toStringAsFixed(2)}×'),
                 risk == null ? null : ago(risk.date, now, language: language),
                 3),
             _row(context, const Key('home_exam'), Icons.self_improvement_rounded, t(language, 'Breast self-exam', 'بریسٹ سیلف ایگزام'),

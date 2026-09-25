@@ -107,6 +107,7 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                     foregroundColor: AppColors.primaryBerry,
                     side: const BorderSide(color: AppColors.primaryBerry),
                     padding: const EdgeInsets.symmetric(vertical: 13),
+                    minimumSize: const Size.fromHeight(48), // full width, like the period button above
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                   onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const TrendsScreen())),
@@ -122,6 +123,7 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                     foregroundColor: AppColors.primaryBerry,
                     side: const BorderSide(color: AppColors.primaryBerry),
                     padding: const EdgeInsets.symmetric(vertical: 13),
+                    minimumSize: const Size.fromHeight(48), // full width, like the period button above
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                   onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const HormoneInsightsScreen())),
@@ -137,6 +139,7 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
                     foregroundColor: AppColors.primaryBerry,
                     side: const BorderSide(color: AppColors.primaryBerry),
                     padding: const EdgeInsets.symmetric(vertical: 13),
+                    minimumSize: const Size.fromHeight(48), // full width, like the period button above
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                   onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const RemindersScreen())),

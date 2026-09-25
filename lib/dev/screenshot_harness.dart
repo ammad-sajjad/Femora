@@ -185,7 +185,8 @@ class _HarnessRootState extends State<_HarnessRoot> {
       child: MaterialApp(
         title: 'Femora',
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
+        // Render as on an Android phone (the browser would otherwise use the denser desktop layout)
+        theme: AppTheme.lightTheme.copyWith(visualDensity: VisualDensity.standard, platform: TargetPlatform.android),
         locale: Locale(_language),
         supportedLocales: const [Locale('en'), Locale('ur')],
         localizationsDelegates: const [

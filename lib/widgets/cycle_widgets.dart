@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/lang.dart';
 import '../models/cycle_engine.dart';
 import '../models/health_store.dart';
 import '../models/models.dart';
@@ -14,7 +15,15 @@ const _monthShortUr = ['جنوری', 'فروری', 'مارچ', 'اپریل', 'م
 const _pluralWordsUr = {'day': 'دن', 'cycle': 'سائیکل'};
 
 String fmtDay(DateTime d, {String language = 'en'}) => language == 'ur' ? '${d.day} ${_monthShortUr[d.month - 1]}' : '${d.day} ${_monthShort[d.month - 1]}';
-String fmtMonth(DateTime d) => '${_monthNames[d.month - 1]} ${d.year}';
+String fmtMonth(DateTime d, {String language = 'en'}) =>
+    language == 'ur' ? '${_monthShortUr[d.month - 1]} ${d.year}' : '${_monthNames[d.month - 1]} ${d.year}';
+
+/// The app language, for widgets used without the language being passed in (English when there is no store).
+String _lang(BuildContext context) => Provider.of<HealthStore?>(context)?.profile.language ?? 'en';
+
+String regularityIn(String regularity, String language) => language != 'ur'
+    ? regularity
+    : const {'regular': 'باقاعدہ', 'irregular': 'بے قاعدہ', 'not enough cycles yet': 'ابھی کافی سائیکل نہیں'}[regularity] ?? regularity;
 
 /// "$n day" / "$n days" in English; Urdu nouns do not change for a plural count, so just "$n دن".
 String plural(int n, String one, {String language = 'en'}) => language == 'ur' ? '$n ${_pluralWordsUr[one] ?? one}' : '$n $one${n == 1 ? '' : 's'}';
@@ -50,17 +59,18 @@ class CycleSummaryCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 18),
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
       decoration: BoxDecoration(gradient: AppColors.heroGradient, borderRadius: BorderRadius.circular(24), boxShadow: AppTheme.softShadow),
-      child: e.hasHistory ? _tracked(context) : _empty(),
+      child: e.hasHistory ? _tracked(context) : _empty(_lang(context)),
     );
   }
 
-  Widget _empty() => Column(
+  Widget _empty(String l) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Track your cycle', style: _t(20, w: FontWeight.w700, c: Colors.white)),
+          Text(t(l, 'Track your cycle', 'اپنا سائیکل ٹریک کریں'), style: _t(20, w: FontWeight.w700, c: Colors.white)),
           const SizedBox(height: 6),
           Text(
-            'Log the first day of your last period. Femora then predicts your next period and fertile window, and points out anything unusual.',
+            t(l, 'Log the first day of your last period. Femora then predicts your next period and fertile window, and points out anything unusual.',
+                'اپنے آخری پیریڈ کا پہلا دن درج کریں۔ پھر Femora آپ کے اگلے پیریڈ اور زرخیز دنوں کا اندازہ لگائے گا، اور کوئی غیر معمولی بات ہو تو بتائے گا۔'),
             style: _t(13, c: Colors.white.withValues(alpha: 0.9), h: 1.4),
           ),
         ],
@@ -69,33 +79,41 @@ class CycleSummaryCard extends StatelessWidget {
   Widget _tracked(BuildContext context) {
     final e = engine;
     final phase = e.phase;
-    final title = e.periodOngoing ? 'Period day ${e.cycleDay}' : 'Cycle day ${e.cycleDay}${phase == null ? '' : ' · ${phase.label}'}';
+    final l = _lang(context);
+    final title = e.periodOngoing
+        ? t(l, 'Period day ${e.cycleDay}', 'پیریڈ کا دن ${e.cycleDay}')
+        : t(l, 'Cycle day ${e.cycleDay}', 'سائیکل کا دن ${e.cycleDay}') + (phase == null ? '' : ' · ${phase.labelIn(l)}');
     final until = e.daysUntilNext!;
+    final next = fmtDay(e.nextStart!, language: l);
     final nextText = e.isLate
-        ? '${fmtDay(e.nextStart!)} · ${plural(-until, 'day')} late'
-        : (until == 0 ? '${fmtDay(e.nextStart!)} · today' : '${fmtDay(e.nextStart!)} · in ${plural(until, 'day')}');
+        ? t(l, '$next · ${plural(-until, 'day')} late', '$next · ${plural(-until, 'day', language: 'ur')} تاخیر')
+        : (until == 0 ? t(l, '$next · today', '$next · آج') : t(l, '$next · in ${plural(until, 'day')}', '$next · ${plural(until, 'day', language: 'ur')} میں'));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(title, key: const Key('cycle_title'), style: _t(20, w: FontWeight.w700, c: Colors.white)),
         if (phase != null) ...[
           const SizedBox(height: 4),
-          Text(phase.tip, style: _t(12.5, c: Colors.white.withValues(alpha: 0.9), h: 1.35)),
+          Text(phase.tipIn(l), style: _t(12.5, c: Colors.white.withValues(alpha: 0.9), h: 1.35)),
         ],
         const SizedBox(height: 14),
-        _row('Next period', nextText, key: const Key('cycle_next')),
+        _row(t(l, 'Next period', 'اگلا پیریڈ'), nextText, key: const Key('cycle_next')),
         if (!e.isLate) ...[
           Padding(
             padding: const EdgeInsets.only(left: 2, bottom: 6),
-            child: Text('Likely between ${fmtDay(e.nextStartEarliest!)} and ${fmtDay(e.nextStartLatest!)}', key: const Key('cycle_window'), style: _t(11.5, c: Colors.white.withValues(alpha: 0.85))),
+            child: Text(
+                t(l, 'Likely between ${fmtDay(e.nextStartEarliest!)} and ${fmtDay(e.nextStartLatest!)}',
+                    'غالباً ${fmtDay(e.nextStartEarliest!, language: 'ur')} سے ${fmtDay(e.nextStartLatest!, language: 'ur')} کے درمیان'),
+                key: const Key('cycle_window'), style: _t(11.5, c: Colors.white.withValues(alpha: 0.85))),
           ),
-          _row('Ovulation (estimate)', fmtDay(e.ovulation!)),
-          _row('Fertile window (estimate)', '${fmtDay(e.fertileStart!)} to ${fmtDay(e.fertileEnd!)}'),
+          _row(t(l, 'Ovulation (estimate)', 'بیضہ بننا (اندازہ)'), fmtDay(e.ovulation!, language: l)),
+          _row(t(l, 'Fertile window (estimate)', 'زرخیز دن (اندازہ)'),
+              t(l, '${fmtDay(e.fertileStart!)} to ${fmtDay(e.fertileEnd!)}', '${fmtDay(e.fertileStart!, language: 'ur')} سے ${fmtDay(e.fertileEnd!, language: 'ur')}')),
         ],
         const SizedBox(height: 8),
         Text(e.basis, key: const Key('cycle_basis'), style: _t(11, c: Colors.white.withValues(alpha: 0.85), h: 1.35)),
         const SizedBox(height: 4),
-        Text('These are estimates, not a medical result and not a way to prevent pregnancy.', style: _t(10.5, c: Colors.white.withValues(alpha: 0.75))),
+        Text(t(l, 'These are estimates, not a medical result and not a way to prevent pregnancy.', 'یہ اندازے ہیں، طبی نتیجہ نہیں، اور حمل سے بچاؤ کا طریقہ بھی نہیں۔'), style: _t(10.5, c: Colors.white.withValues(alpha: 0.75))),
       ],
     );
   }
@@ -118,16 +136,18 @@ class PeriodLogRow extends StatelessWidget {
 
   Future<void> _pick(BuildContext context, {required bool start}) async {
     final store = context.read<HealthStore>();
+    final l = store.profile.language;
     final today = dayOf(store.now());
     final picked = await showDatePicker(
       context: context,
       initialDate: today,
       firstDate: addDays(today, -180),
       lastDate: today,
-      helpText: start ? 'First day of the period' : 'Last day of bleeding',
+      helpText: start ? t(l, 'First day of the period', 'پیریڈ کا پہلا دن') : t(l, 'Last day of bleeding', 'خون آنے کا آخری دن'),
     );
     if (picked == null || !context.mounted) return;
-    await runLog(context, start ? store.logPeriodStart(picked) : store.logPeriodEnd(picked), start ? 'Period start saved.' : 'Period end saved.');
+    await runLog(context, start ? store.logPeriodStart(picked) : store.logPeriodEnd(picked),
+        start ? t(l, 'Period start saved.', 'پیریڈ کا آغاز محفوظ ہو گیا۔') : t(l, 'Period end saved.', 'پیریڈ کا اختتام محفوظ ہو گیا۔'));
   }
 
   @override
@@ -135,6 +155,7 @@ class PeriodLogRow extends StatelessWidget {
     final store = context.read<HealthStore>();
     final today = dayOf(store.now());
     final ongoing = engine.periodOngoing;
+    final l = _lang(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18),
       child: Column(
@@ -145,19 +166,20 @@ class PeriodLogRow extends StatelessWidget {
                 child: FilledButton.icon(
                   key: Key(ongoing ? 'log_period_end' : 'log_period_start'),
                   style: FilledButton.styleFrom(backgroundColor: AppColors.primaryBerry, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
-                  onPressed: () => runLog(context, ongoing ? store.logPeriodEnd(today) : store.logPeriodStart(today), ongoing ? 'Period end saved.' : 'Period start saved.'),
+                  onPressed: () => runLog(context, ongoing ? store.logPeriodEnd(today) : store.logPeriodStart(today),
+                      ongoing ? t(l, 'Period end saved.', 'پیریڈ کا اختتام محفوظ ہو گیا۔') : t(l, 'Period start saved.', 'پیریڈ کا آغاز محفوظ ہو گیا۔')),
                   icon: Icon(ongoing ? Icons.check_circle_outline_rounded : Icons.water_drop_rounded, size: 20),
-                  label: Text(ongoing ? 'My period ended today' : 'My period started today', style: _t(13.5, w: FontWeight.w700, c: Colors.white)),
+                  label: Text(ongoing ? t(l, 'My period ended today', 'میرا پیریڈ آج ختم ہوا') : t(l, 'My period started today', 'میرا پیریڈ آج شروع ہوا'), style: _t(13.5, w: FontWeight.w700, c: Colors.white)),
                 ),
               ),
             ],
           ),
           Align(
-            alignment: Alignment.centerRight,
+            alignment: AlignmentDirectional.centerEnd,
             child: TextButton(
               key: const Key('period_other_day'),
               onPressed: () => _pick(context, start: !ongoing),
-              child: Text(ongoing ? 'It ended on another day' : 'It started on another day', style: _t(12.5, w: FontWeight.w600, c: AppColors.primaryBerry)),
+              child: Text(ongoing ? t(l, 'It ended on another day', 'کسی اور دن ختم ہوا') : t(l, 'It started on another day', 'کسی اور دن شروع ہوا'), style: _t(12.5, w: FontWeight.w600, c: AppColors.primaryBerry)),
             ),
           ),
         ],
@@ -179,6 +201,7 @@ class MonthCalendar extends StatelessWidget {
     final first = DateTime(month.year, month.month, 1);
     final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
     final blanks = first.weekday - 1; // Monday first
+    final l = _lang(context);
     final cells = <Widget>[
       for (var i = 0; i < blanks; i++) const SizedBox.shrink(),
       for (var day = 1; day <= daysInMonth; day++) _cell(DateTime(month.year, month.month, day)),
@@ -193,11 +216,12 @@ class MonthCalendar extends StatelessWidget {
           Row(
             children: [
               IconButton(key: const Key('month_prev'), icon: const Icon(Icons.chevron_left_rounded), onPressed: () => onMonth(DateTime(month.year, month.month - 1))),
-              Expanded(child: Center(child: Text(fmtMonth(month), key: const Key('month_title'), style: _t(15, w: FontWeight.w700)))),
+              Expanded(child: Center(child: Text(fmtMonth(month, language: l), key: const Key('month_title'), style: _t(15, w: FontWeight.w700)))),
               IconButton(key: const Key('month_next'), icon: const Icon(Icons.chevron_right_rounded), onPressed: () => onMonth(DateTime(month.year, month.month + 1))),
             ],
           ),
-          Row(children: [for (final d in ['M', 'T', 'W', 'T', 'F', 'S', 'S']) Expanded(child: Center(child: Text(d, style: _t(11, w: FontWeight.w700, c: AppColors.textMuted))))]),
+          Row(children: [for (final d in l == 'ur' ? const ['پیر', 'منگل', 'بدھ', 'جمعرات', 'جمعہ', 'ہفتہ', 'اتوار'] : const ['M', 'T', 'W', 'T', 'F', 'S', 'S'])
+            Expanded(child: Center(child: Text(d, maxLines: 1, style: _t(l == 'ur' ? 10 : 11, w: FontWeight.w700, c: AppColors.textMuted))))]),
           const SizedBox(height: 4),
           GridView.count(crossAxisCount: 7, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), childAspectRatio: 1.05, children: cells),
           const SizedBox(height: 8),
@@ -205,10 +229,10 @@ class MonthCalendar extends StatelessWidget {
             spacing: 14,
             runSpacing: 6,
             children: [
-              _legend(AppColors.primaryBerry, 'Period'),
-              _legend(_softPink, 'Expected period', border: AppColors.primaryBerry),
-              _legend(_softGreen, 'Fertile window'),
-              _legend(_green, 'Ovulation'),
+              _legend(AppColors.primaryBerry, t(l, 'Period', 'پیریڈ')),
+              _legend(_softPink, t(l, 'Expected period', 'متوقع پیریڈ'), border: AppColors.primaryBerry),
+              _legend(_softGreen, t(l, 'Fertile window', 'زرخیز دن')),
+              _legend(_green, t(l, 'Ovulation', 'بیضہ بننا')),
             ],
           ),
         ],
@@ -272,6 +296,7 @@ class CycleFlagsCard extends StatelessWidget {
     final flags = engine.flags;
     if (flags.isEmpty) return const SizedBox.shrink();
     final pcos = flags.any((f) => f.id == 'irregular' || f.id == 'long');
+    final l = _lang(context);
     return Container(
       key: const Key('cycle_flags'),
       margin: const EdgeInsets.fromLTRB(18, 16, 18, 0),
@@ -280,7 +305,7 @@ class CycleFlagsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Worth knowing', style: _t(15, w: FontWeight.w700)),
+          Text(t(l, 'Worth knowing', 'جاننے کی بات'), style: _t(15, w: FontWeight.w700)),
           const SizedBox(height: 8),
           for (final f in flags)
             Padding(
@@ -296,12 +321,12 @@ class CycleFlagsCard extends StatelessWidget {
             ),
           if (pcos)
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: TextButton.icon(
                 key: const Key('flags_pcos'),
                 onPressed: () => context.read<AppState>().setTab(2),
                 icon: const Icon(Icons.bubble_chart_outlined, size: 18),
-                label: Text('Open the PCOS check', style: _t(12.5, w: FontWeight.w700, c: AppColors.primaryBerry)),
+                label: Text(t(l, 'Open the PCOS check', 'PCOS چیک کھولیں'), style: _t(12.5, w: FontWeight.w700, c: AppColors.primaryBerry)),
               ),
             ),
         ],
@@ -319,6 +344,7 @@ class CycleHistory extends StatelessWidget {
   Widget build(BuildContext context) {
     final ps = engine.periods;
     if (ps.isEmpty) return const SizedBox.shrink();
+    final l = _lang(context);
     final rows = <Widget>[];
     for (var i = ps.length - 1; i >= 0 && rows.length < 6; i--) {
       final e = ps[i];
@@ -328,9 +354,9 @@ class CycleHistory extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 5),
         child: Row(
           children: [
-            Expanded(flex: 3, child: Text(fmtDay(e.start), style: _t(13, w: FontWeight.w600))),
-            Expanded(flex: 3, child: Text(cycleLen == null ? 'current cycle' : '$cycleLen-day cycle', style: _t(12.5, c: AppColors.textMuted))),
-            Expanded(flex: 3, child: Text(e.length == null ? (i == ps.length - 1 && engine.periodOngoing ? 'ongoing' : 'end not logged') : 'period ${plural(e.length!, 'day')}', style: _t(12.5, c: AppColors.textMuted))),
+            Expanded(flex: 3, child: Text(fmtDay(e.start, language: l), style: _t(13, w: FontWeight.w600))),
+            Expanded(flex: 3, child: Text(cycleLen == null ? t(l, 'current cycle', 'موجودہ سائیکل') : t(l, '$cycleLen-day cycle', '$cycleLen دن کا سائیکل'), style: _t(12.5, c: AppColors.textMuted))),
+            Expanded(flex: 3, child: Text(e.length == null ? (i == ps.length - 1 && engine.periodOngoing ? t(l, 'ongoing', 'جاری') : t(l, 'end not logged', 'اختتام درج نہیں')) : t(l, 'period ${plural(e.length!, 'day')}', 'پیریڈ ${plural(e.length!, 'day', language: 'ur')}'), style: _t(12.5, c: AppColors.textMuted))),
           ],
         ),
       ));
@@ -344,8 +370,8 @@ class CycleHistory extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            Expanded(child: Text('Your cycles', style: _t(15, w: FontWeight.w700))),
-            if (engine.averageLength != null) Text('average ${engine.averageLength!.toStringAsFixed(1)} days · ${engine.regularity}', style: _t(11.5, c: AppColors.textMuted)),
+            Expanded(child: Text(t(l, 'Your cycles', 'آپ کے سائیکل'), style: _t(15, w: FontWeight.w700))),
+            if (engine.averageLength != null) Text('${t(l, 'average ${engine.averageLength!.toStringAsFixed(1)} days', 'اوسط ${engine.averageLength!.toStringAsFixed(1)} دن')} · ${regularityIn(engine.regularity, l)}', style: _t(11.5, c: AppColors.textMuted)),
           ]),
           const SizedBox(height: 6),
           ...rows,
