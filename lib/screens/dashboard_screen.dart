@@ -11,6 +11,7 @@ import '../widgets/dashboard_cards.dart';
 import '../widgets/hormone_cards.dart';
 import '../widgets/trend_cards.dart';
 import 'doctor_qr_screen.dart';
+import 'heart_rate_screen.dart';
 import 'hormone_insights_screen.dart';
 import 'reminders_screen.dart';
 import 'report_screen.dart';
@@ -92,6 +93,7 @@ class DashboardScreen extends StatelessWidget {
             LatestResultsCard(store: store),
             DashboardSectionTitle(t(language, 'More', 'مزید')),
             _link(context, const Key('dash_open_report'), Icons.description_outlined, t(language, 'Health report (PDF)', 'ہیلتھ رپورٹ (PDF)'), const ReportScreen()),
+            _link(context, const Key('dash_open_heart'), Icons.monitor_heart_outlined, t(language, 'Morning heart check', 'صبح کی دھڑکن کا چیک'), const HeartRateScreen()),
             _link(context, const Key('dash_open_doctor_qr'), Icons.qr_code_2_rounded, t(language, 'Show my doctor (QR code)', 'ڈاکٹر کو دکھائیں (QR کوڈ)'), const DoctorQrScreen()),
             _link(context, const Key('dash_open_trends'), Icons.show_chart_rounded, t(language, 'My trends (7, 30 or 90 days)', 'میرے رجحانات (7، 30 یا 90 دن)'), const TrendsScreen()),
             _link(context, const Key('dash_open_insights'), Icons.bubble_chart_outlined, t(language, 'Hormonal insights', 'ہارمونل بصیرت'), const HormoneInsightsScreen()),
