@@ -1404,12 +1404,134 @@ bullets([
 # --- end of chapter 16 sections (later features are inserted above this line)
 
 
-# ================================================================== 17 CONCLUSION
-H1("17. Conclusion")
+# ================================================================== 17 FEATURES OF 25 SEPTEMBER
+H1("17. Features added on 25 September 2026")
+para("Nine items were added in one session, in the order the owner set. Each has its own commit, automatic tests and, where a model or an "
+     "outside service is involved, a measured result. Section 17.10 lists what has not been verified.")
+SEG = load("backend/models/breast_seg_meta.json")
+H2("17.1 Lesion outline on the ultrasound")
+bullets([
+    "**What the user sees.** After a benign or suspicious scan result, the scan opens on a new Outline view (next to Original and AI Focus): a pink line around the lump with a light fill. "
+    "An Outlined area panel gives its shape (wider than tall, or taller than wide), the share of the scan it covers and, once she types the depth shown on the scan's centimetre ruler, its approximate width and height in centimetres. "
+    "A normal result shows no outline, as before with the heatmap.",
+    "**How it works.** A second, separate model: a U-Net with an ImageNet-pretrained ResNet34 encoder (segmentation_models_pytorch), trained on Kaggle's free GPU (notebook femora-breast-lesion-outline-unet, "
+    "built by ml/segment_cells.py) with the radiologists' lesion masks of BUSI, BrEaST-Lesions-USG and BUS-BRA, plus BUSI's normal scans as empty masks. It uses exactly the deployed classifier's train, validation and test split "
+    "(ml/busbra_split.csv), so its test scans are unseen by both models. Input is the same grayscale, padded-to-square image at 256 × 256; loss is binary cross-entropy plus Dice; the epoch with the best validation Dice is kept "
+    f"(epoch {SEG['best_epoch']} of {SEG['epochs']}). It is exported to ONNX with fp16 weight storage ({48.9:.1f} MB). The server keeps pixels above 0.5, then only the largest connected region, and drops outlines smaller than "
+    f"{SEG['min_area_fraction'] * 100:.1f}% of the image (chosen on the validation split). Sizes are reported relative to the scan's height because an uploaded image carries no centimetre scale.",
+])
+m = SEG["test_metrics"]
+table(["Test scans", "Lesions", "Mean Dice", "Median Dice", "Mean IoU", "Dice ≥ 0.5", "Missed"],
+      [["All three hospitals", str(m["scans"]), f"{m['dice_mean']:.3f}", f"{m['dice_median']:.3f}", f"{m['iou_mean']:.3f}", f"{m['share_dice_at_least_0_5']:.1%}", f"{m['share_missed']:.1%}"]] +
+      [[src, str(v["scans"]), f"{v['dice_mean']:.3f}", f"{v['dice_median']:.3f}", f"{v['iou_mean']:.3f}", f"{v['share_dice_at_least_0_5']:.1%}", f"{v['share_missed']:.1%}"]
+       for src, v in SEG["per_source_test"].items()] +
+      [[f"{lab.capitalize()} lesions", str(v["scans"]), f"{v['dice_mean']:.3f}", f"{v['dice_median']:.3f}", f"{v['iou_mean']:.3f}", f"{v['share_dice_at_least_0_5']:.1%}", f"{v['share_missed']:.1%}"]
+       for lab, v in SEG["per_label_test"].items()],
+      [3.6, 1.6, 1.8, 1.9, 1.7, 1.8, 1.6], caption="Lesion outline model on the held-out test scans (ONNX model, as served)", align_right_from=1)
+figure("ml/output/breast_segment/seg_examples.png", "Test scans: radiologist's outline (green) against the model's (magenta); rows are the best, typical and worst cases.", 15.5)
+bullets([
+    "**Reading the numbers.** Dice measures overlap (1 = identical outlines). BUS-BRA scans are tightly cropped around the lesion, which makes them easier; BUSI (0.74) is the harder, more realistic figure. "
+    f"On normal test scans the model draws nothing only {SEG['normal_test_scans']['share_left_blank']:.0%} of the time, which is why the outline is only shown when the classifier has found a lesion. "
+    "The worst cases are faint lesions, and one scan where it outlined a different dark area. Two end-to-end checks through the running server (the app's benign and malignant sample scans) gave sensible outlines.",
+    "**Limits.** The size in centimetres depends on the depth she types and assumes the image shows the full depth; it is labelled approximate and a radiologist measures properly. The outline has not been compared with a clinician on new scans.",
+])
+H2("17.2 Animated body clock on Home")
+bullets([
+    "**What the user sees.** The plain countdown ring on Home became a ring of the four phases (period, follicular, ovulation, luteal) sized to her own cycle length and period length, with a marker at today; it draws itself in when Home opens and the marker pulses three times. "
+    "Under it, the typical estrogen, progesterone and LH waves for her cycle length, with a line at today, labelled Typical pattern, not measured. The fertile window moved to its own line.",
+    "**Tests.** The phases are in order, cover the whole cycle without gaps, and a very long period cannot push the follicular phase past ovulation. The animation is finite, so the screen settles. Two Home tests had started failing once the real date passed 26 September (their store clock was not pinned); they were fixed.",
+])
+H2("17.3 Show my doctor (QR code)")
+bullets([
+    "**What the user sees.** A screen with a QR code and her name. The doctor scans it with any phone camera and reads a short clinical summary: patient, cycle (last period, average length, flags such as irregular), the most frequent symptoms of the last 30 days, "
+    "PCOS and breast screening results, the heart-rate readings, the last self-exam and any out-of-range values from a photographed report. The text behind the code can be shown and copied, and the PDF report is one tap away.",
+    "**Privacy.** The summary is inside the code itself: nothing is uploaded and no internet is needed. It is written in English (the language of clinical notes in Pakistan) and capped at 800 characters so the code stays scannable.",
+    "**Checked.** The code was decoded by OpenCV from a phone-density screenshot at several sizes (647 characters, every size). The first version produced patient-facing sentences and a denser code; the flags were shortened to clinical labels after this check.",
+])
+H2("17.4 A smarter AI companion")
+para("The owner's complaint was that the companion said little and told her to see a doctor in every answer. The cause was in our own instructions, not the model: four rules pushed a doctor visit, answers were capped at 60 to 70 words, "
+     "no structure was allowed, medicines were banned outright, the smallest model was used, and nothing grounded the answers.")
+bullets([
+    "**New instructions.** Explain what is most likely going on and why, the common causes, concrete home care and precautions, and put doctor advice in its own part with the warning signs and how soon. Written answers are 120 to 220 words in short sections with bullet points; spoken answers stay under 50 words and plain.",
+    "**Stronger model.** Written answers use gemini-3.6-flash with a low thinking level (the thinking tokens had been cutting answers off at about 40 words until the budget was raised); spoken answers use the fast gemini-3.1-flash-lite; each falls back to the other.",
+    "**Trusted notes (backend/knowledge.py).** 35 short topics written in our own words, each tied to a public NHS, WHO or MedlinePlus page whose address was checked on the day. They are matched by English, Roman Urdu and Urdu keywords (the condition's own name weighs most), the best two go to the model, and the app shows Based on: NHS: … under the answer. "
+    "The NHS now calls PCOS polyendocrine metabolic ovarian syndrome (PMOS); the notes say so.",
+    "**Medicines (backend/medicines.py).** Not a trained model: no dataset records which medicine is safe for which woman. A hand-checked table lists, for nine everyday problems (period pain, headache, fever, acidity, constipation, diarrhoea, thrush, acne, breast pain), the common pharmacy options in Pakistan, who must not take each one, and when to see a doctor instead. "
+    "Before the model sees them, options unsafe for her are removed using her message and the app's context (pregnancy, breastfeeding, asthma, stomach ulcer, kidney or liver disease, blood thinners, heart disease, age). The model may name only what is left, must say follow the directions on the packet, and never gives doses or tells her to stop a medicine. "
+    "Example: a pregnant user with a headache is offered paracetamol, and told why ibuprofen was left out.",
+])
+EV = load("backend/companion_eval/results_2026-09-25.json") if (ROOT / "backend/companion_eval/results_2026-09-25.json").exists() else None
+if EV:
+    o, n = EV["old"]["scores"], EV["new"]["scores"]
+    table(["Measure (automatic, no AI judge)", "Before", "After"], [
+        ["Ordinary answers ending by telling her to see a doctor", f"{o['doctor_every_time']:.0%}", f"{n['doctor_every_time']:.0%}"],
+        ["Ordinary answers mentioning a doctor anywhere (now in a 'when to see a doctor' part)", f"{o['doctor_anywhere']:.0%}", f"{n['doctor_anywhere']:.0%}"],
+        ["Answers with 3 or more practical steps", f"{o['practical']:.0%}", f"{n['practical']:.0%}"],
+        ["Answers organised with headings or bullets", f"{o['structured']:.0%}", f"{n['structured']:.0%}"],
+        ["Topical answers based on a trusted source", f"{o['grounded']:.0%}", f"{n['grounded']:.0%}"],
+        ["Median length (words)", str(o["words_median"]), str(n["words_median"])],
+        ["Replies giving a medicine dose", str(o["dose_violations"]), str(n["dose_violations"])],
+        ["Ibuprofen suggested to a pregnant user", str(o["pregnancy_violations"]), str(n["pregnancy_violations"])],
+        ["Red-flag questions carrying the urgent note (before the detector fix)", f"{o['red_flag_ok_before_detector_fix']:.0%}", f"{n['red_flag_ok_before_detector_fix']:.0%}"],
+        ["Urdu-script questions answered in Urdu script", f"{o['urdu_script_ok']:.0%}", f"{n['urdu_script_ok']:.0%}"],
+        ["Off-topic questions politely declined", f"{o['offtopic_declined']:.0%}", f"{n['offtopic_declined']:.0%}"],
+    ], [10.6, 2.8, 2.8], caption=f"Companion before and after, on {EV['questions_scored']} of the {EV['questions_total']} evaluation questions (same questions, live Gemini)", align_right_from=1)
+bullets([
+    "**The evaluation.** 85 questions (backend/companion_eval/companion_questions.py) in English, Roman Urdu and Urdu across 20 topics, including red-flag, pregnancy and off-topic questions. scripts/score_companion.py asks the old setup (old instructions, small model) and the new one the same 40-question stratified sample and scores the answers with fixed, explainable rules; the answers are saved with the scores.",
+    "**Two safety gaps found and fixed.** The rule-based emergency detector (the same before and after) missed a sudden worst-ever headache and blood from the nipple. Both were added; on all 85 questions the detector now flags exactly the questions marked as red flags.",
+    "**Limits.** The scores measure form and safety rules, not medical correctness: a clinician should still review a sample of answers. The trusted notes are summaries and cover 35 topics; questions outside them get no source. The free Gemini tier allows fewer requests per day for the stronger model.",
+])
+H2("17.5 Morning heart check")
+bullets([
+    "**What the user sees.** She covers the rear camera and flash with a fingertip for 25 seconds; a pulsing heart, a live pulse wave and a live rate appear, then the result with a plain-language band and a switch for Taken after waking, before getting up. "
+    "Her resting readings build a usual rate; with 3 or more morning readings before and after ovulation, the screen shows her rise after ovulation (usually 2 to 5 beats, one sign that ovulation happened). "
+    "If her last three morning readings are 10 or more beats above her usual rate and she recently logged tiredness or a period longer than 7 days, it suggests a haemoglobin test.",
+    "**How it works.** The camera streams frames with the flash on as a torch; each frame is reduced to the average red and green of its centre. The red level dips with each heartbeat (photoplethysmography). The signal is detrended (1-second moving average removed), smoothed, and its beats found with a 0.33-second refractory gap; the rate is the median beat interval. "
+    "A reading is only accepted when a fingertip covers the lens (red strong, green weak), at least 6 beats were seen and at least 60% of the intervals agree within 20%; otherwise she is asked to try again.",
+    "**Tests.** On synthetic fingertip recordings it reads 52 to 140 beats per minute within 3, keeps working with camera noise and dropped frames, and rejects pure noise, a missing finger and recordings shorter than 10 seconds. The screen was tested with a fake camera.",
+    "**Limits.** Not yet tried with a real phone camera; the accuracy of the phone reading against a pulse oximeter has not been measured. It is labelled a wellness check that cannot detect rhythm problems. Heart-rate variability from a phone camera was deliberately not used (not reliable enough).",
+])
+H2("17.6 Femora on WhatsApp")
+bullets([
+    "**What it does.** A woman messages the Femora WhatsApp number and gets the same companion with the same safety rules: text in English, Roman Urdu or Urdu, voice notes (transcribed first) and photos of lab reports (read and explained, with values to note and questions for the doctor). The first message explains what Femora is and that messages pass through Meta and Google.",
+    "**How it works.** A webhook on the Femora server (/whatsapp/webhook, Meta WhatsApp Cloud API) checks each delivery's signature with the app secret, answers each message once (Meta retries), and replies after returning 200 so Meta does not time out. The last six turns are kept in memory for up to an hour for follow-ups; nothing is written to disk. Replies are text, because the free AI voice allows only about 10 answers a day.",
+    "**Status.** Switched off until the four WHATSAPP_* keys are set; backend/README.md gives the setup for Meta's free test number (up to 5 registered phones, enough for the demo). 12 tests with fake Meta calls. It has not yet been connected to a real WhatsApp number. A public launch would need a dedicated SIM, Meta business verification and an always-on server.",
+])
+H2("17.7 Profile panel")
+bullets([
+    "**What the user sees.** Tapping her avatar opens a side panel (from the right in Urdu) with her name, account and age and BMI; edit profile; an English and Urdu switch; links to the dashboard, Show my doctor, the PDF report, the report reader, the heart check, nearby care and reminders; the companion personalisation switch; delete all my data (asks first); the server address; About; and Sign out, which the app did not have anywhere before.",
+    "**Wrong elements fixed on the way.** The avatar was a stock photo of a woman, the same face for every user (it now shows her initials); the bell did nothing (it opens Reminders); the breast screen showed a menu icon that did nothing (removed).",
+])
+H2("17.8 Nearby care")
+bullets([
+    "**What the user sees.** Hospitals, gynaecologists, clinics, labs or breast imaging centres near her, on a map with numbered markers and in a list nearest first, with Call (when a number is known) and Directions (opens Google Maps). With the Google key on, the list also shows the rating, the number of reviews, up to three recent reviews and whether it is open now. If location is off it searches a chosen city. "
+    "It is linked from a benign or suspicious scan (breast imaging), a medium or high PCOS result (gynaecologist) and an urgent companion reply (nearest hospitals).",
+    "**How it works.** The server (/places/nearby) uses Google Places when GOOGLE_PLACES_API_KEY is set, and OpenStreetMap otherwise. The public OpenStreetMap server timed out on name searches, so one query fetches every health place within 8 km and the server sorts them into the five kinds by tags, specialty and name. Results are cached for 3 days per ~1 km square; busy servers are retried; a Google failure falls back to OpenStreetMap. The key never reaches the phone and her location is used only for the search.",
+    "**Measured live for central Islamabad (OpenStreetMap):** 25 hospitals, 22 clinics, 8 labs, 7 imaging centres and 3 gynaecology places. OpenStreetMap is thin on specialties and phone numbers in Pakistan, which is why Google Places is the upgrade; the owner decided to add it last, once a Google Cloud account with billing is possible.",
+    "**Limits.** The map tiles did not draw in the headless browser used for screenshots, so the map background is still to be checked on a phone.",
+])
+H2("17.9 UI review")
+para("Every tab and screen was drawn at phone size (360 pixels wide) in English and in Urdu by the development screenshot harness and checked by eye. Fixed: the Cycle tab in Urdu still showed its summary card, period buttons, calendar, legend and history in English inside a right-to-left layout, which scrambled mixed text "
+     "(19 Oct · in 28 days showed as Oct · in 28 days 19); the Cycle tab's three link buttons were cramped; the self-exam picture showed its 3 Min Guide label twice; the upload card spoke of ResNet50; the companion's tab used a person icon that now reads as profile (it is a chat bubble, and every tab has a spoken label); "
+     "the PCOS tab's fixed hormone chart was not labelled as a typical pattern; and Home in Urdu showed result levels in English. The claim in section 16.3 that every screen's own layout was bilingual was not true for the Cycle tab's cards; it is now.")
+H2("17.10 Not yet verified")
+bullets([
+    "Nothing from this chapter has been tried on a real phone: the heart check with a real camera, the map tiles, the QR code scanned by a second phone, the profile panel and the new layout.",
+    "WhatsApp has not been connected to a real number; Google Places has not been used (no key).",
+    "The companion's medical content has not been reviewed by a clinician, and the new Urdu wording has not been reviewed by a native speaker.",
+    f"Test totals after this chapter: 392 Flutter tests and 163 backend tests, all passing.",
+])
+
+
+# ================================================================== 18 CONCLUSION
+H1("18. Conclusion")
 para("The breast module now consists of two models backed by measured evidence and an honest account of their limits. The most valuable result of this "
      "period was not a higher accuracy figure but a truthful one: testing on a hospital the model had never seen exposed a large gap, adding the right data "
      "closed most of it, and a further experiment that did not help was documented and rejected. The app can be shown on a phone today and now includes a voice-enabled, personalised AI companion and a one-tap "
-     "health report, and accounts. About 10% of the scope, chiefly the pregnancy module, remains to be built.")
+     "health report, and accounts. About 10% of the scope, chiefly the pregnancy module, remains to be built. "
+     "Since then the app has gained a lesion outline model (mean Dice 0.86 on 688 unseen lesions), a companion whose answers are grounded in trusted sources and "
+     "no longer end every reply with a doctor referral (100% to 0% on the evaluation set), a checked over-the-counter medicine table, a phone-camera heart check, "
+     "a doctor's QR summary, nearby care, a WhatsApp channel and a profile panel; none of these has yet been tried on a real phone.")
 
 # ================================================================== APPENDICES
 H1("Appendix A. Metric glossary", new_page=True)
@@ -1528,6 +1650,20 @@ table(["Commit", "Date", "Change"], [
     ["d354fb2", "21 Sep 2026", "Accounts: sign in with email, Google, phone or as a guest (Firebase)"],
     ["0692b15, 8d70906, eddc190", "21 Sep 2026", "Report and handoff updates; dataset search and BUSI-WHU external check; breast module improvement closed"],
     ["388032f", "21 Sep 2026", "Cycle tracking and prediction: period logging, calendar, predictions, notes, Home card, report panel, ml/cycle_eval.py"],
+    ["c23db27", "21 Sep 2026", "Report chapter 14 on cycle tracking and prediction; README and handoff updated"],
+    ["661e1f9, 2bfbad6, 66f6e1d, 8730a45", "21 Sep 2026", "Symptom and mood tracker, hormonal insights, reminders, reports and dashboard (scope 6.10, 6.6, 6.8, 6.9)"],
+    ["8bc67ca, 7d25fc2", "21 Sep 2026", "PCOS what-if simulator; photograph a medical report"],
+    ["f40568f, 28c4e68, 0acc7b7", "21-22 Sep 2026", "Urdu and English language switch"],
+    ["1dc3076, f2a454a", "22 Sep 2026", "Screenshot harness; app showcase and supervisor progress report PDFs"],
+    ["072e231", "25 Sep 2026", "Home body clock"],
+    ["eac9a21", "25 Sep 2026", "Lesion outline model (U-Net) and Outline view"],
+    ["450b895", "25 Sep 2026", "Show my doctor QR code"],
+    ["74d9f98", "25 Sep 2026", "Morning heart check (phone camera)"],
+    ["37b8f49", "25 Sep 2026", "Smarter companion: trusted notes, checked medicine table, evaluation"],
+    ["cf92172", "25 Sep 2026", "Femora on WhatsApp"],
+    ["caab65e", "25 Sep 2026", "Profile panel; header fixes"],
+    ["5e86f62", "25 Sep 2026", "Nearby care map"],
+    ["8165ace", "25 Sep 2026", "UI review fixes in English and Urdu"],
 ], [2.4, 3.0, 11.2], caption="Commits made during this period")
 
 H1("Appendix F. Questions a panel may ask")
@@ -1614,6 +1750,14 @@ qa = [
      "No. It copies the layout of a lab report (panels, reference ranges, flags, report number) for readability but says on every page that it is an AI screening summary. It carries Femora branding only, and demo reports are watermarked SAMPLE DATA."),
     ("Q35. Would millions of medical questions make the companion better?",
      "Not by training, because the model is hosted by Google. They are valuable to test the companion at scale and, as trusted text, to retrieve passages that ground its answers. Both are planned, neither is built."),
+    ("Q36. Why not train a model to recommend medicines?",
+     "There is no dataset that records which medicine is safe for which woman; public drug-review data only shows what was popular. A trained model would sometimes suggest ibuprofen to a pregnant woman with no way to explain why. A hand-checked table that removes unsafe options before the language model sees them is predictable, explainable and testable, which matters more here than cleverness."),
+    ("Q37. How do you know the companion got better and not just longer?",
+     "The same 40 questions were asked of the old and new setup and scored by fixed rules: answers ending with a doctor referral fell from 100% to 0%, answers with 3 or more practical steps rose from 0% to 92%, 78% are based on a trusted source, and neither setup gave a dose or suggested ibuprofen in pregnancy. It measures form and safety rules, not medical correctness, which still needs a clinician's review."),
+    ("Q38. Can a phone camera really measure heart rate?",
+     "Yes, heart rate is well established (photoplethysmography through the fingertip); on synthetic recordings our code is within 3 beats. We have not yet measured it against a pulse oximeter on a real phone, and it deliberately makes no claim about heart rhythm."),
+    ("Q39. How good is the lump outline?",
+     "Mean Dice 0.86 (median 0.92) on 688 test lesions the model never saw, 95% outlined with good overlap; 0.74 on BUSI, the hardest source. It is shown only when the classifier finds a lesion, because on normal scans it still draws something a third of the time."),
 ]
 table(["Question", "Answer"], [[q, a] for q, a in qa], [5.4, 11.2], caption="Anticipated questions", size=8.5, first_bold=True)
 
