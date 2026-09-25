@@ -23,12 +23,44 @@ class ScanProbability {
       );
 }
 
+/// The lesion's edge drawn by the second (outline) model, with its shape and size relative to the scan's height.
+class LesionOutline {
+  final Uint8List image; // JPEG: the scan with the outline drawn on it
+  final double widthRel; // lesion width / scan height
+  final double heightRel; // lesion height (depth direction) / scan height
+  final double areaShare; // share of the visible scan covered
+  final bool tallerThanWide;
+  final String note;
+
+  const LesionOutline({
+    required this.image,
+    required this.widthRel,
+    required this.heightRel,
+    required this.areaShare,
+    required this.tallerThanWide,
+    required this.note,
+  });
+
+  factory LesionOutline.fromJson(Map<String, dynamic> json) => LesionOutline(
+        image: base64Decode(json['image_jpeg'] as String),
+        widthRel: (json['width_rel'] as num).toDouble(),
+        heightRel: (json['height_rel'] as num).toDouble(),
+        areaShare: (json['area_share'] as num).toDouble(),
+        tallerThanWide: json['orientation'] == 'taller',
+        note: json['note'] as String,
+      );
+
+  /// Approximate width and height in cm, given the depth the scan's ruler shows for its full height.
+  (double, double) sizeCm(double scanDepthCm) => (widthRel * scanDepthCm, heightRel * scanDepthCm);
+}
+
 class BreastScanResult {
   final ScanPrediction prediction;
   final String title;
   final double confidence; // calibrated probability of the predicted class
   final List<ScanProbability> probabilities;
   final Uint8List? heatmap; // JPEG: the scan with the model's focus overlaid
+  final LesionOutline? outline;
   final String summary;
   final List<Guidance> guidance;
   final double modelAccuracy;
@@ -40,6 +72,7 @@ class BreastScanResult {
     required this.confidence,
     required this.probabilities,
     required this.heatmap,
+    this.outline,
     required this.summary,
     required this.guidance,
     required this.modelAccuracy,
@@ -54,6 +87,7 @@ class BreastScanResult {
             .map((p) => ScanProbability.fromJson(p as Map<String, dynamic>))
             .toList(),
         heatmap: json['heatmap_jpeg'] == null ? null : base64Decode(json['heatmap_jpeg'] as String),
+        outline: json['outline'] == null ? null : LesionOutline.fromJson(json['outline'] as Map<String, dynamic>),
         summary: json['summary'] as String,
         guidance: (json['guidance'] as List).map((g) => Guidance.fromJson(g as Map<String, dynamic>)).toList(),
         modelAccuracy: (json['model_accuracy'] as num).toDouble(),

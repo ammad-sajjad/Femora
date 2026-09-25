@@ -220,6 +220,52 @@ void main() {
     expect(chatBody!['context'], contains('Likely Benign'));
   });
 
+  testWidgets('the lesion outline is shown first and its size is estimated from the scan depth', (tester) async {
+    useTallScreen(tester);
+    final response = {
+      ..._scanResponse,
+      'outline': {
+        'image_jpeg': _pixel,
+        'width_rel': 0.35,
+        'height_rel': 0.2,
+        'area_share': 0.06,
+        'orientation': 'wider',
+        'note': 'The outline is approximate.',
+      },
+    };
+    final h = _Harness(MockClient((_) async => http.Response(jsonEncode(response), 200)));
+    await tester.pumpWidget(h.widget);
+
+    await _tap(tester, find.text('Browse Files'));
+    await _tap(tester, find.text('Sample scan: benign lesion'));
+
+    expect(find.text('Outline'), findsOneWidget);
+    expect(find.text('Pink line = the area the result is about'), findsOneWidget);
+    expect(find.text('Wider than tall'), findsOneWidget);
+    expect(find.text('6% of the scan'), findsOneWidget);
+
+    await _tap(tester, find.text('Estimate size in cm'));
+    await tester.enterText(find.byType(TextField), '4');
+    await _tap(tester, find.text('Estimate'));
+    expect(find.text('1.4 × 0.8 cm'), findsOneWidget);
+
+    await _tap(tester, find.text('AI Focus'));
+    expect(find.text('Red = where the model looked most'), findsOneWidget);
+  });
+
+  test('outline size in cm scales with the scan depth', () {
+    final outline = LesionOutline.fromJson({
+      'image_jpeg': _pixel,
+      'width_rel': 0.5,
+      'height_rel': 0.25,
+      'area_share': 0.1,
+      'orientation': 'taller',
+      'note': '',
+    });
+    expect(outline.sizeCm(4), (2.0, 1.0));
+    expect(outline.tallerThanWide, isTrue);
+  });
+
   testWidgets('shows the server explanation when an upload is rejected', (tester) async {
     useTallScreen(tester);
     const reason = "This doesn't look like a breast ultrasound scan.";

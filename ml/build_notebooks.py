@@ -1465,6 +1465,10 @@ BREAST_ULTRASOUND_UCLM[_i] = ("code", "PRIOR_SPLIT_CSV = '''" + (Path(__file__).
 
 
 if __name__ == "__main__":
+    from segment_cells import BREAST_SEGMENT
+    write("breast_segment", "femora-breast-lesion-outline-unet", "Femora Breast Lesion Outline UNet",
+          ["aryashah2k/breast-ultrasound-images-dataset", "orvile/bus-bra-a-breast-ultrasound-dataset"],
+          BREAST_SEGMENT, gpu=True)
     write("breast_ultrasound_uclm", "femora-breast-ultrasound-resnet50-uclm", "Femora Breast Ultrasound ResNet50 UCLM",
           ["aryashah2k/breast-ultrasound-images-dataset", "orvile/bus-bra-a-breast-ultrasound-dataset",
            "orvile/bus-uclm-breast-ultrasound-dataset", "prasunroy/natural-images",
