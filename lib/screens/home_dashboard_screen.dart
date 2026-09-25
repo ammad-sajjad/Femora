@@ -12,6 +12,7 @@ import '../widgets/cycle_widgets.dart';
 import '../widgets/femora_header.dart';
 import 'dashboard_screen.dart';
 import 'doctor_qr_screen.dart';
+import 'heart_rate_screen.dart';
 import 'trends_screen.dart';
 
 /// Home: everything here comes from what the user has actually done in the app (the on-device [HealthStore]).
@@ -138,6 +139,8 @@ class HomeDashboardScreen extends StatelessWidget {
               _dashboardCard(context, language),
               const SizedBox(height: 14),
               _doctorCard(context, language),
+              const SizedBox(height: 14),
+              _heartCard(context, store, language),
               const SizedBox(height: 14),
               _trendsCard(context, store, language),
             ],
@@ -340,6 +343,21 @@ class HomeDashboardScreen extends StatelessWidget {
         subtitle: t(language, 'A QR code with your summary. Your doctor scans it, nothing is uploaded', 'آپ کے خلاصے والا QR کوڈ۔ ڈاکٹر اسے اسکین کرے، کچھ اپ لوڈ نہیں ہوتا'),
         screen: const DoctorQrScreen(),
       );
+
+  Widget _heartCard(BuildContext context, HealthStore store, String language) {
+    final last = store.heartReadings.isEmpty ? null : store.heartReadings.last;
+    return _linkCard(
+      context,
+      key: const Key('home_heart'),
+      icon: Icons.monitor_heart_outlined,
+      iconBg: const Color(0xFFFFE7E3),
+      title: t(language, 'Morning heart check', 'صبح کی دھڑکن کا چیک'),
+      subtitle: last == null
+          ? t(language, 'Measure your pulse with a fingertip over the camera', 'کیمرے پر انگلی رکھ کر اپنی نبض ناپیں')
+          : t(language, 'Last: ${last.bpm} bpm, ${HealthStore.ago(last.date, store.now())}', 'آخری: ${last.bpm}، ${HealthStore.ago(last.date, store.now(), language: 'ur')}'),
+      screen: const HeartRateScreen(),
+    );
+  }
 
   Widget _linkCard(BuildContext context,
       {required Key key, required IconData icon, required Color iconBg, required String title, required String subtitle, required Widget screen}) {

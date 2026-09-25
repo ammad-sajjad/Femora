@@ -2,6 +2,7 @@ import 'package:intl/intl.dart';
 
 import 'cycle_engine.dart';
 import 'health_store.dart';
+import 'pulse.dart';
 
 /// The "Show my doctor" summary: a short, plain-text handover a clinician can read in under a minute.
 ///
@@ -74,6 +75,12 @@ class DoctorSummary {
     final sc = store.scan;
     if (sc != null) {
       lines.add('Breast US, AI screen (${short.format(sc.date)}): ${sc.title}, P(malignant) ${((sc.probabilities['malignant'] ?? 0) * 100).round()}%');
+    }
+    if (store.heartReadings.isNotEmpty) {
+      final h = HeartInsights(store.heartReadings, e, n);
+      final last = store.heartReadings.last;
+      lines.add('Heart rate (phone camera): ${last.bpm} bpm on ${short.format(last.date)}'
+          '${h.usual == null ? '' : ', usual resting ${h.usual} (${h.resting.length} readings)'}');
     }
     if (lastSelfExam != null) lines.add('Last self-exam: ${short.format(lastSelfExam)}');
     if (store.reports.isNotEmpty) {

@@ -7,6 +7,7 @@ import 'breast.dart';
 import 'cycle_engine.dart';
 import 'hormone_insights.dart';
 import 'pcos.dart';
+import 'pulse.dart';
 import 'report_reader.dart';
 
 /// Everything Femora knows about the user, stored on the phone only.
@@ -222,6 +223,7 @@ class HealthStore extends ChangeNotifier {
   List<SymptomLog> logs = [];
   List<PeriodEntry> periods = []; // every period the user logged, oldest first
   List<ExplainedReport> reports = []; // medical reports explained from photos, newest first (text only, never the photo)
+  List<HeartReading> heartReadings = []; // fingertip heart rate checks, oldest first
 
   /// Called whenever the period history may have changed (reminders are recalculated from it).
   void Function()? onCycleChanged;
@@ -245,6 +247,7 @@ class HealthStore extends ChangeNotifier {
     logs = [];
     periods = [];
     reports = [];
+    heartReadings = [];
     notifyListeners();
     await load();
   }
@@ -270,6 +273,7 @@ class HealthStore extends ChangeNotifier {
         logs = ((j['logs'] as List?) ?? const []).map((e) => SymptomLog.fromJson(e as Map<String, dynamic>)).toList();
         periods = ((j['periods'] as List?) ?? const []).map((e) => PeriodEntry.fromJson(e as Map<String, dynamic>)).toList();
         reports = ((j['reports'] as List?) ?? const []).map((e) => ExplainedReport.fromJson(e as Map<String, dynamic>)).toList();
+        heartReadings = ((j['heart'] as List?) ?? const []).map((e) => HeartReading.fromJson(e as Map<String, dynamic>)).toList();
       }
       final heat = prefs.getString(_heatKey);
       scanHeatmap = heat == null ? null : base64Decode(heat);
@@ -294,6 +298,7 @@ class HealthStore extends ChangeNotifier {
           'logs': logs.map((l) => l.toJson()).toList(),
           'periods': periods.map((e) => e.toJson()).toList(),
           'reports': reports.map((e) => e.toJson()).toList(),
+          'heart': heartReadings.map((e) => e.toJson()).toList(),
         }),
       );
       if (scanHeatmap == null) {
@@ -417,6 +422,16 @@ class HealthStore extends ChangeNotifier {
     return null;
   }
 
+  static const maxHeartReadings = 200;
+
+  /// Saves a heart rate check (the most recent [maxHeartReadings] are kept).
+  Future<void> addHeartReading(HeartReading r) async {
+    heartReadings = [...heartReadings, r]..sort((a, b) => a.date.compareTo(b.date));
+    if (heartReadings.length > maxHeartReadings) heartReadings = heartReadings.sublist(heartReadings.length - maxHeartReadings);
+    notifyListeners();
+    await _save();
+  }
+
   static const maxReports = 5;
 
   /// Keeps the text of an explained report (newest first, at most [maxReports]). The photo is never kept.
@@ -448,6 +463,7 @@ class HealthStore extends ChangeNotifier {
     logs = [];
     periods = [];
     reports = [];
+    heartReadings = [];
     notifyListeners();
     await _save();
     onCycleChanged?.call();
@@ -506,6 +522,12 @@ class HealthStore extends ChangeNotifier {
     if (cyc != null) lines.add(cyc);
     final hormones = HormoneInsights(engine, logs, n).companionSummary();
     if (hormones != null) lines.add(hormones);
+    if (heartReadings.isNotEmpty) {
+      final h = HeartInsights(heartReadings, engine, n);
+      final last = heartReadings.last;
+      lines.add('Heart rate (fingertip camera check): latest ${last.bpm} bpm ${ago(last.date, n)}'
+          '${h.usual == null ? '' : ', usual resting ${h.usual} bpm'}${h.cycleNote == null ? '' : '. ${h.cycleNote}'}');
+    }
     final recent = logs.where((l) => n.difference(l.date).inDays < 7).toList();
     if (recent.isNotEmpty) {
       final sy = <String>{for (final l in recent) ...l.symptoms};
