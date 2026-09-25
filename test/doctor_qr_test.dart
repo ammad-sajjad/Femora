@@ -1,4 +1,5 @@
 import 'package:femora/models/cycle_engine.dart';
+import 'package:femora/models/doctor_link.dart';
 import 'package:femora/models/doctor_summary.dart';
 import 'package:femora/models/health_store.dart';
 import 'package:femora/models/report_reader.dart';
@@ -66,7 +67,38 @@ void main() {
     expect(DoctorSummary.build(s), contains('No results logged yet.'));
   });
 
-  testWidgets('the screen shows a QR code holding the summary, and the text behind it', (tester) async {
+  test('the link carries the whole report, compressed after the # so it never reaches a server', () {
+    final store = _fullStore();
+    final link = DoctorLink.build(store, lastSelfExam: _now.subtract(const Duration(days: 3)));
+    expect(link, startsWith('https://femora.web.app/#r='));
+    expect(link.length, lessThanOrEqualTo(DoctorLink.maxLength));
+    // ignore: avoid_print
+    print('full report link: ${link.length} characters');
+    final r = DoctorLink.decode(link.split('#r=').last);
+    expect(r['p'], {'n': 'Ayesha Khan', 'a': 27, 'h': 162, 'w': 68});
+    expect(r['pc'], {'d': 0, 'pct': 71, 'lv': 'high', 'bmi': 259, 'f': ['Irregular cycles', 'Acne']});
+    expect(r['sc']['pb'], [2, 90, 8]);
+    expect(r['br']['rf'], ['Breast lump']);
+    expect(r['cy']['ls'], -8); // last period 8 days before the report
+    expect(r['cy']['cd'], 9);
+    expect(r['wl']['ex'], -3);
+    expect(r['lab']['f'], [['Hemoglobin', '10.8', 'g/dL', 'low']]); // only out-of-range values
+    expect((r['id'] as String), startsWith('FEM-260920-'));
+  });
+
+  test('a very full report drops the daily charts first to stay scannable', () {
+    final store = _fullStore();
+    store.logs = [
+      for (var i = 0; i < 30; i++)
+        SymptomLog(date: _now.subtract(Duration(days: i)), symptoms: const ['cramps', 'headache', 'bloating', 'acne'], mood: 'okay', sleepHours: 6.5 + (i % 3), stress: 1 + i % 5, energy: 1 + (i * 7) % 5),
+    ];
+    final link = DoctorLink.build(store);
+    expect(link.length, lessThanOrEqualTo(DoctorLink.maxLength));
+    final wl = DoctorLink.decode(link.split('#r=').last)['wl'] as Map<String, dynamic>;
+    expect(wl['lc'], 30); // the averages stay even when the charts go
+  });
+
+  testWidgets('the screen shows a QR code holding the report link, and a preview of the page', (tester) async {
     final store = _fullStore();
     await tester.pumpWidget(MultiProvider(
       providers: [
@@ -77,11 +109,7 @@ void main() {
     ));
     expect(find.byType(QrImageView), findsOneWidget);
     expect(find.text('Ayesha Khan'), findsOneWidget);
-    expect(find.textContaining('Nothing is uploaded'), findsOneWidget);
-
-    await tester.tap(find.text('What the doctor will see'));
-    await tester.pumpAndSettle();
-    // the text shown is exactly what the code holds
-    expect(tester.widget<SelectableText>(find.byType(SelectableText)).data, DoctorSummary.build(store));
+    expect(find.textContaining('nothing is uploaded'), findsOneWidget);
+    expect(find.byKey(const Key('doctor_qr_preview')), findsOneWidget);
   });
 }
