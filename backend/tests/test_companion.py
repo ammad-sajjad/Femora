@@ -21,6 +21,17 @@ def fresh_limits():
     companion.reset_rate_limits()
 
 
+async def _no_neural(text, lang):
+    raise OSError("offline")
+    yield b""
+
+
+@pytest.fixture(autouse=True)
+def offline_neural_voice(monkeypatch):
+    """Tests never reach Microsoft's voice service; the tests below that need it put in a fake."""
+    monkeypatch.setattr(companion, "neural_speech", _no_neural)
+
+
 def chat(text, context=None, language="auto", history=None):
     msgs = (history or []) + [{"role": "user", "text": text}]
     return client.post("/chat", json={"messages": msgs, "context": context, "language": language})
@@ -258,3 +269,28 @@ def test_speak_fails_when_every_voice_model_fails(monkeypatch):
 
 def test_health_reports_companion():
     assert "companion" in client.get("/health").json()
+
+
+def test_speak_streams_the_neural_voice_first_and_picks_the_urdu_voice(monkeypatch):
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)  # needs no Gemini key
+    langs = []
+
+    async def fake(text, lang):
+        langs.append(lang)
+        yield b"ID3"
+        yield b"rest"
+
+    monkeypatch.setattr(companion, "neural_speech", fake)
+    monkeypatch.setattr(companion, "gemini_speak", boom)
+    r = client.post("/voice/speak", json={"text": "آپ کیسی ہیں؟"})
+    assert r.status_code == 200 and r.headers["content-type"] == "audio/mpeg" and r.content == b"ID3rest"
+    r = client.get("/voice/speak", params={"text": "How are you?", "language": "auto"})
+    assert r.status_code == 200 and r.content == b"ID3rest"
+    assert langs == ["ur", "en"]
+
+
+def test_speak_falls_back_to_the_gemini_voice_when_the_neural_voice_fails(monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "test")
+    monkeypatch.setattr(companion, "gemini_speak", lambda text: companion.pcm_to_wav(b"\x00\x00" * 100))
+    r = client.get("/voice/speak", params={"text": "hello"})
+    assert r.status_code == 200 and r.headers["content-type"] == "audio/wav"

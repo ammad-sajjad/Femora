@@ -5,6 +5,7 @@ environment variable and never leaves the server. Every reply passes through det
 input limits, rate limit) that do not depend on the language model, and there is a rule-based fallback for when the model
 or the network is unavailable.
 """
+import asyncio
 import base64
 import io
 import json
@@ -19,8 +20,9 @@ from collections import defaultdict, deque
 from pathlib import Path
 from typing import Literal
 
-from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import Response
+from fastapi import APIRouter, File, Form, HTTPException, Query, Request, UploadFile
+from fastapi.concurrency import run_in_threadpool
+from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel, Field
 
 import knowledge
@@ -50,6 +52,9 @@ STT_MODEL = os.environ.get("GEMINI_STT_MODEL", "gemini-3.1-flash-lite")
 TTS_MODEL = os.environ.get("GEMINI_TTS_MODEL", "gemini-3.1-flash-tts-preview")
 TTS_MODEL_BACKUP = os.environ.get("GEMINI_TTS_MODEL_BACKUP", "gemini-2.5-flash-preview-tts")  # free tier allows about 10 voice requests a day per model
 TTS_VOICE = os.environ.get("GEMINI_TTS_VOICE", "Kore")
+# Spoken answers use Microsoft's neural voices first (see neural_speech); Gemini's voice is the backup.
+NEURAL_VOICES = {"en": os.environ.get("NEURAL_VOICE_EN", "en-US-AvaNeural"),
+                 "ur": os.environ.get("NEURAL_VOICE_UR", "ur-PK-UzmaNeural")}
 
 MAX_MESSAGE_CHARS = 2000
 MAX_TURNS = 12
@@ -388,7 +393,7 @@ def reset_rate_limits() -> None:
 
 @router.get("/companion/status")
 def companion_status():
-    return {"gemini": api_key() is not None, "chat_model": CHAT_MODEL, "voice": api_key() is not None}
+    return {"gemini": api_key() is not None, "chat_model": CHAT_MODEL, "voice": True}
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -437,15 +442,58 @@ async def transcribe(request: Request, audio: UploadFile = File(...), language: 
     return {"text": text}
 
 
-@router.post("/voice/speak")
-def speak(req: SpeakRequest, request: Request):
+async def neural_speech(text: str, lang: str):
+    """Microsoft's neural voices (the edge-tts package): natural in English and Urdu, no key and no daily limit.
+
+    The audio streams, so the first words play about two seconds after the request (measured 25 Sep 2026), where
+    Gemini's voice took 5 seconds for a sentence and 16 for a paragraph and allows about 10 requests a day.
+    It is an unofficial use of the service behind Microsoft Edge's Read Aloud, so it can stop working; Gemini is kept
+    as the backup for that reason.
+    """
+    import edge_tts
+    async for chunk in edge_tts.Communicate(text, NEURAL_VOICES[lang]).stream():
+        if chunk["type"] == "audio":
+            yield chunk["data"]
+
+
+async def _speak(text: str, language: str, request: Request):
     check_rate(client_id(request))
+    text = clean_for_speech(text)
+    if not text:
+        raise HTTPException(422, "Nothing to read aloud.")
+    stream = neural_speech(text, detect_language(text, language))
+    try:
+        first = await asyncio.wait_for(anext(stream), timeout=15)
+    except Exception:  # no network, service changed, package missing: use the backup voice
+        first = None
+    if first is not None:
+        async def body():
+            yield first
+            try:
+                async for chunk in stream:
+                    yield chunk
+            except Exception:
+                pass  # a dropped connection only ends the audio early; the answer is still on screen
+        return StreamingResponse(body(), media_type="audio/mpeg")
+
     if api_key() is None:
         raise HTTPException(503, "Voice is not available on this server.")
     try:
-        wav = gemini_speak(req.text)
+        wav = await run_in_threadpool(gemini_speak, text)
     except GeminiError as e:
         if "429" in str(e):
             raise HTTPException(429, "The AI voice has reached its daily limit. Please read the text instead.")
         raise HTTPException(502, "The voice service is busy. Please read the text instead.")
     return Response(content=wav, media_type="audio/wav")
+
+
+@router.post("/voice/speak")
+async def speak(req: SpeakRequest, request: Request):
+    return await _speak(req.text, req.language, request)
+
+
+@router.get("/voice/speak")
+async def speak_url(request: Request, text: str = Query(min_length=1, max_length=4000),
+                    language: Literal["auto", "en", "ur"] = "auto"):
+    """The same voice as a plain address, so the app's player can start playing while the audio is still arriving."""
+    return await _speak(text, language, request)
