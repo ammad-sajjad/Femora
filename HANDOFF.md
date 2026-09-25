@@ -1,4 +1,4 @@
-# Femora: handoff notes (state on 25 September 2026)
+# Femora: handoff notes (state on 25 September 2026, evening)
 
 Read this first when continuing on another PC (or in a new Claude Code session: say "read HANDOFF.md and continue").
 The earlier chat transcript lives only on the home PC, so this file carries the context.
@@ -24,21 +24,23 @@ Flutter women's-health app (FYP, Air University Islamabad; team Arshia Naseer, A
 | Medical report reader (photo of a lab or ultrasound report, explained in Urdu or English) | Built 22 Sep (commit 7d25fc2); tested with a fake Gemini only, not yet with the real service or a phone camera. The old key's 401 is fixed: `backend/.env` got a new key on 23 Sep and a live /chat call returned a Gemini answer |
 | Urdu/English switch | Whole-app mechanism and every screen's layout done (commits f40568f, 28c4e68, 0acc7b7). Still English only: generated clinical text, the Self-Exam steps, reminder notification text, the PDF report and the sign-in screen. Urdu not yet reviewed by a native speaker |
 | Marketing showcase and supervisor progress report | PDFs in `scope doument/` (commit f2a454a); screenshots come from `lib/dev/screenshot_harness.dart` (dev only, not in the shipped app) |
-| Word report (`scope doument/...docx`) | Rebuilt 25 Sep with chapter 17 (the nine features below), 67 pages, TOC refreshed; supervisor PDF has a 2-page section 12 appended |
-| **25 Sep feature bucket** (branch `bucket-features`) | 1 lesion outline (U-Net, test Dice 0.86), 2 Home body clock, 3 Show my doctor QR, 4 smarter companion (trusted notes, OTC medicine table, evaluation), 6 morning heart check (camera), 7 WhatsApp webhook, 8 profile panel, 5 nearby care map, 9 UI review. Details below; none tried on a phone yet |
+| Word report (`scope doument/...docx`) | Rebuilt 25 Sep evening with chapter 18 (the four evening features), 69 pages, TOC refreshed; supervisor PDF has section 12 and a 2-page section 13 appended (16 pages). The one missing figure (`ml/output/breast_segment/seg_examples.png`, gitignored) was extracted from the previous .docx to rebuild |
+| **25 Sep feature bucket** (merged into `main`) | 1 lesion outline (U-Net, test Dice 0.86), 2 Home body clock, 3 Show my doctor QR, 4 smarter companion (trusted notes, OTC medicine table, evaluation), 6 morning heart check (camera), 7 WhatsApp webhook, 8 profile panel, 5 nearby care map, 9 UI review. Details below; none tried on a phone yet |
+
+| **25 Sep evening** | 1 natural voice: `/voice/speak` uses Microsoft neural voices via edge-tts (first audio ~2 s, English and Urdu; Gemini voice is the backup), and every answer uses it. 2 Show my doctor: the QR holds `https://femora.web.app/#r=<compressed report>` (`lib/models/doctor_link.dart`); the PDF-style page is `doctor_view/index.html`, deployed with `firebase deploy --only hosting --project fluttermangaapp` (site `femora`, free Spark plan). 3 Home cycle card keeps moving (`AmbientGlow`, off for reduced motion and in tests). 4 Find a doctor (`lib/screens/find_doctor_screen.dart`, `backend/doctors.py`): Google Places if `GOOGLE_PLACES_API_KEY` is set (no key: Pakistan requires a $10 prepay, owner declined), else **Oladoc** (`backend/oladoc.py`, used with Oladoc's written permission of 25 Sep 2026 for development and demonstration; an official API key was offered), else OpenStreetMap. Live Islamabad: 30 gynae, 17 breast, 21 endocrine, 14 fertility doctors. Report chapter 18 |
 
 Not built: pregnancy care (6.5) and its reminders (moved to FYP III).
 
 ## Set up on a new PC
 1. `git pull`. Models are in git (`backend/models/`).
 2. Backend: `python -m venv backend/.venv`, install `backend/requirements.txt`, `backend/.env` (with the Gemini free-tier key) is committed on purpose at the owner's request, so a pull brings it. If Google has disabled that key, copy `backend/.env.example` to `backend/.env` and put a new key on the `GEMINI_API_KEY=` line; the key was also pasted in chat, so revoke it for anything beyond a demo. Run `backend/.venv/Scripts/uvicorn app:app --app-dir backend --host 0.0.0.0 --port 8000`. `GET /health` should show `"companion": true`.
-3. App: Flutter 3.47.5 stable. `flutter pub get`, `flutter test` (392 pass on 25 Sep), `flutter analyze` (no errors or warnings). Backend tests: `backend/.venv/Scripts/python -m pytest backend/tests` (163 pass).
+3. App: Flutter 3.47.5 stable. `flutter pub get`, `flutter test` (399 of 400 pass on 25 Sep evening; `heart_rate_screen_test` fails, not investigated), `flutter analyze` (no errors or warnings). Backend tests: `backend/.venv/Scripts/python -m pytest backend/tests` (174 pass).
 4. Phone demo: `scripts\start_demo.ps1` (needs `cloudflared.exe`, path in the script or the `CLOUDFLARED` variable). Paste the printed address into the app's Server address dialog. Do not type in the script window.
 5. APK: `flutter build apk --release --target-platform android-arm64` (the home PC has only 8 GB RAM and builds fail if other programs are open; paths like `D:/flutter` in the notes below are specific to the home PC).
 6. **Always restart the backend after updating the code**; an old server process without the companion was once left running on port 8000.
 
 ## Latest APK
-`femora-release-arm64.apk` in this folder (build 6, 23 Sep 2026, built from commit `f2a454a`, 24.4 MB, arm64; a copy is also on the Desktop). It includes everything listed above: accounts, cycle tracking, the trackers, reminders, PCOS what-if, report reader and the Urdu switch. Package is `pk.edu.au.femora`; if build 5 or older is on the phone, uninstall it first (it is a different app). Build 6 has not been installed on a phone yet. Older APKs in this folder (`femora-arm64-release.apk`, `femora-release.apk`) are stale and can be deleted.
+`femora-release-arm64.apk` in this folder (build 7, 25 Sep 2026 evening, 26.3 MB, arm64; a copy is also on the OneDrive Desktop). It includes everything listed above, including the nine 25 Sep features and the four evening ones (natural voice, full QR report, moving Home card, Find a doctor). Package is `pk.edu.au.femora`; if build 5 or older is on the phone, uninstall it first (it is a different app). Build 7 has not been installed on a phone yet. The doctor list and the natural voice need the backend to have internet (Oladoc, Microsoft voices); search each specialty once before a demo so it is cached. Older APKs in this folder (`femora-arm64-release.apk`, `femora-release.apk`) are stale and can be deleted.
 
 ## Voice: what happened and the current design
 - On the phone, speech recognition worked but the companion did not speak. Cause (verified): Gemini text-to-speech on a free key allows **10 requests a day per model**; testing used it up (HTTP 429).
