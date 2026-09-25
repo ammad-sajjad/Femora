@@ -18,6 +18,7 @@ from PIL import Image, ImageOps, UnidentifiedImageError
 from pydantic import BaseModel, Field
 
 import companion
+import doctors
 import lesion_outline
 import places
 import report_reader
@@ -30,7 +31,19 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 app.include_router(companion.router)   # AI companion: /chat, /voice/transcribe, /voice/speak
 app.include_router(report_reader.router)  # /report/explain: photo of a medical report explained in Urdu or English
 app.include_router(places.router)  # /places/nearby: hospitals, gynaecologists, clinics, labs, imaging
+app.include_router(doctors.router)  # /doctors/nearby: individual doctors with a mini profile (Google Places, else OpenStreetMap)
 app.include_router(whatsapp.router)  # /whatsapp/webhook: the companion on WhatsApp (Meta Cloud API)
+
+@app.get("/")
+def root():
+    return {
+        "status": "Femora API is running",
+        "health": "/health",
+        "docs": "/docs",
+        "frontend": "http://localhost:5050",
+        "message": "This is the backend API. To use the Femora application, open http://localhost:5050 in Chrome."
+    }
+
 
 pcos_meta = json.loads((MODELS / "pcos_meta.json").read_text())
 pcos_model = xgb.Booster()

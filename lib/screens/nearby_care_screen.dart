@@ -10,6 +10,7 @@ import '../models/health_store.dart';
 import '../models/places.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
+import 'find_doctor_screen.dart';
 
 /// Her location, or null when it is off or refused. Injectable for tests.
 typedef LocationFinder = Future<(double, double)?> Function();
@@ -153,6 +154,14 @@ class _NearbyCareScreenState extends State<NearbyCareScreen> {
         elevation: 0,
         foregroundColor: AppColors.textDark,
         title: Text(t(language, 'Nearby care', 'قریبی طبی سہولیات'), style: const TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700)),
+        actions: [
+          TextButton.icon(
+            key: const Key('care_find_doctor'),
+            onPressed: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => const FindDoctorScreen())),
+            icon: const Icon(Icons.person_search_outlined, size: 18),
+            label: Text(t(language, 'Doctors', 'ڈاکٹر')),
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.only(bottom: 32),
