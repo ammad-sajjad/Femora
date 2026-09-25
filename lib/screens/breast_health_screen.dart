@@ -340,13 +340,14 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
             style: const TextStyle(fontFamily: 'Inter', fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textDark),
           ),
           const SizedBox(height: 6),
-          _body(t(language, 'Upload Hospital Ultrasound Scan\n(PNG/JPG) for AI ResNet50 analysis', 'AI ResNet50 تجزیے کے لیے ہسپتال کا الٹراساؤنڈ اسکین\n(PNG/JPG) اپ لوڈ کریں'), align: TextAlign.center),
+          _body(t(language, 'Upload your breast ultrasound image (PNG or JPG). The AI checks it and outlines any lump it finds.',
+              'اپنی بریسٹ الٹراساؤنڈ تصویر (PNG یا JPG) اپ لوڈ کریں۔ AI اس کا جائزہ لے کر کسی گلٹی کا خاکہ بنائے گا۔'), align: TextAlign.center),
           const SizedBox(height: 18),
           if (scanning) ...[
             const CircularProgressIndicator(color: AppColors.primaryBerry),
             const SizedBox(height: 10),
             Text(
-              t(language, 'ResNet50 Analyzing Ultrasound...', 'ResNet50 الٹراساؤنڈ کا تجزیہ کر رہا ہے...'),
+              t(language, 'Analysing your ultrasound…', 'آپ کے الٹراساؤنڈ کا تجزیہ ہو رہا ہے…'),
               style: const TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primaryBerry),
             ),
           ] else
@@ -845,32 +846,10 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                child: Image.asset('assets/images/self_exam_guide.png', width: double.infinity, height: 160, fit: BoxFit.cover),
-              ),
-              Positioned(
-                left: 14,
-                bottom: 12,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.55), borderRadius: BorderRadius.circular(12)),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.access_time_rounded, color: Colors.white, size: 14),
-                      const SizedBox(width: 5),
-                      Text(
-                        t(language, '3 Min Guide', '3 منٹ کی رہنمائی'),
-                        style: const TextStyle(fontFamily: 'Inter', fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+          // The guide image carries its own "3 Min Guide" label
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            child: Image.asset('assets/images/self_exam_guide.png', width: double.infinity, height: 160, fit: BoxFit.cover),
           ),
           Padding(
             padding: const EdgeInsets.all(20.0),

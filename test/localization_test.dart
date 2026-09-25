@@ -88,7 +88,7 @@ void main() {
       expect(Directionality.of(tester.element(find.byType(MainShellScreen))), TextDirection.ltr);
 
       // Home -> companion tab -> menu -> Edit my profile (the same route a real user takes)
-      await tester.tap(find.byIcon(Icons.person_outline_rounded).last); // the bottom nav's companion tab
+      await tester.tap(find.byIcon(Icons.chat_bubble_outline_rounded).last); // the bottom nav's companion tab
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('companion_menu')));
       await tester.pumpAndSettle();
