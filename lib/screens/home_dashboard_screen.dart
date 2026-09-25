@@ -170,13 +170,18 @@ class HomeDashboardScreen extends StatelessWidget {
         onTap: () => context.read<AppState>().setTab(1),
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+          clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             gradient: AppColors.heroGradient,
             borderRadius: BorderRadius.circular(24),
             boxShadow: [BoxShadow(color: AppColors.primaryBerry.withValues(alpha: 0.3), blurRadius: 22, offset: const Offset(0, 8))],
           ),
-          child: e.hasHistory
+          child: Stack(
+            children: [
+              const Positioned.fill(child: AmbientGlow()),
+              Padding(
+                padding: const EdgeInsets.all(18),
+                child: e.hasHistory
               ? Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -247,6 +252,9 @@ class HomeDashboardScreen extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+            ],
+          ),
         ),
       ),
     );
