@@ -38,9 +38,12 @@ class BreastHealthScreen extends StatefulWidget {
   State<BreastHealthScreen> createState() => _BreastHealthScreenState();
 }
 
+enum _ScanView { original, focus, outline }
+
 class _BreastHealthScreenState extends State<BreastHealthScreen> {
   final _resultKey = GlobalKey();
-  bool _showHeatmap = true;
+  _ScanView _view = _ScanView.outline; // falls back to the heatmap, then the scan, when a view isn't available
+  double? _scanDepthCm; // read by the user off the scan's ruler, to turn the outline's relative size into cm
 
   // ---------------------------------------------------------------- actions
 
@@ -106,7 +109,10 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
       _showSnack(error);
       return;
     }
-    setState(() => _showHeatmap = true);
+    setState(() {
+      _view = _ScanView.outline;
+      _scanDepthCm = null;
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final target = _resultKey.currentContext;
       if (target != null) {
@@ -542,6 +548,24 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
     final suspicious = result.prediction == ScanPrediction.malignant;
     final color = suspicious ? AppColors.pinkTagText : AppColors.greenSuccess;
     final heatmap = result.heatmap;
+    final outline = result.outline;
+    final view = switch (_view) {
+      _ScanView.outline when outline != null => _ScanView.outline,
+      _ScanView.original => _ScanView.original,
+      _ when heatmap != null => _ScanView.focus,
+      _ when outline != null => _ScanView.outline,
+      _ => _ScanView.original,
+    };
+    final shown = switch (view) {
+      _ScanView.outline => outline!.image,
+      _ScanView.focus => heatmap!,
+      _ScanView.original => scan,
+    };
+    final caption = switch (view) {
+      _ScanView.outline => t(language, 'Pink line = the area the result is about', 'گلابی لکیر = وہ حصہ جس کے بارے میں نتیجہ ہے'),
+      _ScanView.focus => t(language, 'Red = where the model looked most', 'سرخ = جہاں ماڈل نے سب سے زیادہ دیکھا'),
+      _ScanView.original => t(language, 'Your scan as uploaded', 'آپ کا اسکین، جیسا اپ لوڈ کیا'),
+    };
 
     return Container(
       width: double.infinity,
@@ -566,25 +590,31 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
               color: Colors.black,
               width: double.infinity,
               constraints: const BoxConstraints(maxHeight: 260),
-              child: Image.memory(heatmap != null && _showHeatmap ? heatmap : scan, fit: BoxFit.contain, gaplessPlayback: true),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                child: Image.memory(shown, key: ValueKey(view), fit: BoxFit.contain, gaplessPlayback: true),
+              ),
             ),
           ),
-          if (heatmap != null) ...[
+          if (heatmap != null || outline != null) ...[
             const SizedBox(height: 10),
-            Row(
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
               children: [
-                _viewToggle(t(language, 'Original', 'اصل'), !_showHeatmap, () => setState(() => _showHeatmap = false)),
-                const SizedBox(width: 8),
-                _viewToggle(t(language, 'AI Focus', 'AI فوکس'), _showHeatmap, () => setState(() => _showHeatmap = true)),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    t(language, 'Red = where the model looked most', 'سرخ = جہاں ماڈل نے سب سے زیادہ دیکھا'),
-                    style: const TextStyle(fontFamily: 'Inter', fontSize: 11, color: AppColors.textLight),
-                  ),
-                ),
+                _viewToggle(t(language, 'Original', 'اصل'), view == _ScanView.original, () => setState(() => _view = _ScanView.original)),
+                if (heatmap != null)
+                  _viewToggle(t(language, 'AI Focus', 'AI فوکس'), view == _ScanView.focus, () => setState(() => _view = _ScanView.focus)),
+                if (outline != null)
+                  _viewToggle(t(language, 'Outline', 'خاکہ'), view == _ScanView.outline, () => setState(() => _view = _ScanView.outline)),
               ],
             ),
+            const SizedBox(height: 6),
+            Text(caption, style: const TextStyle(fontFamily: 'Inter', fontSize: 11, color: AppColors.textLight)),
+          ],
+          if (outline != null) ...[
+            const SizedBox(height: 12),
+            _outlinePanel(outline, language),
           ],
           const SizedBox(height: 16),
 
@@ -652,6 +682,78 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
         ],
       ),
     );
+  }
+
+  /// Shape and approximate size of the outlined area. Size needs the scan's depth, which only the scan's ruler shows.
+  Widget _outlinePanel(LesionOutline outline, String language) {
+    final depth = _scanDepthCm;
+    final size = depth == null ? null : outline.sizeCm(depth);
+    final shape = outline.tallerThanWide
+        ? t(language, 'Taller than wide', 'چوڑائی سے زیادہ اونچا')
+        : t(language, 'Wider than tall', 'اونچائی سے زیادہ چوڑا');
+    final covers = '${(outline.areaShare * 100).clamp(1, 100).round()}%';
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: const Color(0xFFFDF1F8), borderRadius: BorderRadius.circular(16)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.gesture_rounded, size: 18, color: Color(0xFFD4147A)),
+              const SizedBox(width: 8),
+              Text(t(language, 'Outlined area', 'خاکہ شدہ حصہ'),
+                  style: const TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+            ],
+          ),
+          const SizedBox(height: 10),
+          _outlineFact(t(language, 'Shape', 'شکل'), shape),
+          _outlineFact(t(language, 'Covers', 'حصہ'), t(language, '$covers of the scan', 'اسکین کا $covers')),
+          _outlineFact(
+            t(language, 'Approx. size', 'اندازاً سائز'),
+            size == null
+                ? t(language, 'Add the scan depth to estimate', 'اندازے کے لیے اسکین کی گہرائی درج کریں')
+                : '${size.$1.toStringAsFixed(1)} × ${size.$2.toStringAsFixed(1)} cm',
+          ),
+          const SizedBox(height: 4),
+          TextButton.icon(
+            style: TextButton.styleFrom(padding: EdgeInsets.zero, foregroundColor: const Color(0xFFD4147A)),
+            onPressed: () => _askScanDepth(language),
+            icon: const Icon(Icons.straighten_rounded, size: 18),
+            label: Text(depth == null
+                ? t(language, 'Estimate size in cm', 'سائز سینٹی میٹر میں معلوم کریں')
+                : t(language, 'Change scan depth (${depth.toStringAsFixed(1)} cm)', 'اسکین کی گہرائی بدلیں (${depth.toStringAsFixed(1)} cm)')),
+          ),
+          Text(outline.note, style: const TextStyle(fontFamily: 'Inter', fontSize: 11.5, color: AppColors.textMuted, height: 1.4)),
+        ],
+      ),
+    );
+  }
+
+  Widget _outlineFact(String label, String value) => Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 96,
+              child: Text(label, style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, color: AppColors.textMuted)),
+            ),
+            Expanded(
+              child: Text(value,
+                  style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+            ),
+          ],
+        ),
+      );
+
+  Future<void> _askScanDepth(String language) async {
+    final value = await showDialog<double>(
+      context: context,
+      builder: (context) => _ScanDepthDialog(language: language, initial: _scanDepthCm),
+    );
+    if (value != null && mounted) setState(() => _scanDepthCm = value);
   }
 
   Widget _viewToggle(String label, bool selected, VoidCallback onTap) => GestureDetector(
@@ -855,6 +957,71 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Asks for the depth the scan's ruler shows, to turn the outline's relative size into centimetres.
+class _ScanDepthDialog extends StatefulWidget {
+  final String language;
+  final double? initial;
+
+  const _ScanDepthDialog({required this.language, this.initial});
+
+  @override
+  State<_ScanDepthDialog> createState() => _ScanDepthDialogState();
+}
+
+class _ScanDepthDialogState extends State<_ScanDepthDialog> {
+  late final _controller = TextEditingController(text: widget.initial?.toStringAsFixed(1) ?? '');
+  String? _error;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final v = double.tryParse(_controller.text.trim().replaceAll(',', '.'));
+    if (v == null || v < 1 || v > 15) {
+      setState(() => _error = t(widget.language, 'Enter a depth between 1 and 15 cm', '1 سے 15 سینٹی میٹر کے درمیان گہرائی درج کریں'));
+      return;
+    }
+    Navigator.pop(context, v);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final language = widget.language;
+    return AlertDialog(
+      title: Text(t(language, 'Scan depth', 'اسکین کی گہرائی')),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            t(language,
+                'Ultrasound images show a centimetre ruler along one side, and the depth is often printed on the screen '
+                    '(for example "4.0 cm"). Enter the depth shown from the top to the bottom of the image.',
+                'الٹراساؤنڈ تصویر کے ایک طرف سینٹی میٹر کا پیمانہ ہوتا ہے، اور گہرائی اکثر اسکرین پر لکھی ہوتی ہے '
+                    '(مثلاً "4.0 cm")۔ تصویر کے اوپر سے نیچے تک کی گہرائی درج کریں۔'),
+            style: const TextStyle(fontSize: 13, height: 1.4),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _controller,
+            autofocus: true,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(suffixText: 'cm', hintText: '4.0', errorText: _error),
+            onSubmitted: (_) => _submit(),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: Text(t(language, 'Cancel', 'منسوخ'))),
+        FilledButton(onPressed: _submit, child: Text(t(language, 'Estimate', 'اندازہ لگائیں'))),
+      ],
     );
   }
 }

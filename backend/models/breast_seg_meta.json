@@ -1,0 +1,90 @@
+{
+  "onnx_file": "breast_seg_unet.onnx",
+  "architecture": "U-Net, ResNet34 encoder (ImageNet), segmentation_models_pytorch 0.5.0",
+  "input": {
+    "size": 256,
+    "mean": [
+      0.48500001430511475,
+      0.4560000002384186,
+      0.4059999883174896
+    ],
+    "std": [
+      0.2290000021457672,
+      0.2240000069141388,
+      0.22499999403953552
+    ],
+    "channels": "grayscale x3",
+    "preprocessing": "grayscale, padded to a square, bilinear resize"
+  },
+  "probability_threshold": 0.5,
+  "min_area_fraction": 0.002,
+  "best_epoch": 25,
+  "epochs": 45,
+  "val_dice": 0.8575,
+  "split": "same as the deployed classifier (ml/busbra_split.csv)",
+  "train_scans": 1851,
+  "val_scans": 336,
+  "test_scans": 710,
+  "test_metrics": {
+    "scans": 688,
+    "dice_mean": 0.863,
+    "dice_median": 0.9241,
+    "iou_mean": 0.791,
+    "share_dice_at_least_0_5": 0.9477,
+    "share_missed": 0.0073
+  },
+  "per_source_test": {
+    "BUS-BRA": {
+      "scans": 562,
+      "dice_mean": 0.8875,
+      "dice_median": 0.9291,
+      "iou_mean": 0.8175,
+      "share_dice_at_least_0_5": 0.9698,
+      "share_missed": 0.0036
+    },
+    "BUSI": {
+      "scans": 92,
+      "dice_mean": 0.7404,
+      "dice_median": 0.8938,
+      "iou_mean": 0.6657,
+      "share_dice_at_least_0_5": 0.8261,
+      "share_missed": 0.0326
+    },
+    "BrEaST": {
+      "scans": 34,
+      "dice_mean": 0.7892,
+      "dice_median": 0.8547,
+      "iou_mean": 0.6923,
+      "share_dice_at_least_0_5": 0.9118,
+      "share_missed": 0.0
+    }
+  },
+  "per_label_test": {
+    "benign": {
+      "scans": 448,
+      "dice_mean": 0.881,
+      "dice_median": 0.9322,
+      "iou_mean": 0.8155,
+      "share_dice_at_least_0_5": 0.9576,
+      "share_missed": 0.0089
+    },
+    "malignant": {
+      "scans": 240,
+      "dice_mean": 0.8294,
+      "dice_median": 0.9019,
+      "iou_mean": 0.7453,
+      "share_dice_at_least_0_5": 0.9292,
+      "share_missed": 0.0042
+    }
+  },
+  "normal_test_scans": {
+    "scans": 22,
+    "share_left_blank": 0.6818
+  },
+  "onnx_parity": 0.00398,
+  "datasets": [
+    "BUSI (Al-Dhabyani et al., 2020)",
+    "BrEaST-Lesions-USG (Paw\u0142owska et al., 2024, TCIA, CC BY 4.0)",
+    "BUS-BRA (G\u00f3mez-Flores et al., Medical Physics 2024)"
+  ]
+}
