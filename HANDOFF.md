@@ -1,4 +1,4 @@
-# Femora: handoff notes (state on 21 September 2026)
+# Femora: handoff notes (state on 23 September 2026)
 
 Read this first when continuing on another PC (or in a new Claude Code session: say "read HANDOFF.md and continue").
 The earlier chat transcript lives only on the home PC, so this file carries the context.
@@ -20,6 +20,10 @@ Flutter women's-health app (FYP, Air University Islamabad; team Arshia Naseer, A
 | Companion look and voice speed (moods, effects, short spoken answers by the phone voice) | Built on the other PC; measured through the tunnel, not heard on a phone by me |
 | Cycle tracking and prediction (scope 6.2) | Built 21 Sep (commit 388032f): logging, calendar with phases, predictions, late/irregular notes, Home card, report Panel 4, companion context. 44 tests; not tried on a phone. Prediction = her own average blended with the study average (`lib/models/cycle_engine.dart`; study in `ml/cycle_eval.py`, results `ml/cycle_results.json`) |
 | Symptom and mood tracker (6.10), hormonal insights (6.6), reminders (6.8), dashboard (6.9) | Built 21 Sep in that order, each tested and committed (report chapter 15). Nothing about them has been tried on a phone; in particular no notification has been delivered on a real device yet |
+| PCOS what-if simulator | Built 22 Sep (commit 8bc67ca): server endpoint, live sliders, quick wins, safety limits |
+| Medical report reader (photo of a lab or ultrasound report, explained in Urdu or English) | Built 22 Sep (commit 7d25fc2); tested with a fake Gemini only, not yet with the real service or a phone camera. The old key's 401 is fixed: `backend/.env` got a new key on 23 Sep and a live /chat call returned a Gemini answer |
+| Urdu/English switch | Whole-app mechanism and every screen's layout done (commits f40568f, 28c4e68, 0acc7b7). Still English only: generated clinical text, the Self-Exam steps, reminder notification text, the PDF report and the sign-in screen. Urdu not yet reviewed by a native speaker |
+| Marketing showcase and supervisor progress report | PDFs in `scope doument/` (commit f2a454a); screenshots come from `lib/dev/screenshot_harness.dart` (dev only, not in the shipped app) |
 | Word report (`scope doument/...docx`) | Updated 21 Sep for everything up to commit d354fb2 (sections 13.11 and 13.12, Q36 and Q37) |
 
 Not built: pregnancy care (6.5) and its reminders. A knowledge-base (retrieval) and a question-set evaluation for the companion are planned, not built.
@@ -27,13 +31,13 @@ Not built: pregnancy care (6.5) and its reminders. A knowledge-base (retrieval) 
 ## Set up on a new PC
 1. `git pull`. Models are in git (`backend/models/`).
 2. Backend: `python -m venv backend/.venv`, install `backend/requirements.txt`, `backend/.env` (with the Gemini free-tier key) is committed on purpose at the owner's request, so a pull brings it. If Google has disabled that key, copy `backend/.env.example` to `backend/.env` and put a new key on the `GEMINI_API_KEY=` line; the key was also pasted in chat, so revoke it for anything beyond a demo. Run `backend/.venv/Scripts/uvicorn app:app --app-dir backend --host 0.0.0.0 --port 8000`. `GET /health` should show `"companion": true`.
-3. App: Flutter 3.47.5 stable. `flutter pub get`, `flutter test` (350 pass), `flutter analyze` (no errors or warnings). Backend tests: `backend/.venv/Scripts/python -m pytest backend/tests` (97 pass).
+3. App: Flutter 3.47.5 stable. `flutter pub get`, `flutter test` (350 pass as of commit 0acc7b7), `flutter analyze` (no errors or warnings). Backend tests: `backend/.venv/Scripts/python -m pytest backend/tests` (97 pass).
 4. Phone demo: `scripts\start_demo.ps1` (needs `cloudflared.exe`, path in the script or the `CLOUDFLARED` variable). Paste the printed address into the app's Server address dialog. Do not type in the script window.
 5. APK: `flutter build apk --release --target-platform android-arm64` (the home PC has only 8 GB RAM and builds fail if other programs are open; paths like `D:/flutter` in the notes below are specific to the home PC).
 6. **Always restart the backend after updating the code**; an old server process without the companion was once left running on port 8000.
 
 ## Latest APK
-`femora-release-arm64.apk` in this folder (build 5, commit `0c4c007`, 20.9 MB, arm64). It is OLDER than the code: no APK has been built since accounts and cycle tracking were added, and the package is now `pk.edu.au.femora` (a different app, uninstall the old one first). Older APKs in this folder (`femora-arm64-release.apk`, `femora-release.apk`) are stale and can be deleted.
+`femora-release-arm64.apk` in this folder (build 6, 23 Sep 2026, built from commit `f2a454a`, 24.4 MB, arm64; a copy is also on the Desktop). It includes everything listed above: accounts, cycle tracking, the trackers, reminders, PCOS what-if, report reader and the Urdu switch. Package is `pk.edu.au.femora`; if build 5 or older is on the phone, uninstall it first (it is a different app). Build 6 has not been installed on a phone yet. Older APKs in this folder (`femora-arm64-release.apk`, `femora-release.apk`) are stale and can be deleted.
 
 ## Voice: what happened and the current design
 - On the phone, speech recognition worked but the companion did not speak. Cause (verified): Gemini text-to-speech on a free key allows **10 requests a day per model**; testing used it up (HTTP 429).
