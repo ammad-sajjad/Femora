@@ -183,7 +183,7 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const FemoraHeader(showMenuIcon: true),
+              const FemoraHeader(),
               const SizedBox(height: 6),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
