@@ -6,12 +6,14 @@ import '../models/health_store.dart';
 import '../models/insights.dart';
 import '../models/models.dart';
 import '../models/pcos.dart';
+import '../models/places.dart';
 import '../models/self_exam.dart';
 import '../theme/app_theme.dart';
 import '../widgets/femora_header.dart';
 import '../widgets/gauge_meter_widget.dart';
 import '../widgets/guidance_card.dart';
 import '../widgets/hormone_chart_widget.dart';
+import '../widgets/nearby_care_button.dart';
 import '../widgets/what_if_card.dart';
 import 'pcos_questionnaire_screen.dart';
 
@@ -332,6 +334,10 @@ class PCOSAssessmentScreen extends StatelessWidget {
               title: result.guidance[i].title,
               description: result.guidance[i].description,
             ),
+          ],
+          if (result.riskLevel != RiskLevel.low) ...[
+            const SizedBox(height: 14),
+            NearbyCareButton(kind: CareKind.gynae, label: t(language, 'Find a gynaecologist near you', 'قریب ترین گائناکالوجسٹ تلاش کریں')),
           ],
         ],
       ),
