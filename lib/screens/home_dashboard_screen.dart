@@ -7,7 +7,7 @@ import '../models/health_store.dart';
 import '../models/models.dart';
 import '../models/self_exam.dart';
 import '../theme/app_theme.dart';
-import '../widgets/cycle_ring_widget.dart';
+import '../widgets/body_clock.dart';
 import '../widgets/cycle_widgets.dart';
 import '../widgets/femora_header.dart';
 import 'dashboard_screen.dart';
@@ -163,40 +163,61 @@ class HomeDashboardScreen extends StatelessWidget {
             boxShadow: [BoxShadow(color: AppColors.primaryBerry.withValues(alpha: 0.3), blurRadius: 22, offset: const Offset(0, 8))],
           ),
           child: e.hasHistory
-              ? Row(
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                e.periodOngoing ? t(language, 'Period day ${e.cycleDay}', 'پیریڈ کا دن ${e.cycleDay}') : t(language, 'Cycle day ${e.cycleDay}', 'سائیکل کا دن ${e.cycleDay}'),
+                                key: const Key('home_cycle_title'),
+                                style: const TextStyle(fontFamily: 'Inter', fontSize: 20, fontWeight: FontWeight.w700, color: white),
+                              ),
+                              const SizedBox(height: 4),
+                              if (e.phase != null) Text(e.phase!.labelIn(language), style: TextStyle(fontFamily: 'Inter', fontSize: 13, color: white.withValues(alpha: 0.9))),
+                              const SizedBox(height: 10),
+                              Text(
+                                e.isLate
+                                    ? t(language, 'Period expected ${plural(lateBy, 'day')} ago', 'پیریڈ کی توقع ${plural(lateBy, 'day', language: 'ur')} پہلے تھی')
+                                    : t(language, 'Next period ${fmtDay(e.nextStart!)}', 'اگلا پیریڈ ${fmtDay(e.nextStart!, language: 'ur')}'),
+                                key: const Key('home_cycle_next'),
+                                style: const TextStyle(fontFamily: 'Inter', fontSize: 13.5, fontWeight: FontWeight.w700, color: white),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        BodyClock(
+                          key: const Key('home_body_clock'),
+                          engine: e,
+                          language: language,
+                          centreValue: e.isLate ? '$lateBy' : '$until',
+                          centreLabel: e.isLate ? t(language, 'DAYS LATE', 'دن تاخیر') : (until == 1 ? t(language, 'DAY TO GO', 'دن باقی') : t(language, 'DAYS TO GO', 'دن باقی')),
+                        ),
+                      ],
+                    ),
+                    if (!e.isLate) ...[
+                      const SizedBox(height: 8),
+                      Row(
                         children: [
-                          Text(
-                            e.periodOngoing ? t(language, 'Period day ${e.cycleDay}', 'پیریڈ کا دن ${e.cycleDay}') : t(language, 'Cycle day ${e.cycleDay}', 'سائیکل کا دن ${e.cycleDay}'),
-                            key: const Key('home_cycle_title'),
-                            style: const TextStyle(fontFamily: 'Inter', fontSize: 20, fontWeight: FontWeight.w700, color: white),
-                          ),
-                          const SizedBox(height: 4),
-                          if (e.phase != null) Text(e.phase!.labelIn(language), style: TextStyle(fontFamily: 'Inter', fontSize: 13, color: white.withValues(alpha: 0.9))),
-                          const SizedBox(height: 10),
-                          Text(
-                            e.isLate
-                                ? t(language, 'Period expected ${plural(lateBy, 'day')} ago', 'پیریڈ کی توقع ${plural(lateBy, 'day', language: 'ur')} پہلے تھی')
-                                : t(language, 'Next period ${fmtDay(e.nextStart!)}', 'اگلا پیریڈ ${fmtDay(e.nextStart!, language: 'ur')}'),
-                            key: const Key('home_cycle_next'),
-                            style: const TextStyle(fontFamily: 'Inter', fontSize: 13.5, fontWeight: FontWeight.w700, color: white),
-                          ),
-                          if (!e.isLate)
-                            Text(
+                          const Icon(Icons.spa_outlined, size: 15, color: Color(0xFFFFD166)),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
                               t(language, 'Fertile window ${fmtDay(e.fertileStart!)} to ${fmtDay(e.fertileEnd!)}',
                                   'زرخیز دورانیہ ${fmtDay(e.fertileStart!, language: 'ur')} سے ${fmtDay(e.fertileEnd!, language: 'ur')} تک'),
-                              style: TextStyle(fontFamily: 'Inter', fontSize: 12, color: white.withValues(alpha: 0.85)),
+                              style: TextStyle(fontFamily: 'Inter', fontSize: 12.5, fontWeight: FontWeight.w600, color: white.withValues(alpha: 0.92)),
                             ),
+                          ),
                         ],
                       ),
-                    ),
-                    CycleRingWidget(
-                      days: e.isLate ? '$lateBy' : '$until',
-                      label: e.isLate ? t(language, 'DAYS LATE', 'دن تاخیر') : (until == 1 ? t(language, 'DAY TO GO', 'دن باقی') : t(language, 'DAYS TO GO', 'دن باقی')),
-                    ),
+                    ],
+                    const SizedBox(height: 12),
+                    HormoneWaves(key: const Key('home_hormone_waves'), engine: e, language: language),
                   ],
                 )
               : Column(

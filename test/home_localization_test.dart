@@ -32,7 +32,9 @@ void _tallScreen(WidgetTester tester) {
 }
 
 HealthStore _urduStore({bool pcos = false, bool scan = false, bool risk = false, List<SymptomLog> logs = const []}) {
-  final s = HealthStore()..profile = HealthProfile(name: 'عائشہ خان', language: 'ur', onboarded: true);
+  final s = HealthStore()
+    ..now = (() => _now)
+    ..profile = HealthProfile(name: 'عائشہ خان', language: 'ur', onboarded: true);
   if (pcos) s.pcos = PcosSummary(date: _now.subtract(const Duration(days: 2)), percent: 71, level: 'high', bmi: 25.9, factors: const ['Acne']);
   if (scan) {
     s.scan = ScanSummary(date: _now, prediction: 'benign', title: 'Likely Benign', confidence: 0.88, probabilities: const {'normal': 0.05, 'benign': 0.88, 'malignant': 0.07}, modelAccuracy: 0.718);
