@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/breast.dart';
 import '../models/pcos.dart';
+import '../models/doctors.dart';
 import '../models/places.dart';
 import '../models/report_reader.dart';
 import '../models/what_if.dart';
@@ -122,6 +123,15 @@ class ApiService {
     return _parse(() => CarePlaces.fromJson(json));
   }
 
+  Future<DoctorsResult> nearbyDoctors(DoctorSpecialty specialty, double lat, double lon) async {
+    final uri = Uri.parse('$baseUrl/doctors/nearby').replace(queryParameters: {'specialty': specialty.name, 'lat': '$lat', 'lon': '$lon'});
+    final json = await _send(() => _client.get(uri), timeout: const Duration(seconds: 75));
+    return _parse(() => DoctorsResult.fromJson(json));
+  }
+
+  /// A doctor's photo, served through the server so the Google key never reaches the phone.
+  static String doctorPhotoUrl(String ref) => Uri.parse('$baseUrl/doctors/photo').replace(queryParameters: {'ref': ref}).toString();
+
   Future<BreastRiskResult> predictBreastRisk(BreastRiskAnswers answers) async {
     final json = await _post('/predict/breast/risk', answers.toJson());
     return _parse(() => BreastRiskResult.fromJson(json));
@@ -162,13 +172,13 @@ class ApiService {
     return _parse(() => (json['text'] as String).trim());
   }
 
-  /// Text to speech: returns a WAV file spoken by the server's voice.
+  /// Text to speech: returns the answer spoken by the server's voice (MP3, or WAV from the backup voice).
   Future<Uint8List> speak(String text, {String language = 'auto'}) async {
     final http.Response response;
     try {
       response = await _client
           .post(Uri.parse('$baseUrl/voice/speak'), headers: {'Content-Type': 'application/json'}, body: jsonEncode({'text': text, 'language': language}))
-          .timeout(const Duration(seconds: 70));
+          .timeout(const Duration(seconds: 40));
     } on TimeoutException {
       throw ApiException('The voice took too long. Please read the text instead.');
     } catch (_) {
