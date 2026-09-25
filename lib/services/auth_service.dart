@@ -227,3 +227,75 @@ class FirebaseAuthService implements AuthService {
     await _auth.signOut();
   }
 }
+
+/// In-memory auth service used on platforms where Firebase is not configured (e.g. Web).
+class GuestAuthService implements AuthService {
+  GuestAuthService({AppUser? initialUser})
+      : _user = initialUser ?? const AppUser(id: 'web_guest', name: 'Ayesha', isGuest: true) {
+    _controller.add(_user);
+  }
+
+  final _controller = StreamController<AppUser?>.broadcast();
+  AppUser? _user;
+
+  @override
+  Stream<AppUser?> changes() async* {
+    yield _user;
+    yield* _controller.stream;
+  }
+
+  @override
+  AppUser? get current => _user;
+
+  @override
+  Future<AppUser> signInWithEmail({required String email, required String password}) async {
+    _user = AppUser(id: 'user_${email.hashCode.abs()}', email: email, name: email.split('@').first);
+    _controller.add(_user);
+    return _user!;
+  }
+
+  @override
+  Future<AppUser> registerWithEmail({required String email, required String password, required String name}) async {
+    _user = AppUser(id: 'user_${email.hashCode.abs()}', email: email, name: name.trim().isEmpty ? email.split('@').first : name.trim());
+    _controller.add(_user);
+    return _user!;
+  }
+
+  @override
+  Future<void> sendPasswordReset(String email) async {}
+
+  @override
+  Future<AppUser> signInWithGoogle() async {
+    _user = const AppUser(id: 'google_web_user', email: 'ayesha@gmail.com', name: 'Ayesha');
+    _controller.add(_user);
+    return _user!;
+  }
+
+  @override
+  Future<AppUser> continueAsGuest() async {
+    _user = const AppUser(id: 'web_guest', name: 'Guest', isGuest: true);
+    _controller.add(_user);
+    return _user!;
+  }
+
+  @override
+  Future<String> startPhoneSignIn(String phoneNumber, {void Function(AppUser user)? onAutoVerified}) async {
+    final user = AppUser(id: 'phone_web_user', phone: phoneNumber.trim());
+    onAutoVerified?.call(user);
+    return 'demo_verification_id';
+  }
+
+  @override
+  Future<AppUser> confirmPhoneCode({required String verificationId, required String code}) async {
+    _user = const AppUser(id: 'phone_web_user', phone: '+923001234567');
+    _controller.add(_user);
+    return _user!;
+  }
+
+  @override
+  Future<void> signOut() async {
+    _user = null;
+    _controller.add(null);
+  }
+}
+
