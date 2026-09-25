@@ -64,8 +64,8 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
     final willSpeak = voice.readAloud || spoken;
     final reply = await chat.send(t, store: store, lastSelfExam: lastExam, willBeSpoken: willSpeak);
     if (reply != null && voice.readAloud) {
-      // The phone's own voice starts immediately; the AI voice would keep her waiting many seconds.
-      await voice.speak(plainForSpeech(reply), language: 'auto', natural: false);
+      // The natural voice takes about 2 seconds; the phone's own voice takes over if it cannot be reached.
+      await voice.speak(plainForSpeech(reply), language: 'auto');
     }
   }
 
@@ -246,8 +246,8 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
                   contentPadding: EdgeInsets.zero,
                   activeColor: AppColors.primaryBerry,
                   title: Text(t(language, 'Read answers aloud', 'جوابات بلند آواز سے پڑھیں')),
-                  subtitle: Text(t(language, "Answers straight away in the phone's voice. Tap the speaker on a message for the AI voice.",
-                      'فوراً فون کی آواز میں جواب دیتا ہے۔ AI آواز کے لیے پیغام پر اسپیکر آئیکن دبائیں۔')),
+                  subtitle: Text(t(language, 'Answers in a natural voice. Tap the speaker on any message to hear it again.',
+                      'قدرتی آواز میں جواب دیتا ہے۔ کوئی پیغام دوبارہ سننے کے لیے اس پر اسپیکر آئیکن دبائیں۔')),
                   value: voice.readAloud,
                   onChanged: voice.setReadAloud,
                 ),

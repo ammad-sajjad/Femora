@@ -5,3 +5,4 @@ numpy
 onnxruntime
 pillow
 python-multipart
+edge-tts
