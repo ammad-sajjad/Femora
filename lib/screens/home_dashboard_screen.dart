@@ -11,6 +11,7 @@ import '../widgets/body_clock.dart';
 import '../widgets/cycle_widgets.dart';
 import '../widgets/femora_header.dart';
 import 'dashboard_screen.dart';
+import 'doctor_qr_screen.dart';
 import 'trends_screen.dart';
 
 /// Home: everything here comes from what the user has actually done in the app (the on-device [HealthStore]).
@@ -135,6 +136,8 @@ class HomeDashboardScreen extends StatelessWidget {
               _nextStepCard(context, nextStep(store, lastExam, now, language: language), language),
               const SizedBox(height: 14),
               _dashboardCard(context, language),
+              const SizedBox(height: 14),
+              _doctorCard(context, language),
               const SizedBox(height: 14),
               _trendsCard(context, store, language),
             ],
@@ -318,13 +321,34 @@ class HomeDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _dashboardCard(BuildContext context, String language) {
+  Widget _dashboardCard(BuildContext context, String language) => _linkCard(
+        context,
+        key: const Key('home_dashboard'),
+        icon: Icons.dashboard_customize_outlined,
+        iconBg: const Color(0xFFFFE1EA),
+        title: t(language, 'Health dashboard', 'ہیلتھ ڈیش بورڈ'),
+        subtitle: t(language, 'Cycle history, how well predictions did, symptom patterns and hormonal trends', 'سائیکل کی تاریخ، پیش گوئیوں کی درستگی، علامات کے رجحانات اور ہارمونل رجحانات'),
+        screen: const DashboardScreen(),
+      );
+
+  Widget _doctorCard(BuildContext context, String language) => _linkCard(
+        context,
+        key: const Key('home_doctor_qr'),
+        icon: Icons.qr_code_2_rounded,
+        iconBg: const Color(0xFFE6F2EC),
+        title: t(language, 'Show my doctor', 'ڈاکٹر کو دکھائیں'),
+        subtitle: t(language, 'A QR code with your summary. Your doctor scans it, nothing is uploaded', 'آپ کے خلاصے والا QR کوڈ۔ ڈاکٹر اسے اسکین کرے، کچھ اپ لوڈ نہیں ہوتا'),
+        screen: const DoctorQrScreen(),
+      );
+
+  Widget _linkCard(BuildContext context,
+      {required Key key, required IconData icon, required Color iconBg, required String title, required String subtitle, required Widget screen}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: InkWell(
-        key: const Key('home_dashboard'),
+        key: key,
         borderRadius: BorderRadius.circular(22),
-        onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const DashboardScreen())),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => screen)),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(color: AppColors.cardWhite, borderRadius: BorderRadius.circular(22), boxShadow: AppTheme.softShadow),
@@ -333,20 +357,17 @@ class HomeDashboardScreen extends StatelessWidget {
               Container(
                 width: 44,
                 height: 44,
-                decoration: const BoxDecoration(color: Color(0xFFFFE1EA), shape: BoxShape.circle),
-                child: const Icon(Icons.dashboard_customize_outlined, color: AppColors.primaryBerry, size: 24),
+                decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
+                child: Icon(icon, color: AppColors.primaryBerry, size: 24),
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(t(language, 'Health dashboard', 'ہیلتھ ڈیش بورڈ'), style: const TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+                    Text(title, style: const TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textDark)),
                     const SizedBox(height: 3),
-                    Text(
-                      t(language, 'Cycle history, how well predictions did, symptom patterns and hormonal trends', 'سائیکل کی تاریخ، پیش گوئیوں کی درستگی، علامات کے رجحانات اور ہارمونل رجحانات'),
-                      style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, color: AppColors.textMuted, height: 1.35),
-                    ),
+                    Text(subtitle, style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, color: AppColors.textMuted, height: 1.35)),
                   ],
                 ),
               ),

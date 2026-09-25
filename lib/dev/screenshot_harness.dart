@@ -17,7 +17,13 @@ import '../models/pcos.dart';
 import '../models/reminders.dart';
 import '../models/report_reader.dart';
 import '../models/self_exam.dart';
+import '../screens/dashboard_screen.dart';
+import '../screens/doctor_qr_screen.dart';
+import '../screens/hormone_insights_screen.dart';
 import '../screens/main_shell.dart';
+import '../screens/reminders_screen.dart';
+import '../screens/report_screen.dart';
+import '../screens/trends_screen.dart';
 import '../services/api_service.dart';
 import '../services/reminder_service.dart';
 import '../services/voice_service.dart';
@@ -49,6 +55,16 @@ class _HarnessRoot extends StatefulWidget {
 // Optional URL parameters, so a headless browser can take each screenshot without clicking:
 // ?tab=0..4&lang=ur&w=360&h=780 (tab = bottom-navigation index, w/h = the phone's logical size).
 final _query = Uri.base.queryParameters;
+
+// ?screen=<name> opens one screen on its own instead of the main shell.
+const _screens = <String, Widget>{
+  'doctor': DoctorQrScreen(),
+  'dashboard': DashboardScreen(),
+  'report': ReportScreen(),
+  'trends': TrendsScreen(),
+  'insights': HormoneInsightsScreen(),
+  'reminders': RemindersScreen(),
+};
 
 class _HarnessRootState extends State<_HarnessRoot> {
   String _language = _query['lang'] == 'ur' ? 'ur' : 'en';
@@ -217,7 +233,7 @@ class _HarnessRootState extends State<_HarnessRoot> {
             ),
           );
         },
-        home: const MainShellScreen(),
+        home: _screens[_query['screen']] ?? const MainShellScreen(),
       ),
     );
   }
