@@ -227,7 +227,7 @@ def test_the_backup_model_is_tried_when_the_first_fails_or_answers_badly(monkeyp
 
     monkeypatch.setattr(rr, "_ask", ask)
     assert rr.gemini_read_report([b"x"], "en")["kind"] == "blood_test"
-    assert tried == [companion.CHAT_MODEL, companion.CHAT_MODEL_BACKUP]
+    assert tried == [companion.CHAT_MODEL, companion.CHAT_MODEL_FAST]
 
 
 def test_when_both_models_fail_the_error_surfaces(monkeypatch):

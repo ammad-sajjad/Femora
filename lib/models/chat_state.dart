@@ -13,10 +13,13 @@ class ChatMsg {
   final DateTime time;
   final bool urgent; // the server flagged this exchange as needing a doctor now
   final bool offline; // answered by the server's offline fallback, not the language model
+  final List<String> sources; // trusted pages the answer was based on (for example "NHS: Period pain")
 
-  const ChatMsg({required this.id, required this.text, required this.isUser, required this.time, this.urgent = false, this.offline = false});
+  const ChatMsg(
+      {required this.id, required this.text, required this.isUser, required this.time, this.urgent = false, this.offline = false, this.sources = const []});
 
-  Map<String, dynamic> toJson() => {'id': id, 'text': text, 'isUser': isUser, 'time': time.toIso8601String(), 'urgent': urgent, 'offline': offline};
+  Map<String, dynamic> toJson() =>
+      {'id': id, 'text': text, 'isUser': isUser, 'time': time.toIso8601String(), 'urgent': urgent, 'offline': offline, 'sources': sources};
 
   factory ChatMsg.fromJson(Map<String, dynamic> j) => ChatMsg(
         id: j['id'] as String,
@@ -25,6 +28,7 @@ class ChatMsg {
         time: DateTime.parse(j['time'] as String),
         urgent: (j['urgent'] as bool?) ?? false,
         offline: (j['offline'] as bool?) ?? false,
+        sources: [for (final x in (j['sources'] as List?) ?? const []) x as String],
       );
 }
 
@@ -126,7 +130,7 @@ class ChatState extends ChangeNotifier {
       final context = store.profile.personalize ? store.companionContext(lastSelfExam: lastSelfExam) : null;
       final r = await _api.chat(
           messages: wire, context: (context == null || context.isEmpty) ? null : context, brief: willBeSpoken);
-      _messages = [..._messages, ChatMsg(id: _nextId(), text: r.reply, isUser: false, time: DateTime.now(), urgent: r.urgency == 'urgent', offline: !r.fromModel)];
+      _messages = [..._messages, ChatMsg(id: _nextId(), text: r.reply, isUser: false, time: DateTime.now(), urgent: r.urgency == 'urgent', offline: !r.fromModel, sources: r.sources)];
       reply = r.reply;
     } on ApiException catch (e) {
       _error = e.message;

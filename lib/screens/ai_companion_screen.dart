@@ -13,6 +13,7 @@ import '../widgets/mood_picker.dart';
 import 'onboarding_screen.dart';
 import 'report_reader_screen.dart';
 import 'report_screen.dart';
+import '../widgets/reply_text.dart';
 
 final _urduChars = RegExp(r'[؀-ۿ]');
 bool _isUrdu(String text) => _urduChars.hasMatch(text);
@@ -62,7 +63,7 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
     final reply = await chat.send(t, store: store, lastSelfExam: lastExam, willBeSpoken: willSpeak);
     if (reply != null && voice.readAloud) {
       // The phone's own voice starts immediately; the AI voice would keep her waiting many seconds.
-      await voice.speak(reply, language: 'auto', natural: false);
+      await voice.speak(plainForSpeech(reply), language: 'auto', natural: false);
     }
   }
 
@@ -506,8 +507,28 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
                               style: const TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.accentPink)),
                         ]),
                       ),
-                    Text(m.text,
-                        textDirection: dir, style: const TextStyle(fontFamily: 'Inter', fontSize: 14, color: Color(0xFF2C2538), height: 1.45)),
+                    ReplyText(m.text,
+                        direction: dir, style: const TextStyle(fontFamily: 'Inter', fontSize: 14, color: Color(0xFF2C2538), height: 1.45)),
+                    if (m.sources.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      Row(
+                        key: Key('sources_${m.id}'),
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.only(top: 1),
+                            child: Icon(Icons.menu_book_rounded, size: 14, color: AppColors.textLight),
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              '${t(language, 'Based on', 'ماخذ')}: ${m.sources.join(' · ')}',
+                              style: const TextStyle(fontFamily: 'Inter', fontSize: 11, color: AppColors.textLight, height: 1.35),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
@@ -519,7 +540,7 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
                           visualDensity: VisualDensity.compact,
                           icon: Icon(voice.phase == VoicePhase.speaking ? Icons.stop_circle_outlined : Icons.volume_up_rounded,
                               size: 20, color: AppColors.primaryBerry),
-                          onPressed: () => voice.phase == VoicePhase.speaking ? voice.stopSpeaking() : voice.speak(m.text, language: 'auto'),
+                          onPressed: () => voice.phase == VoicePhase.speaking ? voice.stopSpeaking() : voice.speak(plainForSpeech(m.text), language: 'auto'),
                         ),
                       ],
                     ),

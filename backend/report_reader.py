@@ -146,7 +146,7 @@ def _ask(model: str, images: list[bytes], lang: str) -> dict:
 def gemini_read_report(images: list[bytes], lang: str) -> dict:
     """One model, then the backup if it failed or answered with something that is not the JSON asked for."""
     last: GeminiError | None = None
-    for model in dict.fromkeys([companion.CHAT_MODEL, companion.CHAT_MODEL_BACKUP]):
+    for model in dict.fromkeys([companion.CHAT_MODEL, companion.CHAT_MODEL_FAST]):
         try:
             return _ask(model, images, lang)
         except GeminiError as e:
