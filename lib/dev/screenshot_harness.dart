@@ -19,8 +19,10 @@ import '../models/report_reader.dart';
 import '../models/self_exam.dart';
 import '../screens/dashboard_screen.dart';
 import '../screens/doctor_qr_screen.dart';
+import '../screens/heart_rate_screen.dart';
 import '../screens/hormone_insights_screen.dart';
 import '../screens/main_shell.dart';
+import '../screens/nearby_care_screen.dart';
 import '../screens/reminders_screen.dart';
 import '../screens/report_screen.dart';
 import '../screens/trends_screen.dart';
@@ -59,6 +61,8 @@ final _query = Uri.base.queryParameters;
 // ?screen=<name> opens one screen on its own instead of the main shell.
 const _screens = <String, Widget>{
   'doctor': DoctorQrScreen(),
+  'heart': HeartRateScreen(),
+  'nearby': NearbyCareScreen(),
   'dashboard': DashboardScreen(),
   'report': ReportScreen(),
   'trends': TrendsScreen(),

@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/breast.dart';
 import '../models/pcos.dart';
+import '../models/places.dart';
 import '../models/report_reader.dart';
 import '../models/what_if.dart';
 
@@ -112,6 +113,13 @@ class ApiService {
       timeout: const Duration(seconds: 90), // upload + a reading model
     );
     return _parse(() => ExplainedReport.fromJson(json, date: date ?? DateTime.now()));
+  }
+
+  /// Hospitals, gynaecologists, clinics, labs or imaging centres near a point (the server caches the search).
+  Future<CarePlaces> nearbyCare(CareKind kind, double lat, double lon) async {
+    final uri = Uri.parse('$baseUrl/places/nearby').replace(queryParameters: {'kind': kind.name, 'lat': '$lat', 'lon': '$lon'});
+    final json = await _send(() => _client.get(uri), timeout: const Duration(seconds: 75)); // the free map server can be slow
+    return _parse(() => CarePlaces.fromJson(json));
   }
 
   Future<BreastRiskResult> predictBreastRisk(BreastRiskAnswers answers) async {

@@ -10,11 +10,13 @@ import '../models/chat_state.dart';
 import '../models/health_store.dart';
 import '../models/insights.dart';
 import '../models/models.dart';
+import '../models/places.dart';
 import '../models/self_exam.dart';
 import '../theme/app_theme.dart';
 import '../widgets/circular_risk_widget.dart';
 import '../widgets/femora_header.dart';
 import '../widgets/guidance_card.dart';
+import '../widgets/nearby_care_button.dart';
 import 'breast_risk_questionnaire_screen.dart';
 import 'self_exam_guide_screen.dart';
 
@@ -666,6 +668,12 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
           Text(result.summary, style: const TextStyle(fontFamily: 'Inter', fontSize: 13, color: Color(0xFF4A5568), height: 1.45)),
           const SizedBox(height: 14),
           _guidanceList(result.guidance),
+          if (result.prediction != ScanPrediction.normal) ...[
+            const SizedBox(height: 12),
+            NearbyCareButton(
+                kind: CareKind.imaging,
+                label: t(language, 'Find a breast imaging centre near you', 'قریب ترین بریسٹ امیجنگ سینٹر تلاش کریں')),
+          ],
           const SizedBox(height: 16),
           _disclaimer(result.disclaimer),
           const SizedBox(height: 16),

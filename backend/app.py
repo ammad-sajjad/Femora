@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 
 import companion
 import lesion_outline
+import places
 import report_reader
 import whatsapp
 
@@ -28,6 +29,7 @@ app = FastAPI(title="Femora API", version="0.2.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 app.include_router(companion.router)   # AI companion: /chat, /voice/transcribe, /voice/speak
 app.include_router(report_reader.router)  # /report/explain: photo of a medical report explained in Urdu or English
+app.include_router(places.router)  # /places/nearby: hospitals, gynaecologists, clinics, labs, imaging
 app.include_router(whatsapp.router)  # /whatsapp/webhook: the companion on WhatsApp (Meta Cloud API)
 
 pcos_meta = json.loads((MODELS / "pcos_meta.json").read_text())
@@ -165,7 +167,8 @@ def pcos_guidance(a: PcosAnswers, bmi: float, level: str) -> list[Guidance]:
 @app.get("/health")
 def health():
     models = ["pcos", "breast_scan", "breast_risk"] + (["lesion_outline"] if outliner is not None else [])
-    return {"status": "ok", "models": models, "companion": companion.api_key() is not None, "whatsapp": whatsapp.enabled()}
+    return {"status": "ok", "models": models, "companion": companion.api_key() is not None, "whatsapp": whatsapp.enabled(),
+            "places": "google" if places.google_key() else "openstreetmap"}
 
 
 def pcos_values(a: PcosAnswers) -> dict[str, float]:
