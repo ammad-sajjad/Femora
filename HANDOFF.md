@@ -1,4 +1,4 @@
-# Femora: handoff notes (state on 23 September 2026)
+# Femora: handoff notes (state on 25 September 2026)
 
 Read this first when continuing on another PC (or in a new Claude Code session: say "read HANDOFF.md and continue").
 The earlier chat transcript lives only on the home PC, so this file carries the context.
@@ -24,14 +24,15 @@ Flutter women's-health app (FYP, Air University Islamabad; team Arshia Naseer, A
 | Medical report reader (photo of a lab or ultrasound report, explained in Urdu or English) | Built 22 Sep (commit 7d25fc2); tested with a fake Gemini only, not yet with the real service or a phone camera. The old key's 401 is fixed: `backend/.env` got a new key on 23 Sep and a live /chat call returned a Gemini answer |
 | Urdu/English switch | Whole-app mechanism and every screen's layout done (commits f40568f, 28c4e68, 0acc7b7). Still English only: generated clinical text, the Self-Exam steps, reminder notification text, the PDF report and the sign-in screen. Urdu not yet reviewed by a native speaker |
 | Marketing showcase and supervisor progress report | PDFs in `scope doument/` (commit f2a454a); screenshots come from `lib/dev/screenshot_harness.dart` (dev only, not in the shipped app) |
-| Word report (`scope doument/...docx`) | Updated 21 Sep for everything up to commit d354fb2 (sections 13.11 and 13.12, Q36 and Q37) |
+| Word report (`scope doument/...docx`) | Rebuilt 25 Sep with chapter 17 (the nine features below), 67 pages, TOC refreshed; supervisor PDF has a 2-page section 12 appended |
+| **25 Sep feature bucket** (branch `bucket-features`) | 1 lesion outline (U-Net, test Dice 0.86), 2 Home body clock, 3 Show my doctor QR, 4 smarter companion (trusted notes, OTC medicine table, evaluation), 6 morning heart check (camera), 7 WhatsApp webhook, 8 profile panel, 5 nearby care map, 9 UI review. Details below; none tried on a phone yet |
 
-Not built: pregnancy care (6.5) and its reminders. A knowledge-base (retrieval) and a question-set evaluation for the companion are planned, not built.
+Not built: pregnancy care (6.5) and its reminders (moved to FYP III).
 
 ## Set up on a new PC
 1. `git pull`. Models are in git (`backend/models/`).
 2. Backend: `python -m venv backend/.venv`, install `backend/requirements.txt`, `backend/.env` (with the Gemini free-tier key) is committed on purpose at the owner's request, so a pull brings it. If Google has disabled that key, copy `backend/.env.example` to `backend/.env` and put a new key on the `GEMINI_API_KEY=` line; the key was also pasted in chat, so revoke it for anything beyond a demo. Run `backend/.venv/Scripts/uvicorn app:app --app-dir backend --host 0.0.0.0 --port 8000`. `GET /health` should show `"companion": true`.
-3. App: Flutter 3.47.5 stable. `flutter pub get`, `flutter test` (350 pass as of commit 0acc7b7), `flutter analyze` (no errors or warnings). Backend tests: `backend/.venv/Scripts/python -m pytest backend/tests` (97 pass).
+3. App: Flutter 3.47.5 stable. `flutter pub get`, `flutter test` (392 pass on 25 Sep), `flutter analyze` (no errors or warnings). Backend tests: `backend/.venv/Scripts/python -m pytest backend/tests` (163 pass).
 4. Phone demo: `scripts\start_demo.ps1` (needs `cloudflared.exe`, path in the script or the `CLOUDFLARED` variable). Paste the printed address into the app's Server address dialog. Do not type in the script window.
 5. APK: `flutter build apk --release --target-platform android-arm64` (the home PC has only 8 GB RAM and builds fail if other programs are open; paths like `D:/flutter` in the notes below are specific to the home PC).
 6. **Always restart the backend after updating the code**; an old server process without the companion was once left running on port 8000.
@@ -79,10 +80,10 @@ Both scripts need `python-docx`, `pywin32` and Word installed; neither venv had 
 with `VIRTUAL_ENV=ml/.venv uv pip install python-docx pywin32` (the venvs are uv-made and have no `pip`).
 
 ## Open items and ideas
-1. Real-phone check (task #7).
-2. Push status: see `git status` / `git log origin/main..`.
-3. Companion improvements: grounded knowledge base (NIH/CDC/MedlinePlus passages) and a several-hundred-question evaluation set; clinician review of wording.
-4. Cycle tracking/prediction, trend charts, accounts, pregnancy mode, hormonal insights.
+1. Real-phone check: voice, report share, notifications, accounts, and now the heart check (real camera), map tiles, QR scanned by another phone, profile panel.
+2. Branch `bucket-features` (pushed) holds the 25 Sep work; merge it into `main` when happy (not merged by Claude).
+3. Companion: clinician review of a sample of answers; native-speaker review of all Urdu.
+4. WhatsApp: create the Meta app and set the four WHATSAPP_* keys (backend/README.md). Nearby care: add GOOGLE_PLACES_API_KEY once a Google Cloud account with billing is possible.
 5. Revoke the exposed Gemini key and the Hugging Face token; use a paid Gemini key for real users.
 6. Mammography is recorded as future work in the README.
 
@@ -107,3 +108,17 @@ Known limitation left as is: the ultrasound gate wrongly refuses about 4% of gen
 
 ## Plan after the scope (agreed 22 September 2026)
 Supervisor: pregnancy care (6.5) moves to FYP III. Order agreed with the owner: (B) PCOS what-if simulator [done], (A) photograph a lab or ultrasound report and have the companion explain it in Urdu or English [built and tested with a fake Gemini; NOT yet run against the real service because the committed Gemini key returns HTTP 401 and probably was disabled after it was published; put a new key in backend/.env and run a real photo in English and Urdu], (D) Urdu and English language switch for the whole app [STARTED: the app-wide mechanism (locale, automatic right-to-left, bundled Urdu font) is built and tested, and every screen's own layout (navigation, forms, dialogs, buttons, empty states) is now bilingual, including a live language preview in onboarding before saving; deliberately left for later: the generated clinical text (hormonal-insight flags/patterns, PCOS/breast guidance, reminder notification text, the Self-Exam Guide's step instructions) and the PDF report, plus a native speaker's review of all the Urdu written so far], then better companion answers and a more human voice, then two-way live conversation (E), then AI outlining the lesion on the ultrasound (C, kept separate). A human-sounding voice needs a paid text-to-speech service or a paid Gemini key (the free voice allows about 10 replies a day); Urdu wording should be reviewed by a native speaker.
+
+## 25 September 2026: the feature bucket (branch `bucket-features`)
+The owner asked for 9 items, built in this order: 1, 2, 3, 4, 6, 7, 8, 5 (maps last, by request), 9. One commit each.
+- **1 Lesion outline.** `ml/segment_cells.py` builds Kaggle notebook `ammad0/femora-breast-lesion-outline-unet` (U-Net, ResNet34, 256 px, the classifier's exact split). Test: mean Dice 0.863 on 688 lesions (BUSI 0.740, BrEaST 0.789, BUS-BRA 0.888); blank on only 68% of normal scans, so it is shown only when the classifier finds a lesion. Served by `backend/lesion_outline.py` (`backend/models/breast_seg_unet.onnx`, 49 MB). App: Outline view + size in cm from the scan depth she types.
+- **2 Body clock** (`lib/widgets/body_clock.dart`): phase ring + typical hormone waves on Home; the animation is finite so tests settle.
+- **3 Show my doctor** (`lib/models/doctor_summary.dart`, `lib/screens/doctor_qr_screen.dart`): 800-character English clinical summary inside the QR itself; decoded OK from a 3x screenshot.
+- **4 Companion.** New prompt in `backend/companion.py`; `knowledge.py` (35 topics from checked NHS/WHO/MedlinePlus pages; the NHS now calls PCOS "PMOS"); `medicines.py` (hand-checked OTC table filtered by pregnancy, asthma, etc.). Written answers use gemini-3.6-flash with thinkingLevel low (thinking tokens used to cut answers at ~40 words). Evaluation: `scripts/score_companion.py`, 85 questions in `backend/companion_eval/`; results in `backend/companion_eval/results_2026-09-25.json` (doctor-every-time 100% -> 0%, practical steps 0% -> 92%). Two red-flag detector gaps fixed.
+- **6 Heart check** (`lib/models/pulse.dart`, `lib/services/pulse_camera.dart`, `lib/screens/heart_rate_screen.dart`): camera + torch PPG; synthetic tests within 3 bpm. Not tried with a real camera.
+- **7 WhatsApp** (`backend/whatsapp.py`): Meta Cloud API webhook; off until the WHATSAPP_* keys are set; setup in `backend/README.md`.
+- **8 Profile panel** (`lib/widgets/profile_panel.dart`): tap the avatar; adds Sign out (which did not exist). The stock-photo avatar is replaced by initials; the bell opens Reminders.
+- **5 Nearby care** (`backend/places.py`, `lib/screens/nearby_care_screen.dart`): Google Places if GOOGLE_PLACES_API_KEY is set, else OpenStreetMap (one area query sorted into 5 kinds locally, cached 3 days). Map tiles were not seen in headless Chrome; check on a phone.
+- **9 UI review:** every screen shot at 360 px in English and Urdu with `lib/dev/screenshot_harness.dart` (URL options `?tab=`, `?screen=`, `&lang=ur`, `&w=&h=`). Fixed: Cycle tab cards English in Urdu (scrambled text direction), cramped link buttons, doubled "3 Min Guide", ResNet50 jargon, companion tab person icon, unlabelled typical hormone chart, English result levels on Urdu Home.
+- **Keys:** the working Gemini key in `backend/.env` was NOT committed on this branch (the committed .env still has the old, disabled key); it is marked skip-worktree locally. GitHub's secret scanning probably disabled the last published key.
+- **Report inputs:** `ml/output/` is ignored; the Kaggle outputs were linked from the main folder, and `ml/output/breast_segment/` holds the new notebook's output (re-download with `kaggle kernels output ammad0/femora-breast-lesion-outline-unet`).
