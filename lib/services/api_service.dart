@@ -16,14 +16,16 @@ class ChatReply {
   final bool fromModel; // false when the server used its offline fallback
   final String urgency; // none | soon | urgent
   final String language; // en | ur
+  final List<String> sources; // titles of the trusted pages the answer was based on
 
-  const ChatReply({required this.reply, required this.fromModel, required this.urgency, required this.language});
+  const ChatReply({required this.reply, required this.fromModel, required this.urgency, required this.language, this.sources = const []});
 
   factory ChatReply.fromJson(Map<String, dynamic> json) => ChatReply(
         reply: json['reply'] as String,
         fromModel: json['source'] == 'gemini',
         urgency: json['urgency'] as String,
         language: json['language'] as String,
+        sources: [for (final x in (json['sources'] as List?) ?? const []) (x as Map)['title'] as String],
       );
 }
 
