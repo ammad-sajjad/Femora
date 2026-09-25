@@ -1523,15 +1523,55 @@ bullets([
 ])
 
 
-# ================================================================== 18 CONCLUSION
-H1("18. Conclusion")
+# ================================================================== 18 EVENING OF 25 SEPTEMBER
+H1("18. Further features added on 25 September 2026")
+para("Four more items were added the same evening, after the owner tried the app in Chrome: a faster, natural voice; a full report for the doctor "
+     "behind the QR code; a Home card that keeps moving; and a doctor finder with experience, fees and ratings. Section 18.5 lists what is not yet verified.")
+H2("18.1 A natural voice that starts in about two seconds")
+bullets([
+    "**The problem.** Answers read out automatically used the phone's (or browser's) built-in voice, which sounds robotic; the natural Gemini voice was only on the speaker button and took 5 seconds for a sentence and 16 for a paragraph, with about 10 uses a day on the free key. In Chrome the Gemini audio also never played, because it was written to a temporary file the browser does not have.",
+    "**The change.** The server's /voice/speak now uses Microsoft's neural voices through the edge-tts package (en-US-AvaNeural for English, ur-PK-UzmaNeural for Urdu, chosen from the text's script), streamed as MP3; Gemini's voice is the backup and the phone's voice the last resort. Every answer, including automatic read-aloud and the report reader, now uses the natural voice. The app plays the audio from memory in a browser and from a file on a phone.",
+    "**Measured on the running server:** first audio after 2.2 s (English, two sentences) and 1.7 s (Urdu); the whole clip in 3.8 s and 2.6 s. No key and no daily limit.",
+    "**Limits.** edge-tts uses the service behind Microsoft Edge's Read Aloud without an official agreement, so it can stop working; that is why Gemini remains the backup.",
+])
+H2("18.2 The whole report behind the QR code")
+bullets([
+    "**What the doctor sees.** Scanning the Show my doctor code now opens femora.web.app with the patient's full report laid out like the PDF report: the header and report ID, the patient block, the summary of findings, the five lab-style panels (PCOS, ultrasound, breast risk, cycle with the cycle-length chart, self-exam and wellness log with mood, energy and sleep charts), other results (heart rate, lab values), recommended next steps and the clinician box. It reflows on a phone, animates in as it is scrolled (panel bars sweep in, rows and charts draw themselves) and can be saved as a PDF.",
+    "**Privacy kept.** The report travels inside the address after the #: compact JSON, zlib-compressed and base64url-encoded (lib/models/doctor_link.dart). Browsers never send that part to a server, so the page (doctor_view/index.html, on Firebase Hosting's free plan) is a fixed file that only unpacks and draws it on the doctor's phone; nothing is uploaded or stored. The doctor's phone needs internet to load the page, which the old text-only code did not.",
+    "**Size.** A full test report is 857 characters; a very full one drops the daily charts first, then the log patterns, to stay under 1,700 characters (about a version-30 QR code at low error correction). The owner chose the PDF-like layout over a card-style one.",
+])
+H2("18.3 A Home card that keeps moving")
+bullets([
+    "After the intro the cycle card no longer stops: a glint of light circles the phase ring, today's marker breathes, an inner ring of dots turns and twinkles, the hormone waves rise and fall gently, a spark runs along the estrogen curve up to today, soft lights drift behind the card, and the days-to-go number counts up when it appears.",
+    "The motion stops when the phone asks for reduced motion, and in widget tests (a never-ending animation would stop tests from settling).",
+])
+H2("18.4 Find a doctor")
+bullets([
+    "**What the user sees.** Individual doctors, not places, for four needs: gynaecologist, breast surgeon, hormones and PCOS (endocrinologist) and fertility. Each card shows the photo, name with a PMDC-verified tick, specialty and qualifications, star rating and number of reviews, years of experience, the lowest fee and the distance; she can sort by top rated, nearest, most experienced, lowest fee or most reviewed. "
+    "A mini profile adds the wait time, every clinic with its fee and availability (Available tomorrow) and a Book button for each, which opens the booking page inside the app. It is linked from the dashboard, the profile panel, Nearby care and the PCOS result.",
+    "**Where the data comes from.** Google Places (ratings and reviews) needs a billing account, which could not be opened from Pakistan without a prepayment, and the owner chose not to pay. Oladoc, Pakistan's largest doctor directory, has no public API and its terms forbid copying its listings, so its pages were at first only opened inside the app. "
+    "The department then asked Oladoc, through the Vice Chancellor's office, and Oladoc granted permission (hello@oladoc.com, 25 September 2026) to use its data for developing and demonstrating Femora, with an official API key offered later. The server (backend/oladoc.py) reads up to three listing pages per specialty and city, one request at a time with a clear user agent, and caches them for a day; every card credits Oladoc and every booking goes through Oladoc.",
+    "**Measured live for Islamabad:** 30 gynaecologists, 17 breast surgeons, 21 endocrinologists and 14 fertility consultants, each with experience, rating, review count and PMDC status; the first search takes about 7 seconds, later ones come from the cache. Distances come from each doctor's nearest clinic; a doctor from another city who only consults online is shown as Online.",
+    "**Order of sources.** Google Places when a key is set, else Oladoc, else OpenStreetMap (names only). With a Google key the same screens show Google's ratings and written reviews.",
+    "**Limits.** Written patient reviews are not in the listing pages, so the profile shows the count and opens the reviews on Oladoc. Reading web pages breaks if Oladoc changes its layout; the official API key they offered is the long-term source. The permission covers development and demonstration, not public release.",
+])
+H2("18.5 Not yet verified")
+bullets([
+    "The new voice, the report page scanned by a second phone, the moving Home card and Find a doctor have been checked in Chrome and by tests, not on a real phone.",
+    "Test totals after this chapter: 174 backend tests passing; 399 of 400 Flutter tests passing. The one failure is the heart-rate screen test, which cannot find the usual-rate panel; it was already failing before these changes and has not been investigated yet.",
+])
+
+
+# ================================================================== 19 CONCLUSION
+H1("19. Conclusion")
 para("The breast module now consists of two models backed by measured evidence and an honest account of their limits. The most valuable result of this "
      "period was not a higher accuracy figure but a truthful one: testing on a hospital the model had never seen exposed a large gap, adding the right data "
      "closed most of it, and a further experiment that did not help was documented and rejected. The app can be shown on a phone today and now includes a voice-enabled, personalised AI companion and a one-tap "
      "health report, and accounts. About 10% of the scope, chiefly the pregnancy module, remains to be built. "
      "Since then the app has gained a lesion outline model (mean Dice 0.86 on 688 unseen lesions), a companion whose answers are grounded in trusted sources and "
      "no longer end every reply with a doctor referral (100% to 0% on the evaluation set), a checked over-the-counter medicine table, a phone-camera heart check, "
-     "a doctor's QR summary, nearby care, a WhatsApp channel and a profile panel; none of these has yet been tried on a real phone.")
+     "a doctor's QR summary, nearby care, a WhatsApp channel and a profile panel; none of these has yet been tried on a real phone. "
+     "The same day also brought a natural voice that starts in about two seconds, the full report behind the doctor's QR code, and a doctor finder with experience, fees and ratings from Oladoc, used with Oladoc's permission.")
 
 # ================================================================== APPENDICES
 H1("Appendix A. Metric glossary", new_page=True)
