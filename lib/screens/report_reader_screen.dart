@@ -306,7 +306,7 @@ class _BodyState extends State<_Body> {
                 key: const Key('reader_speak'),
                 tooltip: t(language, 'Read aloud', 'بلند آواز سے پڑھیں'),
                 icon: const Icon(Icons.volume_up_rounded, color: AppColors.primaryBerry),
-                onPressed: () => voice.speak(r.summary, language: r.language, natural: false),
+                onPressed: () => voice.speak(r.summary, language: r.language),
               ),
           ]),
           const SizedBox(height: 4),
