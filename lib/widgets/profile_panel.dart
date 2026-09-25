@@ -8,6 +8,7 @@ import '../models/health_store.dart';
 import '../screens/dashboard_screen.dart';
 import '../screens/doctor_qr_screen.dart';
 import '../screens/heart_rate_screen.dart';
+import '../screens/nearby_care_screen.dart';
 import '../screens/onboarding_screen.dart';
 import '../screens/reminders_screen.dart';
 import '../screens/report_reader_screen.dart';
@@ -156,6 +157,8 @@ class ProfilePanel extends StatelessWidget {
                   () => open(const ReportReaderScreen())),
               _item(const Key('profile_heart'), Icons.monitor_heart_outlined, t(language, 'Morning heart check', 'صبح کی دھڑکن کا چیک'),
                   () => open(const HeartRateScreen())),
+              _item(const Key('profile_nearby'), Icons.local_hospital_outlined, t(language, 'Nearby care', 'قریبی طبی سہولیات'),
+                  () => open(const NearbyCareScreen())),
               _item(const Key('profile_reminders'), Icons.notifications_active_outlined, t(language, 'Reminders', 'یاد دہانیاں'),
                   () => open(const RemindersScreen())),
               const SizedBox(height: 16),

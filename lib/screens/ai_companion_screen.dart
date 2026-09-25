@@ -4,16 +4,18 @@ import 'package:provider/provider.dart';
 import '../l10n/lang.dart';
 import '../models/chat_state.dart';
 import '../models/health_store.dart';
+import '../models/places.dart';
 import '../models/self_exam.dart';
 import '../services/voice_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/companion_effects.dart';
 import '../widgets/femora_header.dart';
 import '../widgets/mood_picker.dart';
+import '../widgets/nearby_care_button.dart';
+import '../widgets/reply_text.dart';
 import 'onboarding_screen.dart';
 import 'report_reader_screen.dart';
 import 'report_screen.dart';
-import '../widgets/reply_text.dart';
 
 final _urduChars = RegExp(r'[؀-ۿ]');
 bool _isUrdu(String text) => _urduChars.hasMatch(text);
@@ -509,6 +511,10 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
                       ),
                     ReplyText(m.text,
                         direction: dir, style: const TextStyle(fontFamily: 'Inter', fontSize: 14, color: Color(0xFF2C2538), height: 1.45)),
+                    if (m.urgent) ...[
+                      const SizedBox(height: 10),
+                      NearbyCareButton(kind: CareKind.hospital, label: t(language, 'Nearest hospitals', 'قریب ترین ہسپتال')),
+                    ],
                     if (m.sources.isNotEmpty) ...[
                       const SizedBox(height: 10),
                       Row(
