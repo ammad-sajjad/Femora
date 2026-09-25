@@ -17,13 +17,23 @@ import 'screens/auth_screen.dart';
 import 'screens/main_shell.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/api_service.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'services/auth_service.dart';
 import 'services/voice_service.dart';
 import 'theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  AuthService? authService;
+  if (!kIsWeb) {
+    try {
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    } catch (e) {
+      debugPrint('Firebase init error: $e');
+    }
+  } else {
+    authService = GuestAuthService();
+  }
   await ApiService.loadServerOverride();
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -31,7 +41,7 @@ Future<void> main() async {
       statusBarIconBrightness: Brightness.dark,
     ),
   );
-  runApp(const FemoraApp());
+  runApp(FemoraApp(authService: authService));
 }
 
 class FemoraApp extends StatefulWidget {
