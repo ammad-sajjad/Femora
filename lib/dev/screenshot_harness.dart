@@ -46,8 +46,12 @@ class _HarnessRoot extends StatefulWidget {
   State<_HarnessRoot> createState() => _HarnessRootState();
 }
 
+// Optional URL parameters, so a headless browser can take each screenshot without clicking:
+// ?tab=0..4&lang=ur&w=360&h=780 (tab = bottom-navigation index, w/h = the phone's logical size).
+final _query = Uri.base.queryParameters;
+
 class _HarnessRootState extends State<_HarnessRoot> {
-  String _language = 'en';
+  String _language = _query['lang'] == 'ur' ? 'ur' : 'en';
   bool _ready = false;
 
   late final HealthStore store = HealthStore()..now = () => _now;
@@ -132,6 +136,8 @@ class _HarnessRootState extends State<_HarnessRoot> {
       disclaimer: _disclaimer[_language]!,
     ));
 
+    final tab = int.tryParse(_query['tab'] ?? '');
+    if (tab != null) app.setTab(tab);
     if (mounted) setState(() => _ready = true);
   }
 
@@ -170,7 +176,7 @@ class _HarnessRootState extends State<_HarnessRoot> {
         builder: (context, child) {
           // Forces a real phone's logical size regardless of the actual (desktop) browser window, and
           // clips to it, so a screenshot of this page is a real phone screenshot, not a stretched layout.
-          const phone = Size(320, 540);
+          final phone = Size(double.tryParse(_query['w'] ?? '') ?? 320, double.tryParse(_query['h'] ?? '') ?? 540);
           return ColoredBox(
             color: const Color(0xFF12181F),
             child: Center(

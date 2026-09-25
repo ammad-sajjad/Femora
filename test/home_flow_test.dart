@@ -5,6 +5,7 @@ import 'package:femora/models/reminders.dart';
 import 'package:femora/models/self_exam.dart';
 import 'package:femora/screens/home_dashboard_screen.dart';
 import 'package:femora/services/reminder_service.dart';
+import 'package:femora/widgets/body_clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -33,7 +34,9 @@ void _tallScreen(WidgetTester tester) {
 }
 
 HealthStore _storeWith({bool pcos = false, bool scan = false, bool risk = false, bool cycle = false, List<SymptomLog> logs = const []}) {
-  final s = HealthStore()..profile = HealthProfile(name: 'Ayesha Khan', onboarded: true);
+  final s = HealthStore()
+    ..now = (() => _now)
+    ..profile = HealthProfile(name: 'Ayesha Khan', onboarded: true);
   if (pcos) s.pcos = PcosSummary(date: _now.subtract(const Duration(days: 2)), percent: 71, level: 'high', bmi: 25.9, factors: const ['Acne']);
   if (scan) {
     s.scan = ScanSummary(date: _now, prediction: 'benign', title: 'Likely Benign', confidence: 0.88, probabilities: const {'normal': 0.05, 'benign': 0.88, 'malignant': 0.07}, modelAccuracy: 0.718);
@@ -101,6 +104,26 @@ void main() {
     expect(find.text('Next period 10 Oct'), findsOneWidget);
     expect(find.textContaining('Fertile window'), findsOneWidget);
     expect(find.text('DAYS TO GO'), findsOneWidget);
+    // the body clock and the typical hormone waves draw in, then settle
+    expect(find.byKey(const Key('home_body_clock')), findsOneWidget);
+    expect(find.byKey(const Key('home_hormone_waves')), findsOneWidget);
+    await tester.pumpAndSettle();
+    expect(find.text('Typical pattern, not measured'), findsOneWidget);
+    expect(find.text('Progesterone'), findsOneWidget);
+  });
+
+  test('the body clock places the phases in order and covers the whole cycle', () {
+    final s = phaseSegments(28, 5);
+    expect(s.map((x) => x.$1), [CyclePhase.menstrual, CyclePhase.follicular, CyclePhase.ovulation, CyclePhase.luteal]);
+    expect(s.first.$2, 0);
+    expect(s.last.$3, 28);
+    for (var i = 1; i < s.length; i++) {
+      expect(s[i].$2, s[i - 1].$3); // no gaps or overlaps
+    }
+    expect(s[2].$2, 14); // ovulation on day index 15 of a 28-day cycle (13-day luteal phase), window from the day before
+    // a very long period can't push the follicular phase past ovulation
+    final long = phaseSegments(21, 12);
+    expect(long[1].$3 >= long[1].$2, isTrue);
   });
 
   testWidgets('a late period is shown as late, with no predictions', (tester) async {
