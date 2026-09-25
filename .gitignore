@@ -64,3 +64,6 @@ backend/.env
 
 # Word lock files
 ~$*
+
+# Firebase Hosting deploy cache
+.firebase/

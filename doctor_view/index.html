@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#9E1B46">
+<title>Femora Health Screening Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!--
+  Femora "Show my doctor" report page (served at https://femora.web.app).
+
+  It looks like the app's PDF report (lib/services/report_service.dart): the same header, patient block, summary, lab-style
+  panels, next steps and clinician box, laid out as a sheet of paper that reflows on a phone.
+
+  The report's data is inside the address itself, after "#r=" (zlib-compressed JSON, base64url; built by
+  lib/models/doctor_link.dart). Browsers never send the part after "#" to any server, so this page is a fixed file
+  that only unpacks the data and draws it here, on the doctor's phone. It stores nothing and sends nothing.
+-->
+<style>
+:root {
+  --berry: #9E1B46; --ink: #2C2538; --muted: #6E6A7A; --line: #D9C3CC; --tint: #FBE9EF; --head: #F3ECEF;
+  --red: #C62828; --amber: #B26A00; --green: #2E7D32; --desk: #E7E3EA;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; overflow-x: hidden; background: var(--desk); color: var(--ink); font-family: Inter, Helvetica, Arial, sans-serif; line-height: 1.4; }
+
+/* ---------- the sheet */
+.sheet { position: relative; background: #fff; max-width: 820px; margin: 28px auto 110px; padding: 34px 36px 26px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 12px 40px rgba(60,20,50,.14); animation: rise .8s cubic-bezier(.2,.8,.2,1) both; overflow: hidden; }
+@keyframes rise { from { opacity: 0; transform: translateY(26px) scale(.985); } to { opacity: 1; transform: none; } }
+@media (max-width: 640px) { .sheet { margin: 10px 8px 96px; padding: 20px 14px 18px; } }
+.watermark { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; z-index: 0; }
+.watermark span { transform: rotate(-35deg); font-size: clamp(48px, 12vw, 96px); font-weight: 800; color: #F2E6EB; white-space: nowrap; }
+.sheet > *:not(.watermark) { position: relative; z-index: 1; }
+
+/* ---------- page header, like the PDF */
+.top { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; padding-bottom: 8px; position: relative; }
+.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--berry); transform-origin: left; animation: draw 1s .35s cubic-bezier(.6,0,.2,1) both; }
+@keyframes draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.logo { font-size: 30px; font-weight: 800; color: var(--berry); letter-spacing: -.5px; line-height: 1; }
+.logo span { display: inline-block; animation: pop .6s cubic-bezier(.2,1.4,.4,1) both; }
+@keyframes pop { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.sub { font-size: 9px; letter-spacing: 1.3px; font-weight: 700; color: var(--muted); margin-top: 3px; }
+.meta { text-align: right; font-size: 10px; color: var(--muted); }
+.meta b { display: block; font-size: 11px; color: var(--ink); }
+@media (max-width: 480px) { .logo { font-size: 25px; } .sub { font-size: 7.5px; letter-spacing: .9px; } .meta { font-size: 9px; } .meta b { font-size: 10px; } }
+
+/* ---------- patient block */
+.patient { margin-top: 16px; border: .8px solid var(--line); border-radius: 5px; display: grid; grid-template-columns: 1.3fr 1fr 1.1fr; }
+.patient div { padding: 7px 10px; }
+.patient small { display: block; font-size: 8px; letter-spacing: .9px; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+.patient b { font-size: 12.5px; }
+@media (max-width: 480px) { .patient { grid-template-columns: 1fr 1fr; } }
+
+/* ---------- summary */
+.summary { margin-top: 14px; background: var(--tint); border: .6px solid var(--line); border-radius: 5px; padding: 11px 13px; }
+.summary h2, .label { margin: 0 0 6px; font-size: 10px; letter-spacing: 1px; color: var(--berry); font-weight: 800; }
+.summary p { margin: 0 0 3px; font-size: 12.5px; }
+
+/* ---------- panels */
+.panel { margin-top: 14px; }
+.bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: var(--berry); color: #fff; padding: 6px 10px;
+  clip-path: inset(0 100% 0 0); transition: clip-path .75s cubic-bezier(.6,0,.2,1); }
+.bar h3 { margin: 0; font-size: 11.5px; letter-spacing: .8px; font-weight: 800; }
+.bar span { font-size: 10px; white-space: nowrap; }
+.in .bar { clip-path: inset(0 0 0 0); }
+table { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 12px; }
+th { background: var(--head); text-align: left; font-size: 9.5px; font-weight: 800; padding: 5px 7px; letter-spacing: .3px; }
+td { padding: 5px 7px; border-bottom: .5px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom-width: .8px; }
+td.r { font-weight: 700; }
+td.f { font-weight: 800; white-space: nowrap; }
+col.c1 { width: 28%; } col.c2 { width: 19%; } col.c3 { width: 40%; } col.c4 { width: 13%; }
+tbody tr { opacity: 0; transform: translateY(6px); transition: opacity .45s ease, transform .45s ease; }
+.in tbody tr { opacity: 1; transform: none; }
+@media (max-width: 480px) { table { font-size: 10.5px; } th { font-size: 8px; padding: 4px 4px; } td { padding: 4px 4px; } }
+.red { color: var(--red); } .amber { color: var(--amber); } .green { color: var(--green); } .grey { color: var(--muted); }
+.note { margin: 4px 0 6px; font-size: 11px; color: var(--muted); font-style: italic; }
+.pending .bar { background: var(--berry); }
+
+/* ---------- charts */
+.chart { margin-top: 6px; }
+.chart h4 { margin: 0; font-size: 10.5px; font-weight: 700; }
+.chart svg { width: 100%; max-width: 440px; height: auto; display: block; overflow: visible; }
+.ax { font-size: 8px; fill: var(--muted); font-family: Inter, Arial, sans-serif; }
+.grid { stroke: var(--line); stroke-width: .6; }
+.col { transform-box: fill-box; transform-origin: bottom; transform: scaleY(0); transition: transform .8s cubic-bezier(.2,.9,.3,1.15); }
+.in .col { transform: scaleY(1); }
+.line { fill: none; stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: 1000; stroke-dashoffset: 1000; transition: stroke-dashoffset 1.6s ease-out; }
+.in .line { stroke-dashoffset: 0; }
+.dot { opacity: 0; transition: opacity .3s 1.2s; } .in .dot { opacity: 1; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 480px) { .two { grid-template-columns: 1fr; gap: 4px; } }
+
+/* ---------- next steps, clinician box, footer */
+ol.steps { margin: 6px 0 0; padding: 0; list-style: none; counter-reset: s; }
+ol.steps li { counter-increment: s; display: flex; gap: 6px; font-size: 12.5px; margin-bottom: 4px; opacity: 0; transform: translateX(-8px); transition: opacity .4s, transform .4s; }
+ol.steps li::before { content: counter(s) "."; color: var(--berry); font-weight: 800; min-width: 16px; }
+.in ol.steps li { opacity: 1; transform: none; }
+.clin { margin-top: 16px; border: .8px solid var(--line); border-radius: 5px; padding: 8px 10px 10px; min-height: 76px; display: flex; flex-direction: column; justify-content: space-between; }
+.clin small { font-size: 8.5px; letter-spacing: .8px; font-weight: 800; color: var(--muted); }
+.clin .sig { display: flex; gap: 18px; flex-wrap: wrap; font-size: 10px; color: var(--muted); margin-top: 26px; }
+.clin .sig span { flex: 1; min-width: 150px; border-top: .6px solid var(--line); padding-top: 3px; }
+.disc { font-size: 9.5px; color: var(--muted); margin: 12px 0 0; }
+.foot { display: flex; justify-content: space-between; gap: 12px; border-top: .6px solid var(--line); margin-top: 14px; padding-top: 6px; font-size: 9px; color: var(--muted); }
+.private { max-width: 820px; margin: -96px auto 110px; padding: 0 16px; font-size: 11px; color: #4B5B52; text-align: center; }
+
+/* reveal on scroll */
+.rv { opacity: 0; transform: translateY(12px); transition: opacity .6s ease, transform .6s cubic-bezier(.2,.8,.2,1); }
+.rv.in { opacity: 1; transform: none; }
+
+/* ---------- actions */
+.actions { position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; gap: 10px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(231,227,234,0), var(--desk) 45%); z-index: 5; }
+.btn { appearance: none; border: 0; border-radius: 99px; padding: 12px 22px; font: 700 14px Inter, Arial, sans-serif; cursor: pointer; }
+.btn.primary { background: var(--berry); color: #fff; box-shadow: 0 8px 20px rgba(158,27,70,.3); }
+.btn.ghost { background: #fff; color: var(--berry); box-shadow: 0 4px 14px rgba(0,0,0,.08); }
+.btn:active { transform: scale(.97); }
+
+.empty { min-height: 100vh; display: grid; place-items: center; text-align: center; padding: 24px; }
+.empty .logo { font-size: 40px; }
+.empty p { color: var(--muted); max-width: 420px; margin: 10px auto 0; }
+.loader { width: 40px; height: 40px; border-radius: 50%; border: 4px solid var(--tint); border-top-color: var(--berry); animation: spin 1s linear infinite; margin: 18px auto 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .rv, tbody tr, ol.steps li { opacity: 1; transform: none; } .bar { clip-path: none; } .col { transform: none; } .line { stroke-dashoffset: 0; } .dot { opacity: 1; }
+}
+@media print {
+  @page { size: A4; margin: 12mm; }
+  body { background: #fff; } .sheet { margin: 0; padding: 0; box-shadow: none; max-width: none; animation: none; }
+  .actions, .private { display: none; }
+  .rv, tbody tr, ol.steps li { opacity: 1 !important; transform: none !important; } .bar { clip-path: none !important; } .col { transform: none !important; }
+  .line { stroke-dashoffset: 0 !important; } .dot { opacity: 1 !important; }
+  .bar, th, .summary { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .panel { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<div id="app"><div class="empty"><div><div class="logo">femora</div><div class="loader"></div><p>Opening the report…</p></div></div></div>
+
+<script>
+"use strict";
+(async function () {
+  const app = document.getElementById("app");
+
+  // ---------------------------------------------------------------- read the data from the address
+  async function inflate(bytes) {
+    if ("DecompressionStream" in window) {
+      const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate"));
+      return new Uint8Array(await new Response(stream).arrayBuffer());
+    }
+    // Older phones without DecompressionStream: load a small inflate library (only the library is fetched; the data stays here)
+    await new Promise((ok, fail) => {
+      const s = document.createElement("script");
+      s.src = "https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako_inflate.min.js";
+      s.onload = ok; s.onerror = fail; document.head.appendChild(s);
+    });
+    return window.pako.inflate(bytes);
+  }
+  async function readReport() {
+    const m = location.hash.match(/[#&]r=([A-Za-z0-9_-]+)/);
+    if (!m) return null;
+    const b64 = m[1].replace(/-/g, "+").replace(/_/g, "/");
+    const bin = atob(b64 + "===".slice((b64.length + 3) % 4));
+    return JSON.parse(new TextDecoder().decode(await inflate(Uint8Array.from(bin, c => c.charCodeAt(0)))));
+  }
+
+  let r;
+  try { r = await readReport(); } catch (e) { r = undefined; }
+  if (!r) {
+    app.innerHTML = `<div class="empty"><div><div class="logo">femora</div>
+      <p>${r === null ? "This page shows a Femora health report. Scan the QR code on the patient's “Show my doctor” screen to open it."
+        : "This report could not be opened. The QR code may have been scanned only partly. Please scan it again from closer, with the screen brightness up."}</p></div></div>`;
+    return;
+  }
+
+  // ---------------------------------------------------------------- helpers
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const gen = new Date(r.t * 60000);
+  const base = new Date(gen.getFullYear(), gen.getMonth(), gen.getDate());
+  const at = d => new Date(base.getFullYear(), base.getMonth(), base.getDate() + d);
+  const fd = d => { const x = at(d); return `${x.getDate()} ${MON[x.getMonth()]} ${x.getFullYear()}`; };
+  const fs = d => { const x = at(d); return `${x.getDate()} ${MON[x.getMonth()]}`; };
+  const p2 = n => String(n).padStart(2, "0");
+  const when = `${gen.getDate()} ${MON[gen.getMonth()]} ${gen.getFullYear()}, ${p2(gen.getHours())}:${p2(gen.getMinutes())}`;
+  const LEVEL = { high: ["HIGH", "red"], medium: ["MEDIUM", "amber"], low: ["LOW", "green"] };
+  const lv = l => LEVEL[l] || LEVEL.low;
+  const table = rows => `<table><colgroup><col class="c1"><col class="c2"><col class="c3"><col class="c4"></colgroup>
+    <thead><tr><th>TEST</th><th>RESULT</th><th>REFERENCE / INTERPRETATION</th><th>FLAG</th></tr></thead><tbody>${
+    rows.map(([t, res, ref, f, c], i) => `<tr style="transition-delay:${200 + i * 60}ms"><td>${esc(t)}</td><td class="r">${esc(res)}</td><td>${esc(ref)}</td><td class="f ${f === "-" ? "grey" : c}">${esc(f)}</td></tr>`).join("")
+  }</tbody></table>`;
+  const note = t => `<p class="note">${t}</p>`;
+  const panel = (title, date, body, pending) => `<section class="panel rv${pending ? " pending" : ""}"><div class="bar"><h3>${esc(title)}</h3><span>${esc(date)}</span></div>${body}</section>`;
+  const INTEREST = { pcos: "PCOS", cycle: "Cycle tracking", pregnancy: "Pregnancy", breast: "Breast health" };
+
+  const P = r.p || {}, pc = r.pc, sc = r.sc, br = r.br, cy = r.cy, wl = r.wl || {}, hr = r.hr, lab = r.lab;
+  const bmi = P.h && P.w ? P.w / Math.pow(P.h / 100, 2) : null;
+  const sample = (P.n || "") === "Sample Patient";
+  document.title = `${P.n ? P.n + " · " : ""}Femora Health Screening Report`;
+
+  // ---------------------------------------------------------------- header, patient, summary
+  const top = `<div class="top"><div><div class="logo">${[..."femora"].map((c, i) => `<span style="animation-delay:${i * 55}ms">${c}</span>`).join("")}</div>
+      <div class="sub">AI WOMEN'S HEALTH SCREENING REPORT</div></div>
+    <div class="meta"><b>Report ID: ${esc(r.id)}</b>Generated: ${esc(when)}</div></div>`;
+  const cell = (k, v) => `<div><small>${k}</small><b>${esc(v)}</b></div>`;
+  const patient = `<div class="patient rv">
+    ${cell("Patient name", P.n || "Not provided")}${cell("Age / sex", `${P.a ?? "-"} years / Female`)}${cell("Report date", fd(0))}
+    ${cell("Height / weight", `${P.h ? P.h + " cm" : "-"} / ${P.w ? P.w + " kg" : "-"}`)}${cell("BMI", bmi ? bmi.toFixed(1) + " kg/m²" : "-")}${cell("Interests", P.c && P.c.length ? P.c.map(c => INTEREST[c] || c).join(", ") : "-")}
+  </div>`;
+
+  const points = [];
+  if (pc) points.push(`PCOS screening: ${pc.pct}% probability (${lv(pc.lv)[0]}).`);
+  if (sc) points.push(`Breast ultrasound screening: ${sc.ti} (${sc.cf}% model confidence).`);
+  if (br) points.push(`Breast cancer risk: ${(br.rr / 100).toFixed(2)} x the age average (${lv(br.lv)[0]}).`);
+  if (br && br.rf) points.push(`Reported symptoms needing a doctor: ${br.rf.join(", ")}.`);
+  if (cy) points.push(`Menstrual cycle: ${cy.n} cycle${cy.n === 1 ? "" : "s"} logged${cy.avg ? `, average cycle ${(cy.avg / 10).toFixed(1)} days (${cy.reg})` : ""}.`);
+  const summary = `<div class="summary rv"><h2>SUMMARY OF FINDINGS</h2>${
+    points.length ? points.map(x => `<p>-&nbsp; ${esc(x)}</p>`).join("")
+      : "<p>No screening has been completed yet. The PCOS check, the breast questionnaire or an ultrasound scan in the Femora app fill this report.</p>"
+  }</div>`;
+
+  // ---------------------------------------------------------------- panels (the same content as the PDF report)
+  const panels = [];
+  const pending = (title, text) => panel(title, "Not done yet", note(text), true);
+
+  if (!pc) panels.push(pending("PANEL 1: PCOS RISK SCREENING", "The PCOS questionnaire has not been completed. Use the PCOS tab in the app."));
+  else {
+    const b = pc.bmi / 10, bf = b < 18.5 ? ["L", "amber"] : b >= 25 ? ["H", "amber"] : ["NORMAL", "green"], f = pc.f || [];
+    panels.push(panel("PANEL 1: PCOS RISK SCREENING", fd(pc.d), table([
+      ["PCOS risk probability", pc.pct + " %", "Low < 30 %   Medium 30-60 %   High >= 60 %", ...lv(pc.lv)],
+      ["Body mass index (BMI)", b.toFixed(1) + " kg/m2", "18.5 - 24.9 kg/m2", ...bf],
+      ["Main contributing answers", f.length ? f.length + " noted" : "None", f.length ? f.join("; ") : "-", "-", "grey"],
+    ]) + note(pc.lv === "low"
+      ? "Interpretation: the answers given show few patterns commonly seen with PCOS. Keep tracking your cycle."
+      : "Interpretation: the answers match patterns commonly seen with PCOS. This is a screening estimate from self-reported answers, not a diagnosis. A gynecologist can confirm with an ultrasound and hormone blood tests (LH, FSH, AMH, testosterone).")));
+  }
+
+  if (!sc) panels.push(pending("PANEL 2: BREAST ULTRASOUND AI SCREENING", "No ultrasound image has been analysed. Use the Breast tab in the app."));
+  else {
+    const flagged = sc.pr === "malignant";
+    panels.push(panel("PANEL 2: BREAST ULTRASOUND AI SCREENING", fd(sc.d), table([
+      ["AI classification", sc.ti, "Normal / Benign / Suspicious (malignant)", flagged ? "REVIEW" : sc.pr === "benign" ? "BENIGN" : "NORMAL", flagged ? "red" : "green"],
+      ["Model confidence", sc.cf + " %", "Calibrated probability of the predicted class", "-", "grey"],
+      ["Class probabilities", "N " + sc.pb[0] + " %", `Benign ${sc.pb[1]} %   Malignant ${sc.pb[2]} %`, "-", "grey"],
+      ["Flagging rule", ">= 25 %", "Flagged suspicious when the malignant probability is 25 % or more", "-", "grey"],
+      ["Model accuracy (held-out scans)", sc.ac + " %", "About 89 % of cancers caught; benign scans are often flagged", "-", "grey"],
+    ]) + note(flagged
+      ? "Interpretation: the scan has features doctors want to look at more closely. This is not a diagnosis. A breast specialist will usually examine you and may recommend a biopsy; please arrange this soon."
+      : `Interpretation: the area found was rated as most likely ${sc.pr === "normal" ? "normal" : "benign (not cancer)"}. The AI can miss cancers and can flag benign scans; follow your doctor's advice about follow-up imaging.`)));
+  }
+
+  if (!br) panels.push(pending("PANEL 3: BREAST CANCER RISK ASSESSMENT", "The breast risk questionnaire has not been completed. Use the Breast tab in the app."));
+  else {
+    const f = br.f || [], rf = br.rf || [];
+    panels.push(panel("PANEL 3: BREAST CANCER RISK ASSESSMENT", fd(br.d), table([
+      ["One-year risk estimate", (br.p / 100).toFixed(2) + " %", `Average for age ${br.ag}: ${(br.av / 100).toFixed(2)} %`, "-", "grey"],
+      ["Relative risk (vs age average)", (br.rr / 100).toFixed(2) + " x", "Low < 1.35   Medium 1.35-2.4   High > 2.4", ...lv(br.lv)],
+      ["Answers that raised the estimate", f.length ? String(f.length) : "None", f.length ? f.join("; ") : "-", "-", "grey"],
+      ["Reported symptoms", rf.length ? String(rf.length) : "None", rf.length ? rf.join("; ") : "No symptoms needing a doctor were reported", rf.length ? "SEE DOCTOR" : "-", rf.length ? "red" : "grey"],
+    ]) + note("Interpretation: this is an estimate of the chance of a breast cancer diagnosis in the next year from risk factors (BCSC data). It cannot say whether cancer is present. Reported symptoms follow NICE referral guidance and need a doctor regardless of the estimate.")));
+  }
+
+  if (!cy) panels.push(pending("PANEL 4: MENSTRUAL CYCLE", "No periods have been logged. Use the Cycle tab in the app to log the first day of your last period."));
+  else {
+    const avg = cy.avg != null ? cy.avg / 10 : null, per = cy.per != null ? cy.per / 10 : null;
+    const avgF = avg == null ? ["-", "grey"] : (avg < 21 || avg > 35) ? ["REVIEW", "amber"] : ["NORMAL", "green"];
+    const regF = cy.reg === "irregular" ? ["REVIEW", "amber"] : cy.reg === "regular" ? ["REGULAR", "green"] : ["-", "grey"];
+    const perF = per == null ? ["-", "grey"] : per > 7 ? ["REVIEW", "amber"] : ["NORMAL", "green"];
+    const rows = [
+      ["Cycles logged (complete)", String(cy.n), "At least 3 give a personal prediction", "-", "grey"],
+      ["Average cycle length", avg == null ? "Not enough data" : avg.toFixed(1) + " days", "21 - 35 days", ...avgF],
+      ["Cycle regularity", cy.reg, cy.sp == null ? "Longest minus shortest of recent cycles: 7 days or less" : `Recent cycles differ by ${cy.sp} days (regular: 7 or less)`, ...regF],
+      ["Average period length", per == null ? "Not logged" : per.toFixed(1) + " days", "2 - 7 days", ...perF],
+      ["Last period started", fd(cy.ls), cy.on ? `Period ongoing: day ${cy.cd}` : `Today is cycle day ${cy.cd}`, "-", "grey"],
+    ];
+    if (cy.late) rows.push(["Next period", `Late by ${cy.late} days`, cy.nx != null ? "Expected " + fd(cy.nx) : "", "LATE", "amber"]);
+    else {
+      if (cy.nx != null) rows.push(["Next period (predicted)", fd(cy.nx), cy.ne != null ? `Likely between ${fs(cy.ne)} and ${fs(cy.nl)}` : "", "-", "grey"]);
+      if (cy.ov != null) rows.push(["Ovulation (estimate)", fs(cy.ov), `Fertile window ${fs(cy.fs)} to ${fs(cy.fe)}`, "-", "grey"]);
+    }
+    let body = table(rows);
+    if (cy.len && cy.len.length >= 2) {
+      const L = cy.len, mean = L.reduce((a, b) => a + b, 0) / L.length;
+      body += barChart(L) + note(`Cycle length in days, oldest to newest (last ${L.length}). Usual range 21 to 35 days. Average ${mean.toFixed(1)}, shortest ${Math.min(...L)}, longest ${Math.max(...L)}.`);
+    }
+    if (cy.bt) body += note("Prediction check: " + esc(cy.bt));
+    body += note("Interpretation: " + esc(cy.ba) + " Ovulation and the fertile window are estimates from cycle length, not measurements, and must not be used to avoid pregnancy.");
+    for (const t of cy.fl || []) body += note("Note: " + esc(t));
+    for (const t of cy.pt || []) body += note("Pattern in the daily log: " + esc(t));
+    for (const t of cy.hn || []) body += note("Hormonal note: " + esc(t));
+    panels.push(panel("PANEL 4: MENSTRUAL CYCLE", fd(cy.ls), body));
+  }
+
+  {
+    const ex = wl.ex, overdue = ex != null && ex < -30;
+    const rows = [["Last breast self-exam", ex == null ? "Not logged" : fd(ex), "Once a month, 3 to 5 days after your period", ex == null ? "-" : overdue ? "DUE" : "OK", overdue ? "amber" : "green"],
+      ["Daily logs recorded", String(wl.lc || 0), "Days with symptoms, mood or notes saved", "-", "grey"]];
+    if (wl.sl != null) { const s = wl.sl / 10; rows.push(["Average sleep", s.toFixed(1) + " h", "7 - 9 hours a night", s < 7 ? "LOW" : s > 9 ? "HIGH" : "NORMAL", s < 7 || s > 9 ? "amber" : "green"]); }
+    if (wl.st != null) { const s = wl.st / 10; rows.push(["Average stress (1 to 5)", s.toFixed(1), "1 = calm, 5 = very high", s >= 4 ? "HIGH" : "-", s >= 4 ? "amber" : "grey"]); }
+    if (wl.en != null) { const s = wl.en / 10; rows.push(["Average energy (1 to 5)", s.toFixed(1), "1 = very low, 5 = great", s <= 2 ? "LOW" : "-", s <= 2 ? "amber" : "grey"]); }
+    const sy = wl.sy || [], mo = (wl.mo || []).slice().sort((a, b) => b[1] - a[1]);
+    rows.push(["Most frequent symptoms", sy.length ? sy[0][0] : "None", sy.length ? sy.map(([k, v]) => `${k} (${v}d)`).join(";  ") : "-", "-", "grey"]);
+    const lowMood = mo.filter(([k]) => k === "low" || k === "bad").reduce((a, [, v]) => a + v, 0);
+    rows.push(["Mood pattern", mo.length ? mo[0][0] : "Not logged", mo.length ? mo.map(([k, v]) => `${k} ${v}d`).join(";  ") : "-", lowMood >= 3 ? "REVIEW" : "-", "amber"]);
+    let charts = "";
+    const ms = wl.ms || [], es = wl.es || [], ss = wl.ss || [];
+    if (ms.length + ss.length >= 3) {
+      charts = `<div class="two">${lineChart("Mood (1 bad to 5 great) and energy (1 to 5)", [[ms, "#9E1B46"], [es, "#2E7D32"]], [1, 5], [1, 2, 3, 4, 5])}
+        ${lineChart("Sleep (hours)", [[ss.map(([d, v]) => [d, v / 10]), "#6B58A8"]], [0, 12], [0, 4, 8, 12])}</div>
+        <p class="note">Left chart: red is mood, green is energy. Days you did not log are left blank.</p>`;
+    }
+    panels.push(panel("PANEL 5: SELF-EXAMINATION AND WELLNESS LOG", "Last 30 days", charts + table(rows) +
+      note("Interpretation: logs are self-reported. Persistent low mood or symptoms that keep returning are worth discussing with a doctor.")));
+  }
+
+  if (hr || (lab && lab.f)) {
+    const rows = [];
+    if (hr) rows.push(["Heart rate (phone camera)", hr.b + " bpm", `Measured ${fd(hr.d)}${hr.u ? `; usual resting ${hr.u} bpm over ${hr.k} readings` : ""}. Adult resting 60 - 100`, hr.b > 100 ? "HIGH" : hr.b < 50 ? "LOW" : "-", "amber"]);
+    if (lab) {
+      if (!lab.f.length) rows.push(["Lab report (photo)", "In range", `Read ${fd(lab.d)}: all values within the printed ranges`, "-", "grey"]);
+      for (const [name, value, unit, status] of lab.f) rows.push([name, `${value}${unit ? " " + unit : ""}`, `From a lab report photo read ${fd(lab.d)}`, String(status).toUpperCase(), status === "critical" ? "red" : "amber"]);
+    }
+    panels.push(panel("PANEL 6: OTHER RESULTS", "Self-measured", table(rows) + note("Interpretation: the heart rate is measured with the phone camera and the lab values are read from a photo of the printed report; both should be checked against the original.")));
+  }
+
+  // ---------------------------------------------------------------- next steps, clinician box
+  const steps = [];
+  if (br && br.rf) steps.push(`See a doctor about the reported breast symptoms (${br.rf.join(", ")}), ideally within two weeks.`);
+  if (sc && sc.pr === "malignant") steps.push("Show the ultrasound and this report to a breast specialist soon; a biopsy is the only way to be sure.");
+  if (pc && pc.lv !== "low") steps.push("Book a gynecologist visit to discuss the PCOS screening; ask about an ultrasound and hormone blood tests.");
+  for (const t of r.st || []) steps.push(t);
+  if (pc && pc.bmi >= 250) steps.push("Ask about nutrition and activity plans; even modest weight change can help cycles.");
+  if (br && br.lv !== "low") steps.push("Ask your doctor when to start mammograms and how often, given your risk factors.");
+  steps.push("Do a breast self-exam every month and keep logging your symptoms, mood and cycle in Femora.");
+  steps.push("Bring this report to your appointment.");
+  const next = `<section class="panel rv"><div class="bar"><h3>RECOMMENDED NEXT STEPS</h3><span></span></div><ol class="steps">${
+    steps.map((s, i) => `<li style="transition-delay:${250 + i * 70}ms"><span>${esc(s)}</span></li>`).join("")}</ol></section>`;
+
+  const tail = `<div class="clin rv"><small>FOR CLINICIAN USE (optional)</small><div class="sig"><span>Notes / plan</span><span>Signature</span></div></div>
+    <p class="disc rv">How to read this report: Femora combines an AI model for breast ultrasound images (ResNet50), a risk model built on BCSC data and a PCOS model built on 541 women from Kerala, India. Results are estimates with known limits (for example, about one cancer in ten can be missed on ultrasound and many benign scans are flagged). Nothing here replaces an examination, imaging or tests ordered by a doctor.</p>
+    <div class="foot"><span>Femora AI screening summary for awareness. Not a laboratory report, not a clinical record and not a medical diagnosis. Always confirm with a doctor.</span><span>${esc(r.id)}</span></div>`;
+
+  app.innerHTML = `<article class="sheet">${sample ? '<div class="watermark"><span>SAMPLE DATA</span></div>' : ""}${top}${patient}${summary}${panels.join("")}${next}${tail}</article>
+    <p class="private">🔒 This report travelled inside the QR code and is drawn on this phone only. Nothing was uploaded or stored.</p>
+    <div class="actions"><button class="btn ghost" id="share">Share</button><button class="btn primary" id="print">Save as PDF</button></div>`;
+
+  // ---------------------------------------------------------------- charts (drawn like the PDF's)
+  function barChart(L) {
+    const W = 320, H = 110, top = Math.max(42, Math.max(...L) + 4), x0 = 24, y0 = 94, h = y0 - 6;
+    const y = v => y0 - v / top * h, step = (W - x0 - 4) / L.length, bw = Math.min(14, step * .5);
+    let s = "";
+    for (const t of [0, 14, 21, 28, 35, 42]) s += `<line class="grid" x1="${x0}" x2="${W}" y1="${y(t)}" y2="${y(t)}"/><text class="ax" x="${x0 - 4}" y="${y(t) + 3}" text-anchor="end">${t}</text>`;
+    L.forEach((v, i) => {
+      const cx = x0 + step * (i + .5);
+      s += `<rect class="col" style="transition-delay:${300 + i * 70}ms" x="${cx - bw / 2}" y="${y(v)}" width="${bw}" height="${y0 - y(v)}" fill="#9E1B46"/>
+        <text class="ax" x="${cx}" y="${y0 + 11}" text-anchor="middle">${i + 1}</text>`;
+    });
+    return `<div class="chart"><svg viewBox="0 0 ${W} ${H + 4}">${s}</svg></div>`;
+  }
+  function lineChart(title, series, [lo, hi], ticks) {
+    const W = 300, H = 100, x0 = 20, y0 = 84, h = y0 - 6;
+    const X = d => x0 + (d + 29) / 29 * (W - x0 - 6), Y = v => y0 - (v - lo) / (hi - lo) * h;
+    let s = "";
+    for (const t of ticks) s += `<line class="grid" x1="${x0}" x2="${W}" y1="${Y(t)}" y2="${Y(t)}"/><text class="ax" x="${x0 - 4}" y="${Y(t) + 3}" text-anchor="end">${t}</text>`;
+    for (const [d, lab] of [[-29, "-29"], [-19, "-19"], [-9, "-9"], [0, "today"]]) s += `<text class="ax" x="${X(d)}" y="${y0 + 11}" text-anchor="middle">${lab}</text>`;
+    for (const [pts, colour] of series) {
+      const Q = pts.filter(([d]) => d >= -29 && d <= 0).sort((a, b) => a[0] - b[0]);
+      if (!Q.length) continue;
+      s += `<path class="line" pathLength="1000" d="${Q.map(([d, v], i) => `${i ? "L" : "M"}${X(d).toFixed(1)},${Y(v).toFixed(1)}`).join("")}" stroke="${colour}"/>`;
+      s += Q.map(([d, v]) => `<circle class="dot" cx="${X(d).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="1.8" fill="${colour}"/>`).join("");
+    }
+    return `<div class="chart"><h4>${esc(title)}</h4><svg viewBox="0 0 ${W} ${H + 4}">${s}</svg></div>`;
+  }
+
+  // ---------------------------------------------------------------- motion: each section draws itself in as it scrolls into view
+  const els = document.querySelectorAll(".rv");
+  const show = el => el.classList.add("in");
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) els.forEach(show);
+  else {
+    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); show(e.target); } }), { threshold: .08 });
+    els.forEach((el, i) => { if (i < 4) el.style.transitionDelay = 250 + i * 90 + "ms"; io.observe(el); });
+  }
+
+  document.getElementById("print").onclick = () => { els.forEach(show); setTimeout(() => print(), 60); };
+  const share = document.getElementById("share");
+  if (navigator.share) share.onclick = () => navigator.share({ title: document.title, url: location.href }).catch(() => {});
+  else share.remove();
+})();
+</script>
+</body>
+</html>

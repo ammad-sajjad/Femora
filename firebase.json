@@ -1,1 +1,48 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"fluttermangaapp","appId":"1:632943140270:android:267cc42ac9e0d268423c3f","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"fluttermangaapp","configurations":{"android":"1:632943140270:android:267cc42ac9e0d268423c3f"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "fluttermangaapp",
+          "appId": "1:632943140270:android:267cc42ac9e0d268423c3f",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "fluttermangaapp",
+          "configurations": {
+            "android": "1:632943140270:android:267cc42ac9e0d268423c3f"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "site": "femora",
+    "public": "doctor_view",
+    "ignore": [
+      "firebase.json",
+      "**/.*"
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "Referrer-Policy",
+            "value": "no-referrer"
+          },
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          },
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      }
+    ]
+  }
+}
