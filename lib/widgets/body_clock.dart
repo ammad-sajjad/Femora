@@ -272,9 +272,9 @@ class _HormoneWavesState extends State<HormoneWaves> with TickerProviderStateMix
     Widget legend(Color colour, String label) => Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(width: 10, height: 3, decoration: BoxDecoration(color: colour, borderRadius: BorderRadius.circular(2))),
-            const SizedBox(width: 4),
-            Text(label, style: TextStyle(fontFamily: 'Inter', fontSize: 10.5, color: Colors.white.withValues(alpha: 0.9))),
+            Container(width: 6, height: 6, decoration: BoxDecoration(color: colour, shape: BoxShape.circle)),
+            const SizedBox(width: 5),
+            Text(label, style: TextStyle(fontFamily: 'Inter', fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.9))),
           ],
         );
     return Column(
@@ -297,17 +297,28 @@ class _HormoneWavesState extends State<HormoneWaves> with TickerProviderStateMix
             ),
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         Wrap(
-          spacing: 12,
-          runSpacing: 4,
+          spacing: 10,
+          runSpacing: 6,
           crossAxisAlignment: WrapCrossAlignment.center,
+          alignment: WrapAlignment.spaceBetween,
           children: [
             legend(Colors.white, t(language, 'Estrogen', 'ایسٹروجن')),
             legend(phaseColours[CyclePhase.luteal]!, t(language, 'Progesterone', 'پروجیسٹرون')),
             legend(phaseColours[CyclePhase.ovulation]!, 'LH'),
-            Text(t(language, 'Typical pattern, not measured', 'عام نمونہ، ناپا ہوا نہیں'),
-                style: TextStyle(fontFamily: 'Inter', fontSize: 10.5, fontStyle: FontStyle.italic, color: Colors.white.withValues(alpha: 0.75))),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 0.8),
+              ),
+              child: Text(
+                t(language, 'Typical pattern, not measured', 'عام نمونہ، ناپا ہوا نہیں'),
+                style: TextStyle(fontFamily: 'Inter', fontSize: 9.5, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.85)),
+              ),
+            ),
           ],
         ),
       ],

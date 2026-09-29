@@ -55,8 +55,8 @@ __pycache__/
 kaggle.json
 backend/.venv/
 
-# Claude Code personal permissions
-.claude/settings.local.json
+# Claude Code
+.claude/
 
 # secrets
 backend/.env

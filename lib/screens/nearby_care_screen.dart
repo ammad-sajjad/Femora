@@ -175,16 +175,42 @@ class _NearbyCareScreenState extends State<NearbyCareScreen> {
                 for (final k in CareKind.values)
                   Padding(
                     padding: const EdgeInsetsDirectional.only(end: 8),
-                    child: ChoiceChip(
+                    child: GestureDetector(
                       key: Key('care_${k.name}'),
-                      label: Text(_kindLabel(k, language)),
-                      selected: _kind == k,
-                      selectedColor: const Color(0xFFFFD7E4),
-                      onSelected: (_) {
+                      onTap: () {
                         if (_kind == k) return;
                         setState(() => _kind = k);
                         _search();
                       },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: _kind == k ? const Color(0xFFFCE7F3) : Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: _kind == k ? const Color(0xFFFBCFE8) : const Color(0xFFE2E8F0),
+                            width: 1.0,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (_kind == k) ...[
+                              const Icon(Icons.check_rounded, size: 16, color: Color(0xFF9D174D)),
+                              const SizedBox(width: 4),
+                            ],
+                            Text(
+                              _kindLabel(k, language),
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 13,
+                                fontWeight: _kind == k ? FontWeight.w700 : FontWeight.w500,
+                                color: _kind == k ? const Color(0xFF9D174D) : const Color(0xFF475569),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
               ],
@@ -321,47 +347,90 @@ class _NearbyCareScreenState extends State<NearbyCareScreen> {
     final open = _expanded == p.id;
     return Container(
       key: Key('place_${p.id}'),
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), boxShadow: AppTheme.softShadow),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFFDE8EF), width: 1.0),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF9D174D).withOpacity(0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                    radius: 12,
-                    backgroundColor: const Color(0xFFFFE1EA),
-                    child: Text('${i + 1}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primaryBerry))),
-                const SizedBox(width: 10),
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFFCE7F3),
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '${i + 1}',
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF9D174D),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(p.name, style: const TextStyle(fontFamily: 'Inter', fontSize: 14.5, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+                      Text(
+                        p.name,
+                        style: const TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 15.5,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF1E1B2E),
+                        ),
+                      ),
                       const SizedBox(height: 3),
                       Wrap(
                         spacing: 8,
                         runSpacing: 2,
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          Text(p.distanceText, style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: AppColors.textMuted)),
+                          Text(
+                            p.distanceText,
+                            style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, color: Color(0xFF64748B)),
+                          ),
                           if (p.rating != null) ...[
                             _stars(p.rating!),
-                            Text('${p.rating!.toStringAsFixed(1)} (${p.ratingCount ?? 0})',
-                                style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: AppColors.textDark, fontWeight: FontWeight.w600)),
+                            Text(
+                              '${p.rating!.toStringAsFixed(1)} (${p.ratingCount ?? 0})',
+                              style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: AppColors.textDark, fontWeight: FontWeight.w600),
+                            ),
                           ],
                           if (p.openNow != null)
-                            Text(p.openNow! ? t(language, 'Open now', 'ابھی کھلا ہے') : t(language, 'Closed now', 'ابھی بند ہے'),
-                                style: TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w600, color: p.openNow! ? const Color(0xFF2E7D57) : AppColors.accentPink)),
+                            Text(
+                              p.openNow! ? t(language, 'Open now', 'ابھی کھلا ہے') : t(language, 'Closed now', 'ابھی بند ہے'),
+                              style: TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w600, color: p.openNow! ? const Color(0xFF059669) : const Color(0xFFE11D48)),
+                            ),
                         ],
                       ),
                       if (p.address.isNotEmpty)
                         Padding(
-                          padding: const EdgeInsets.only(top: 3),
-                          child: Text(p.address, style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: AppColors.textMuted)),
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            p.address,
+                            style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: Color(0xFF64748B)),
+                          ),
                         ),
                     ],
                   ),
@@ -371,30 +440,44 @@ class _NearbyCareScreenState extends State<NearbyCareScreen> {
             if (open && p.reviews.isNotEmpty)
               for (final rv in p.reviews)
                 Padding(
-                  padding: const EdgeInsets.only(top: 8, left: 34),
-                  child: Text('${rv.rating == null ? '' : '★ ${rv.rating!.toStringAsFixed(0)}  '}"${rv.text}"${rv.when.isEmpty ? '' : ' · ${rv.when}'}',
-                      style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: AppColors.textDark, height: 1.35)),
+                  padding: const EdgeInsets.only(top: 8, left: 40),
+                  child: Text(
+                    '${rv.rating == null ? '' : '★ ${rv.rating!.toStringAsFixed(0)}  '}"${rv.text}"${rv.when.isEmpty ? '' : ' · ${rv.when}'}',
+                    style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: AppColors.textDark, height: 1.35),
+                  ),
                 ),
+            const SizedBox(height: 4),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 if (p.reviews.isNotEmpty)
                   TextButton(
                     onPressed: () => setState(() => _expanded = open ? null : p.id),
-                    child: Text(open ? t(language, 'Hide reviews', 'ریویوز چھپائیں') : t(language, 'Reviews', 'ریویوز')),
+                    child: Text(
+                      open ? t(language, 'Hide reviews', 'ریویوز چھپائیں') : t(language, 'Reviews', 'ریویوز'),
+                      style: const TextStyle(color: Color(0xFF64748B), fontSize: 12.5),
+                    ),
                   ),
                 if (p.phone != null)
                   TextButton.icon(
                     key: Key('call_${p.id}'),
                     onPressed: () => _open('tel:${p.phone!.replaceAll(RegExp(r'[^0-9+]'), '')}'),
-                    icon: const Icon(Icons.call_rounded, size: 18),
-                    label: Text(t(language, 'Call', 'کال')),
+                    icon: const Icon(Icons.call_rounded, size: 16, color: Color(0xFF9D174D)),
+                    label: Text(t(language, 'Call', 'کال'), style: const TextStyle(color: Color(0xFF9D174D), fontWeight: FontWeight.w700)),
                   ),
                 TextButton.icon(
                   key: Key('directions_${p.id}'),
                   onPressed: () => _open(p.mapsUrl),
-                  icon: const Icon(Icons.directions_rounded, size: 18),
-                  label: Text(t(language, 'Directions', 'راستہ')),
+                  icon: const Icon(Icons.turn_right_rounded, size: 18, color: Color(0xFF9D174D)),
+                  label: Text(
+                    t(language, 'Directions', 'راستہ'),
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF9D174D),
+                    ),
+                  ),
                 ),
               ],
             ),

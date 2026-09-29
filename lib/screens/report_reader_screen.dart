@@ -282,12 +282,21 @@ class _BodyState extends State<_Body> {
   // ------------------------------------------------------------------ the explanation
 
   static const _statusColors = {
-    'normal': Color(0xFF2E9E68),
-    'low': Color(0xFFE08A1E),
-    'high': Color(0xFFE08A1E),
-    'abnormal': Color(0xFFE08A1E),
-    'critical': Color(0xFFC62828),
+    'normal': Color(0xFF059669),
+    'low': Color(0xFFB45309),
+    'high': Color(0xFFB45309),
+    'abnormal': Color(0xFFB45309),
+    'critical': Color(0xFFDC2626),
     'unknown': AppColors.textMuted,
+  };
+
+  static const _statusBgColors = {
+    'normal': Color(0xFFECFDF5),
+    'low': Color(0xFFFEF3C7),
+    'high': Color(0xFFFEF3C7),
+    'abnormal': Color(0xFFFEF3C7),
+    'critical': Color(0xFFFEE2E2),
+    'unknown': Color(0xFFF1F5F9),
   };
 
   List<Widget> _result(ExplainedReport r) {
@@ -296,82 +305,167 @@ class _BodyState extends State<_Body> {
     return [
       if (r.urgency != 'none') _urgencyBanner(r.urgency, language),
       Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(color: AppColors.cardWhite, borderRadius: BorderRadius.circular(24), boxShadow: AppTheme.softShadow),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFFFCE7F3), width: 1.0),
+          boxShadow: AppTheme.softShadow,
+        ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            Expanded(child: Text(r.titleIn(language), key: const Key('reader_kind'), style: _s(18, w: FontWeight.w700))),
+            Expanded(
+              child: Text(
+                r.titleIn(language),
+                key: const Key('reader_kind'),
+                style: const TextStyle(fontFamily: 'Inter', fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF1E1B2E)),
+              ),
+            ),
             if (r.readable)
               IconButton(
                 key: const Key('reader_speak'),
                 tooltip: t(language, 'Read aloud', 'بلند آواز سے پڑھیں'),
-                icon: const Icon(Icons.volume_up_rounded, color: AppColors.primaryBerry),
+                icon: const Icon(Icons.volume_up_rounded, color: Color(0xFFBE185D)),
                 onPressed: () => voice.speak(r.summary, language: r.language),
               ),
           ]),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Directionality(
             textDirection: _dir(r.summary),
-            child: Text(r.summary, key: const Key('reader_summary'), style: _s(14, h: 1.55)),
+            child: Text(
+              r.summary,
+              key: const Key('reader_summary'),
+              style: const TextStyle(fontFamily: 'Inter', fontSize: 13.5, color: Color(0xFF475569), height: 1.55),
+            ),
           ),
         ]),
       ),
       if (r.findings.isNotEmpty) ...[
-        const SizedBox(height: 18),
-        Text(r.kind == 'prescription' ? t(language, 'Medicines on the prescription', 'نسخے پر موجود دوائیں') : t(language, 'What the report shows', 'رپورٹ کیا ظاہر کرتی ہے'), style: _s(15, w: FontWeight.w700)),
-        const SizedBox(height: 8),
+        const SizedBox(height: 22),
+        Text(
+          r.kind == 'prescription' ? t(language, 'Medicines on the prescription', 'نسخے پر موجود دوائیں') : t(language, 'What the report shows', 'رپورٹ کیا ظاہر کرتی ہے'),
+          style: const TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF1E1B2E)),
+        ),
+        const SizedBox(height: 10),
         for (var i = 0; i < r.findings.length; i++) _findingTile(i, r.findings[i], r.kind == 'prescription', language),
       ],
       if (r.questions.isNotEmpty) ...[
-        const SizedBox(height: 18),
-        Text(t(language, 'Questions to ask your doctor', 'ڈاکٹر سے پوچھنے کے سوالات'), style: _s(15, w: FontWeight.w700)),
-        const SizedBox(height: 6),
-        for (final q in r.questions)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Directionality(
-              textDirection: _dir(q),
-              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Padding(padding: EdgeInsets.only(top: 2), child: Icon(Icons.help_outline_rounded, size: 17, color: AppColors.primaryBerry)),
-                const SizedBox(width: 8),
-                Expanded(child: Text(q, style: _s(13.5, h: 1.45))),
-              ]),
-            ),
+        const SizedBox(height: 22),
+        Text(
+          t(language, 'Questions to ask your doctor', 'ڈاکٹر سے پوچھنے کے سوالات'),
+          style: const TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF1E1B2E)),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFFCE7F3), width: 1.0),
+            boxShadow: AppTheme.softShadow,
           ),
-      ],
-      const SizedBox(height: 16),
-      Directionality(textDirection: _dir(r.disclaimer), child: Text(r.disclaimer, key: const Key('reader_disclaimer'), style: _s(11.5, c: AppColors.textLight, h: 1.45))),
-      const SizedBox(height: 16),
-      if (r.readable)
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            key: const Key('reader_ask'),
-            style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryBerry,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
-            onPressed: () => Navigator.pop(
-                context,
-                t(language, 'Please explain my ${r.title.toLowerCase()} in simple words, and tell me what I should ask my doctor.',
-                    'براہِ کرم میری ${r.titleIn(language)} آسان الفاظ میں سمجھائیں، اور بتائیں کہ مجھے اپنے ڈاکٹر سے کیا پوچھنا چاہیے۔')),
-            icon: const Icon(Icons.auto_awesome_rounded, size: 18),
-            label: Text(t(language, 'Ask Femora about this', 'اس بارے میں Femora سے پوچھیں'), style: const TextStyle(fontWeight: FontWeight.w700)),
+          child: Column(
+            children: [
+              for (final q in r.questions)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Directionality(
+                    textDirection: _dir(q),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.only(top: 2),
+                          child: Icon(Icons.help_outline_rounded, size: 17, color: Color(0xFFBE185D)),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            q,
+                            style: const TextStyle(fontFamily: 'Inter', fontSize: 13.5, color: Color(0xFF334155), height: 1.45),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
-      const SizedBox(height: 8),
-      SizedBox(
-        width: double.infinity,
-        child: OutlinedButton(
-          key: const Key('reader_again'),
-          style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.primaryBerry,
-              side: const BorderSide(color: AppColors.primaryBerry),
-              padding: const EdgeInsets.symmetric(vertical: 13),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
-          onPressed: _startOver,
-          child: Text(t(language, 'Read another report', 'دوسری رپورٹ پڑھیں')),
+      ],
+      const SizedBox(height: 20),
+      Directionality(
+        textDirection: _dir(r.disclaimer),
+        child: Text(
+          r.disclaimer,
+          key: const Key('reader_disclaimer'),
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontFamily: 'Inter', fontSize: 11.5, color: Color(0xFF94A3B8), height: 1.45),
+        ),
+      ),
+      const SizedBox(height: 20),
+      if (r.readable)
+        GestureDetector(
+          key: const Key('reader_ask'),
+          onTap: () => Navigator.pop(
+              context,
+              t(language, 'Please explain my ${r.title.toLowerCase()} in simple words, and tell me what I should ask my doctor.',
+                  'براہِ کرم میری ${r.titleIn(language)} آسان الفاظ میں سمجھائیں، اور بتائیں کہ مجھے اپنے ڈاکٹر سے کیا پوچھنا چاہیے۔')),
+          child: Container(
+            height: 50,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [
+                  Color(0xFF9D174D),
+                  Color(0xFFBE185D),
+                  Color(0xFFE11D48),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(25),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFBE185D).withOpacity(0.35),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.star_rounded, size: 18, color: Colors.white),
+                const SizedBox(width: 8),
+                Text(
+                  t(language, 'Ask Femora about this', 'اس بارے میں Femora سے پوچھیں'),
+                  style: const TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+        ),
+      const SizedBox(height: 10),
+      GestureDetector(
+        key: const Key('reader_again'),
+        onTap: _startOver,
+        child: Container(
+          height: 50,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(25),
+            border: Border.all(color: const Color(0xFFBE185D), width: 1.2),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.02),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            t(language, 'Read another report', 'دوسری رپورٹ پڑھیں'),
+            style: const TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF9D174D)),
+          ),
         ),
       ),
     ];
@@ -379,14 +473,21 @@ class _BodyState extends State<_Body> {
 
   Widget _urgencyBanner(String urgency, String language) {
     final urgent = urgency == 'urgent';
-    final color = urgent ? const Color(0xFFC62828) : const Color(0xFFE08A1E);
+    final color = urgent ? const Color(0xFFDC2626) : const Color(0xFFD97706);
+    final bgColor = urgent ? const Color(0xFFFEF2F2) : const Color(0xFFFFFBEB);
+    final borderColor = urgent ? const Color(0xFFFECACA) : const Color(0xFFFDE68A);
+
     return Container(
       key: Key('reader_$urgency'),
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.10), borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withValues(alpha: 0.5))),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: borderColor, width: 1.2),
+      ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Icon(urgent ? Icons.warning_amber_rounded : Icons.info_outline_rounded, color: color),
+        Icon(urgent ? Icons.warning_amber_rounded : Icons.info_outline_rounded, color: color, size: 20),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
@@ -398,7 +499,7 @@ class _BodyState extends State<_Body> {
                 urgent
                     ? 'اس رپورٹ میں ایک قدر ایسی ہے جس کے لیے آج ہی ڈاکٹر کی ضرورت ہو سکتی ہے۔ براہِ کرم اپنے ڈاکٹر سے رابطہ کریں یا ہسپتال جائیں، اور ایپ کا انتظار نہ کریں۔'
                     : 'کچھ اقدار اپنی حد سے باہر ہیں۔ براہِ کرم جلد اپنے ڈاکٹر سے ملاقات کریں اور ان کے بارے میں بات کریں۔'),
-            style: _s(13, w: FontWeight.w600, c: color, h: 1.45),
+            style: TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w600, color: urgent ? const Color(0xFF991B1B) : const Color(0xFF92400E), height: 1.45),
           ),
         ),
       ]),
@@ -407,32 +508,63 @@ class _BodyState extends State<_Body> {
 
   Widget _findingTile(int i, ReportFinding f, bool prescription, String language) {
     final color = _statusColors[f.status] ?? AppColors.textMuted;
+    final bgColor = _statusBgColors[f.status] ?? const Color(0xFFF1F5F9);
     final measured = [f.value, f.unit].where((t) => t.isNotEmpty).join(' ');
+
     return Container(
       key: Key('finding_$i'),
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: AppColors.cardWhite, borderRadius: BorderRadius.circular(16), border: Border.all(color: f.outOfRange ? color.withValues(alpha: 0.5) : AppColors.surfaceBorder)),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: f.outOfRange ? const Color(0xFFFDE68A) : const Color(0xFFF1F5F9),
+          width: f.outOfRange ? 1.3 : 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Expanded(child: Text(f.name, style: _s(14, w: FontWeight.w700))),
+          Expanded(
+            child: Text(
+              f.name,
+              style: const TextStyle(fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF1E1B2E)),
+            ),
+          ),
           if (!prescription)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-              decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12)),
-              child: Text(f.statusIn(language), key: Key('finding_status_$i'), style: _s(11.5, w: FontWeight.w700, c: color)),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(12)),
+              child: Text(
+                f.statusIn(language),
+                key: Key('finding_status_$i'),
+                style: TextStyle(fontFamily: 'Inter', fontSize: 11.5, fontWeight: FontWeight.w700, color: color),
+              ),
             ),
         ]),
         if (measured.isNotEmpty || (f.reference.isNotEmpty && !prescription)) ...[
-          const SizedBox(height: 3),
+          const SizedBox(height: 4),
           Text(
             [if (measured.isNotEmpty) measured, if (f.reference.isNotEmpty && !prescription) t(language, 'printed range ${f.reference}', 'رینج ${f.reference}')].join('  ·  '),
-            style: _s(12.5, w: FontWeight.w600, c: AppColors.textMuted),
+            style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
           ),
         ],
         if (f.explanation.isNotEmpty) ...[
-          const SizedBox(height: 5),
-          Directionality(textDirection: _dir(f.explanation), child: Text(f.explanation, style: _s(12.5, h: 1.45))),
+          const SizedBox(height: 6),
+          Directionality(
+            textDirection: _dir(f.explanation),
+            child: Text(
+              f.explanation,
+              style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, color: Color(0xFF475569), height: 1.45),
+            ),
+          ),
         ],
       ]),
     );

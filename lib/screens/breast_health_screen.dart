@@ -214,12 +214,12 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
               const SizedBox(height: 18),
               _padded(_buildUploadCard(breast.isScanning, language)),
               const SizedBox(height: 18),
-              _padded(breast.riskResult == null ? _buildRiskStartCard(language) : _buildRiskCard(breast.riskResult!, language)),
-              const SizedBox(height: 18),
               if (breast.scanResult != null) ...[
                 _padded(_buildScanResultCard(breast.scanResult!, breast.scanImage!, language), key: _resultKey),
                 const SizedBox(height: 18),
               ],
+              _padded(breast.riskResult == null ? _buildRiskStartCard(language) : _buildRiskCard(breast.riskResult!, language)),
+              const SizedBox(height: 18),
               _padded(_buildSelfExamCard(language)),
             ],
           ),
@@ -252,17 +252,53 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
   Widget _primaryButton(String label, VoidCallback onTap) => GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 13),
           decoration: BoxDecoration(
-            color: AppColors.primaryBerry,
-            borderRadius: BorderRadius.circular(22),
+            gradient: const LinearGradient(
+              colors: [Color(0xFF831843), Color(0xFF9D174D), Color(0xFFBE185D)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(24),
             boxShadow: [
-              BoxShadow(color: AppColors.primaryBerry.withValues(alpha: 0.35), blurRadius: 12, offset: const Offset(0, 4)),
+              BoxShadow(color: const Color(0xFF831843).withValues(alpha: 0.35), blurRadius: 12, offset: const Offset(0, 4)),
             ],
           ),
           child: Text(
             label,
             style: const TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white),
+          ),
+        ),
+      );
+
+  Widget _actionGradientButton(String label, IconData icon, VoidCallback onTap) => GestureDetector(
+        onTap: onTap,
+        child: Container(
+          height: 44,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF831843), Color(0xFF9D174D), Color(0xFFBE185D)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: [
+              BoxShadow(color: const Color(0xFF831843).withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 3)),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: Colors.white, size: 16),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontFamily: 'Inter', fontSize: 13.5, fontWeight: FontWeight.w700, color: Colors.white),
+                ),
+              ),
+            ],
           ),
         ),
       );
@@ -273,18 +309,18 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
           height: 44,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: AppColors.primaryBerry, width: 1.5),
+            border: Border.all(color: const Color(0xFFBE185D), width: 1.5),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: AppColors.primaryBerry, size: 17),
+              Icon(icon, color: const Color(0xFFBE185D), size: 17),
               const SizedBox(width: 6),
               Flexible(
                 child: Text(
                   label,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontFamily: 'Inter', fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.primaryBerry),
+                  style: const TextStyle(fontFamily: 'Inter', fontSize: 13.5, fontWeight: FontWeight.w700, color: Color(0xFFBE185D)),
                 ),
               ),
             ],
@@ -496,11 +532,20 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
           Row(
             children: [
               Expanded(
-                child: _outlineButton(t(language, 'Ask Femora AI', 'Femora AI سے پوچھیں'), Icons.auto_awesome_rounded,
-                    () => _askAi('Can you explain my breast cancer risk result?', result.summary)),
+                child: _actionGradientButton(
+                  t(language, 'Ask Femora AI', 'Femora AI سے پوچھیں'),
+                  Icons.auto_awesome_rounded,
+                  () => _askAi('Can you explain my breast cancer risk result?', result.summary),
+                ),
               ),
               const SizedBox(width: 10),
-              Expanded(child: _outlineButton(t(language, 'Retake', 'دوبارہ کریں'), Icons.refresh_rounded, _openQuestionnaire)),
+              Expanded(
+                child: _outlineButton(
+                  t(language, 'Retake', 'دوبارہ کریں'),
+                  Icons.refresh_rounded,
+                  _openQuestionnaire,
+                ),
+              ),
             ],
           ),
         ],
@@ -510,13 +555,15 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
 
   Widget _buildRedFlagBanner(BreastRiskResult result, String language) {
     final urgent = result.needsUrgentVisit;
-    final fg = urgent ? AppColors.pinkTagText : AppColors.orangeTagText;
+    final fg = urgent ? const Color(0xFFBE123C) : const Color(0xFFC2410C);
+    final bg = urgent ? const Color(0xFFFFF1F2) : const Color(0xFFFFF7ED);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: urgent ? AppColors.pinkTagBg : AppColors.orangeTagBg,
+        color: bg,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: fg.withValues(alpha: 0.15), width: 1),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -528,14 +575,15 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  t(language, urgent ? 'See a doctor within 2 weeks' : 'Book a check-up with your doctor', urgent ? '2 ہفتوں کے اندر ڈاکٹر سے ملیں' : 'اپنے ڈاکٹر کے ساتھ چیک اپ بک کریں'),
+                  t(language, urgent ? 'See a doctor within 2 weeks' : 'Book a check-up with your doctor',
+                      urgent ? '2 ہفتوں کے اندر ڈاکٹر سے ملیں' : 'اپنے ڈاکٹر کے ساتھ چیک اپ بک کریں'),
                   style: TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w700, color: fg),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   t(language, 'Because you reported: ${result.redFlags.map((f) => f.label.toLowerCase()).join(', ')}.',
                       'کیونکہ آپ نے یہ بتایا: ${result.redFlags.map((f) => f.label.toLowerCase()).join('، ')}۔'),
-                  style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, color: AppColors.textDark, height: 1.35),
+                  style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, color: Color(0xFF4B5563), height: 1.35),
                 ),
               ],
             ),
@@ -579,7 +627,8 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
         children: [
           Row(
             children: [
-              Icon(suspicious ? Icons.error_outline_rounded : Icons.verified_rounded, color: color, size: 24),
+              Icon(suspicious ? Icons.error_outline_rounded : Icons.check_circle_rounded,
+                  color: suspicious ? const Color(0xFFE11D48) : const Color(0xFF10B981), size: 24),
               const SizedBox(width: 10),
               Expanded(child: _cardTitle(t(language, 'Analysis Complete', 'تجزیہ مکمل'))),
             ],
@@ -600,20 +649,24 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
             ),
           ),
           if (heatmap != null || outline != null) ...[
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              children: [
-                _viewToggle(t(language, 'Original', 'اصل'), view == _ScanView.original, () => setState(() => _view = _ScanView.original)),
-                if (heatmap != null)
-                  _viewToggle(t(language, 'AI Focus', 'AI فوکس'), view == _ScanView.focus, () => setState(() => _view = _ScanView.focus)),
-                if (outline != null)
-                  _viewToggle(t(language, 'Outline', 'خاکہ'), view == _ScanView.outline, () => setState(() => _view = _ScanView.outline)),
-              ],
+            const SizedBox(height: 12),
+            Center(
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: [
+                  _viewToggle(t(language, 'Original', 'اصل'), view == _ScanView.original, () => setState(() => _view = _ScanView.original)),
+                  if (heatmap != null)
+                    _viewToggle(t(language, 'AI Focus', 'AI فوکس'), view == _ScanView.focus, () => setState(() => _view = _ScanView.focus)),
+                  if (outline != null)
+                    _viewToggle(t(language, 'Outline', 'خاکہ'), view == _ScanView.outline, () => setState(() => _view = _ScanView.outline)),
+                ],
+              ),
             ),
-            const SizedBox(height: 6),
-            Text(caption, style: const TextStyle(fontFamily: 'Inter', fontSize: 11, color: AppColors.textLight)),
+            const SizedBox(height: 8),
+            Center(
+              child: Text(caption, style: const TextStyle(fontFamily: 'Inter', fontSize: 11.5, color: AppColors.textLight)),
+            ),
           ],
           if (outline != null) ...[
             const SizedBox(height: 12),
@@ -623,24 +676,29 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
 
           // Result box
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
             decoration: BoxDecoration(
-              color: suspicious ? AppColors.pinkTagBg : const Color(0xFFEFF4FC),
-              borderRadius: BorderRadius.circular(18),
+              color: suspicious ? const Color(0xFFFFF1F2) : const Color(0xFFECFDF5),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
-                      child: Text(
-                        result.title,
-                        style: TextStyle(fontFamily: 'Inter', fontSize: 18, fontWeight: FontWeight.w700, color: color),
+                    Text(
+                      result.title,
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: suspicious ? const Color(0xFFE11D48) : const Color(0xFF10B981),
                       ),
                     ),
                     Text(
-                      t(language, suspicious ? '${result.percent}% Malignancy Score' : '${result.percent}% Confidence', suspicious ? '${result.percent}% میلیگننسی سکور' : '${result.percent}% اعتماد'),
+                      t(language, suspicious ? '${result.percent}% Malignancy Score' : '${result.percent}% Confidence',
+                          suspicious ? '${result.percent}% میلیگننسی سکور' : '${result.percent}% اعتماد'),
                       style: const TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textDark),
                     ),
                   ],
@@ -650,9 +708,11 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
                   borderRadius: BorderRadius.circular(4),
                   child: LinearProgressIndicator(
                     value: result.confidence,
-                    minHeight: 7,
-                    backgroundColor: suspicious ? Colors.white : const Color(0xFFD6E3F7),
-                    valueColor: AlwaysStoppedAnimation<Color>(color),
+                    minHeight: 6,
+                    backgroundColor: suspicious ? const Color(0xFFFFE4E6) : const Color(0xFFD1FAE5),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      suspicious ? const Color(0xFFE11D48) : const Color(0xFF10B981),
+                    ),
                   ),
                 ),
               ],
@@ -660,10 +720,10 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
           ),
           const SizedBox(height: 14),
           for (final p in result.probabilities) _probabilityRow(p),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Text(
             t(language, 'What this means', 'اس کا مطلب'),
-            style: const TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark),
+            style: const TextStyle(fontFamily: 'Inter', fontSize: 14.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
           ),
           const SizedBox(height: 4),
           Text(result.summary, style: const TextStyle(fontFamily: 'Inter', fontSize: 13, color: Color(0xFF4A5568), height: 1.45)),
@@ -672,8 +732,10 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
           if (result.prediction != ScanPrediction.normal) ...[
             const SizedBox(height: 12),
             NearbyCareButton(
-                kind: CareKind.imaging,
-                label: t(language, 'Find a breast imaging centre near you', 'قریب ترین بریسٹ امیجنگ سینٹر تلاش کریں')),
+              kind: CareKind.imaging,
+              outline: true,
+              label: t(language, 'Find a breast imaging centre near you', 'قریب ترین بریسٹ امیجنگ سینٹر تلاش کریں'),
+            ),
           ],
           const SizedBox(height: 16),
           _disclaimer(result.disclaimer),
@@ -681,11 +743,20 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
           Row(
             children: [
               Expanded(
-                child: _outlineButton(t(language, 'Ask Femora AI', 'Femora AI سے پوچھیں'), Icons.auto_awesome_rounded,
-                    () => _askAi('Can you explain my breast ultrasound result?', result.summary)),
+                child: _actionGradientButton(
+                  t(language, 'Ask Femora AI', 'Femora AI سے پوچھیں'),
+                  Icons.auto_awesome_rounded,
+                  () => _askAi('Can you explain my breast ultrasound result?', result.summary),
+                ),
               ),
               const SizedBox(width: 10),
-              Expanded(child: _outlineButton(t(language, 'New Scan', 'نیا اسکین'), Icons.add_photo_alternate_outlined, _chooseScan)),
+              Expanded(
+                child: _outlineButton(
+                  t(language, 'New Scan', 'نیا اسکین'),
+                  Icons.camera_alt_outlined,
+                  _chooseScan,
+                ),
+              ),
             ],
           ),
         ],
@@ -703,20 +774,20 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
     final covers = '${(outline.areaShare * 100).clamp(1, 100).round()}%';
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: const Color(0xFFFDF1F8), borderRadius: BorderRadius.circular(16)),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: const Color(0xFFFDF2F8), borderRadius: BorderRadius.circular(16)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.gesture_rounded, size: 18, color: Color(0xFFD4147A)),
+              const Icon(Icons.gesture_rounded, size: 18, color: Color(0xFFBE185D)),
               const SizedBox(width: 8),
               Text(t(language, 'Outlined area', 'خاکہ شدہ حصہ'),
                   style: const TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark)),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           _outlineFact(t(language, 'Shape', 'شکل'), shape),
           _outlineFact(t(language, 'Covers', 'حصہ'), t(language, '$covers of the scan', 'اسکین کا $covers')),
           _outlineFact(
@@ -725,16 +796,46 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
                 ? t(language, 'Add the scan depth to estimate', 'اندازے کے لیے اسکین کی گہرائی درج کریں')
                 : '${size.$1.toStringAsFixed(1)} × ${size.$2.toStringAsFixed(1)} cm',
           ),
-          const SizedBox(height: 4),
-          TextButton.icon(
-            style: TextButton.styleFrom(padding: EdgeInsets.zero, foregroundColor: const Color(0xFFD4147A)),
-            onPressed: () => _askScanDepth(language),
-            icon: const Icon(Icons.straighten_rounded, size: 18),
-            label: Text(depth == null
-                ? t(language, 'Estimate size in cm', 'سائز سینٹی میٹر میں معلوم کریں')
-                : t(language, 'Change scan depth (${depth.toStringAsFixed(1)} cm)', 'اسکین کی گہرائی بدلیں (${depth.toStringAsFixed(1)} cm)')),
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: () => _askScanDepth(language),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: const Color(0xFFF472B6), width: 1.2),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.straighten_rounded, size: 16, color: Color(0xFFBE185D)),
+                  const SizedBox(width: 6),
+                  Text(
+                    depth == null
+                        ? t(language, 'Estimate size in cm', 'سائز سینٹی میٹر میں معلوم کریں')
+                        : t(language, 'Change scan depth (${depth.toStringAsFixed(1)} cm)',
+                            'اسکین کی گہرائی بدلیں (${depth.toStringAsFixed(1)} cm)'),
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFFBE185D),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-          Text(outline.note, style: const TextStyle(fontFamily: 'Inter', fontSize: 11.5, color: AppColors.textMuted, height: 1.4)),
+          const SizedBox(height: 10),
+          Text(
+            outline.note.isNotEmpty
+                ? outline.note
+                : t(language,
+                    "The outline is drawn by a second AI model trained on radiologists' outlines. It is approximate: it helps you see the area the result is about, but a radiologist measures the lesion properly.",
+                    "یہ خاکہ ریڈیولوجسٹس کے خاکوں پر تربیت یافتہ ایک دوسرے AI ماڈل نے بنایا ہے۔ یہ اندازاً ہے: یہ آپ کو وہ حصہ دیکھنے میں مدد دیتا ہے جس کے بارے میں نتیجہ ہے، لیکن ریڈیولوجسٹ اس کی درست پیمائش کرتا ہے۔"),
+            style: const TextStyle(fontFamily: 'Inter', fontSize: 11.5, color: AppColors.textMuted, height: 1.4),
+          ),
         ],
       ),
     );
@@ -769,10 +870,10 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
           decoration: BoxDecoration(
-            color: selected ? AppColors.primaryBerry : AppColors.lightGrayBg,
-            borderRadius: BorderRadius.circular(14),
+            color: selected ? const Color(0xFF831843) : const Color(0xFFF3F4F6),
+            borderRadius: BorderRadius.circular(18),
           ),
           child: Text(
             label,
@@ -780,7 +881,7 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
               fontFamily: 'Inter',
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: selected ? Colors.white : AppColors.textDark,
+              color: selected ? Colors.white : const Color(0xFF374151),
             ),
           ),
         ),
@@ -846,10 +947,44 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // The guide image carries its own "3 Min Guide" label
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            child: Image.asset('assets/images/self_exam_guide.png', width: double.infinity, height: 160, fit: BoxFit.cover),
+          // Top section: "Your Guide to Breast Self-Exam" with 4 quick tips
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: const BoxDecoration(
+              color: Color(0xFFFDF2F4),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  t(language, 'Your Guide to Breast Self-Exam', 'بریسٹ سیلف ایگزام کی گائیڈ'),
+                  style: const TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF831843),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(child: _selfExamMiniCard(Icons.accessibility_new_rounded, t(language, 'Observe in Mirror', 'آئینے میں دیکھیں'))),
+                    const SizedBox(width: 8),
+                    Expanded(child: _selfExamMiniCard(Icons.water_drop_outlined, t(language, 'Check for Discharge', 'اخراج چیک کریں'))),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(child: _selfExamMiniCard(Icons.pan_tool_outlined, t(language, 'Use Finger Pads', 'انگلیوں کے پور استعمال کریں'))),
+                    const SizedBox(width: 8),
+                    Expanded(child: _selfExamMiniCard(Icons.sync_rounded, t(language, 'Follow a Pattern', 'ترتیب پر عمل کریں'))),
+                  ],
+                ),
+              ],
+            ),
           ),
           Padding(
             padding: const EdgeInsets.all(20.0),
@@ -863,18 +998,18 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
                 const SizedBox(height: 6),
                 _body(t(language, 'Learn the proper technique for monthly self-examinations with our illustrated step-by-step tutorial.',
                     'ہماری مصور مرحلہ وار گائیڈ کے ساتھ ماہانہ سیلف ایگزام کا درست طریقہ سیکھیں۔')),
-                const SizedBox(height: 14),
+                const SizedBox(height: 16),
 
                 // Log status + monthly reminder
                 Container(
-                  padding: const EdgeInsets.fromLTRB(14, 6, 6, 6),
-                  decoration: BoxDecoration(color: AppColors.lightGrayBg, borderRadius: BorderRadius.circular(16)),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(color: const Color(0xFFFDF2F8), borderRadius: BorderRadius.circular(16)),
                   child: Column(
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.event_available_outlined,
-                              size: 18, color: overdue ? AppColors.orangeTagText : AppColors.primaryBerry),
+                          Icon(Icons.calendar_today_outlined,
+                              size: 18, color: overdue ? AppColors.orangeTagText : const Color(0xFF6B7280)),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -887,18 +1022,25 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
                               ),
                             ),
                           ),
-                          TextButton(
-                            onPressed: () async {
+                          GestureDetector(
+                            onTap: () async {
                               await context.read<SelfExamState>().logExam();
                               if (mounted) _showSnack(t(language, 'Self-exam logged for today.', 'آج کے لیے سیلف ایگزام درج ہو گیا۔'));
                             },
-                            child: Text(t(language, 'Log today', 'آج درج کریں'), style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, fontWeight: FontWeight.w700)),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+                              child: Text(
+                                t(language, 'Log today', 'آج درج کریں'),
+                                style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, fontWeight: FontWeight.w700, color: Color(0xFFBE185D)),
+                              ),
+                            ),
                           ),
                         ],
                       ),
+                      const SizedBox(height: 6),
                       Row(
                         children: [
-                          const Icon(Icons.notifications_none_rounded, size: 18, color: AppColors.primaryBerry),
+                          const Icon(Icons.notifications_none_rounded, size: 18, color: Color(0xFF6B7280)),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -924,22 +1066,54 @@ class _BreastHealthScreenState extends State<BreastHealthScreen> {
                     height: 46,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(23),
-                      border: Border.all(color: AppColors.primaryBerry, width: 1.5),
+                      border: Border.all(color: const Color(0xFFBE185D), width: 1.5),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
                           t(language, 'Start Tutorial', 'ٹیوٹوریل شروع کریں'),
-                          style: const TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primaryBerry),
+                          style: const TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFFBE185D)),
                         ),
                         const SizedBox(width: 6),
-                        const Icon(Icons.arrow_forward_rounded, color: AppColors.primaryBerry, size: 16),
+                        const Icon(Icons.arrow_forward_rounded, color: Color(0xFFBE185D), size: 16),
                       ],
                     ),
                   ),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _selfExamMiniCard(IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: const Color(0xFFEA580C)),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF374151),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
