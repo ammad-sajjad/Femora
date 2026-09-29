@@ -59,7 +59,7 @@ class ReplyText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final blocks = parseReply(text);
-    final heading = style.copyWith(fontWeight: FontWeight.w700, fontSize: (style.fontSize ?? 14) + 0.5, color: const Color(0xFFB0124F));
+    final heading = style.copyWith(fontWeight: FontWeight.w700, fontSize: (style.fontSize ?? 14) + 0.5, color: const Color(0xFFBE185D));
     final children = <Widget>[];
     for (var i = 0; i < blocks.length; i++) {
       final b = blocks[i];
@@ -67,7 +67,19 @@ class ReplyText extends StatelessWidget {
       if (gap > 0) children.add(SizedBox(height: gap));
       switch (b.kind) {
         case 'heading':
-          children.add(Text(b.text, textDirection: direction, style: heading));
+          final icon = b.text.toLowerCase().contains('mean') || b.text.contains('مطلب')
+              ? Icons.auto_graph_rounded
+              : b.text.toLowerCase().contains('manage') || b.text.toLowerCase().contains('health') || b.text.contains('صحت')
+                  ? Icons.spa_outlined
+                  : Icons.insights_rounded;
+          children.add(Row(
+            textDirection: direction,
+            children: [
+              Icon(icon, size: 17, color: const Color(0xFFBE185D)),
+              const SizedBox(width: 6),
+              Expanded(child: Text(b.text, textDirection: direction, style: heading)),
+            ],
+          ));
         case 'bullet':
           children.add(Row(
             textDirection: direction,
@@ -75,7 +87,7 @@ class ReplyText extends StatelessWidget {
             children: [
               Padding(
                 padding: EdgeInsets.only(top: (style.fontSize ?? 14) * 0.55, left: 2, right: 8),
-                child: Container(width: 5, height: 5, decoration: const BoxDecoration(color: Color(0xFFE0457B), shape: BoxShape.circle)),
+                child: Container(width: 5, height: 5, decoration: const BoxDecoration(color: Color(0xFF831843), shape: BoxShape.circle)),
               ),
               Expanded(child: Text.rich(TextSpan(children: _inline(b.text, style)), textDirection: direction)),
             ],

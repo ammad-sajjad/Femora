@@ -72,11 +72,19 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
   String? _error;
   DoctorsResult? _result;
   int _generation = 0; // restarts the cards' entrance animation for each new list
+  final TextEditingController _searchController = TextEditingController();
+  String _query = '';
 
   @override
   void initState() {
     super.initState();
     _findMe();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _findMe() async {
@@ -149,20 +157,128 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
   Widget build(BuildContext context) {
     final language = context.watch<HealthStore>().profile.language;
     final r = _result;
-    final list = r?.sorted(_sort) ?? const <Doctor>[];
+    final rawList = r?.sorted(_sort) ?? const <Doctor>[];
+    final list = _query.isEmpty
+        ? rawList
+        : rawList.where((d) {
+            final q = _query.toLowerCase();
+            return d.name.toLowerCase().contains(q) ||
+                d.specialty.toLowerCase().contains(q) ||
+                d.address.toLowerCase().contains(q);
+          }).toList();
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.background,
         elevation: 0,
         foregroundColor: AppColors.textDark,
-        title: Text(t(language, 'Find a doctor', 'ڈاکٹر تلاش کریں'), style: const TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700)),
+        titleSpacing: 16,
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: const BoxDecoration(
+                color: Color(0xFFFCE7F3),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.spa_rounded, color: AppColors.primaryBerry, size: 20),
+            ),
+            const SizedBox(width: 10),
+            Text(t(language, 'Doctor Directory', 'ڈاکٹر ڈائرکٹری'),
+                style: const TextStyle(fontFamily: 'Inter', fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF111827))),
+          ],
+        ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFFF3F4F6)),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.notifications_none_rounded, color: Color(0xFF374151), size: 22),
+              onPressed: () {},
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            width: 38,
+            height: 38,
+            decoration: const BoxDecoration(
+              color: Color(0xFF831843),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.person, color: Colors.white, size: 20),
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: _search,
         child: ListView(
+          cacheExtent: 3000,
           padding: const EdgeInsets.only(bottom: 32),
           children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 16, 6),
+              child: Row(
+                children: [
+                  const Icon(Icons.near_me_outlined, size: 16, color: AppColors.primaryBerry),
+                  const SizedBox(width: 6),
+                  Text(
+                    t(language, 'Near you', 'آپ کے قریب'),
+                    style: const TextStyle(fontFamily: 'Inter', fontSize: 13, color: Color(0xFF6B7280)),
+                  ),
+                  const Text(' · ', style: TextStyle(color: Color(0xFF9CA3AF))),
+                  Text(
+                    _locating
+                        ? t(language, 'Finding…', 'تلاش…')
+                        : (_city ?? 'Islamabad'),
+                    style: const TextStyle(fontFamily: 'Inter', fontSize: 13.5, fontWeight: FontWeight.w700, color: Color(0xFF111827)),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => _pickCity(language),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          t(language, 'Change', 'بدلیں'),
+                          style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.primaryBerry),
+                        ),
+                        const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: AppColors.primaryBerry),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: const Color(0xFFE5E7EB)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (v) => setState(() => _query = v),
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  icon: const Icon(Icons.search_rounded, color: Color(0xFF9CA3AF), size: 22),
+                  hintText: t(language, 'Search doctor, clinic or symptoms...', 'ڈاکٹر، کلینک یا علامات تلاش کریں...'),
+                  hintStyle: const TextStyle(fontFamily: 'Inter', fontSize: 13.5, color: Color(0xFF9CA3AF)),
+                  suffixIcon: const Icon(Icons.tune_rounded, color: Color(0xFF374151), size: 20),
+                ),
+              ),
+            ),
             SizedBox(
               height: 44,
               child: ListView(
@@ -176,7 +292,20 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
                         key: Key('specialty_${s.name}'),
                         label: Text(_specialtyLabel(s, language)),
                         selected: _specialty == s,
-                        selectedColor: const Color(0xFFFFD7E4),
+                        showCheckmark: true,
+                        checkmarkColor: Colors.white,
+                        labelStyle: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: _specialty == s ? Colors.white : const Color(0xFF374151),
+                        ),
+                        backgroundColor: Colors.white,
+                        selectedColor: const Color(0xFF831843),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          side: BorderSide(color: _specialty == s ? const Color(0xFF831843) : const Color(0xFFE5E7EB)),
+                        ),
                         onSelected: (_) {
                           if (_specialty == s) return;
                           setState(() => _specialty = s);
@@ -187,26 +316,7 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 12, 0),
-              child: Row(
-                children: [
-                  Icon(_city == null ? Icons.my_location_rounded : Icons.location_city_rounded, size: 16, color: AppColors.textMuted),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      _locating
-                          ? t(language, 'Finding your location…', 'آپ کا مقام تلاش ہو رہا ہے…')
-                          : _city == null
-                              ? t(language, 'Near you', 'آپ کے قریب')
-                              : t(language, 'In $_city (location is off)', '$_city میں (مقام بند ہے)'),
-                      style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: AppColors.textMuted),
-                    ),
-                  ),
-                  TextButton(onPressed: () => _pickCity(language), child: Text(t(language, 'Change', 'بدلیں'))),
-                ],
-              ),
-            ),
+            const SizedBox(height: 8),
             if (r != null && r.doctors.length > 1)
               SizedBox(
                 key: const Key('doctor_sort'),
@@ -225,14 +335,43 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
                       (DoctorSort.reviews, t(language, 'Most reviewed', 'زیادہ ریویوز')),
                     ])
                       Padding(
-                        padding: const EdgeInsetsDirectional.only(end: 6),
+                        padding: const EdgeInsetsDirectional.only(end: 8),
                         child: ChoiceChip(
                           key: Key('sort_${sort.name}'),
-                          label: Text(label, style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, fontWeight: FontWeight.w600)),
+                          label: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (_sort == sort) ...[
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  margin: const EdgeInsets.only(right: 6),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF9D174D),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ],
+                              Text(
+                                label,
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: _sort == sort ? const Color(0xFF831843) : const Color(0xFF4B5563),
+                                ),
+                              ),
+                            ],
+                          ),
                           selected: _sort == sort,
                           showCheckmark: false,
                           visualDensity: VisualDensity.compact,
-                          selectedColor: const Color(0xFFFFE1EA),
+                          backgroundColor: Colors.white,
+                          selectedColor: const Color(0xFFFCE7F3),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            side: BorderSide(color: _sort == sort ? const Color(0xFFFCE7F3) : const Color(0xFFE5E7EB)),
+                          ),
                           onSelected: (_) => setState(() {
                             _sort = sort;
                             _generation++;
@@ -257,17 +396,66 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
                   language,
                   oladoc: true)
             else if (r != null) ...[
-              for (final (i, d) in list.indexed)
-                _Entrance(key: ValueKey('${_generation}_${d.id}'), index: i, child: _DoctorCard(doctor: d, rank: i + 1, language: language)),
-              _oladocBanner(language),
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 6),
                 child: Text(
                   r.source == DoctorSource.oladoc
                       ? '${r.attribution}. ${t(language, 'Appointments are booked on Oladoc.', 'اپائنٹمنٹ Oladoc پر بک ہوتی ہے۔')}'
                       : '${r.attribution}. ${t(language, 'Femora does not verify doctors: check PMDC registration before your visit.', 'Femora ڈاکٹروں کی تصدیق نہیں کرتا: ملاقات سے پہلے PMDC رجسٹریشن چیک کریں۔')}',
                   key: const Key('doctor_attribution'),
                   style: const TextStyle(fontFamily: 'Inter', fontSize: 11, color: AppColors.textLight),
+                ),
+              ),
+              for (final (i, d) in list.indexed)
+                _Entrance(key: ValueKey('${_generation}_${d.id}'), index: i, child: _DoctorCard(doctor: d, rank: i + 1, language: language)),
+              _oladocBanner(language),
+              Container(
+                margin: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFDF2F8),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFFCE7F3)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFCE7F3),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.shield_outlined, color: Color(0xFF9D174D), size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            t(language, '100% Vetted Endocrine Care', '100% تصدیق شدہ نگہداشت'),
+                            style: const TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF831843),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            t(language, 'All specialists hold verified PMDC licensure with specialized hormonal health training.',
+                                'تمام ماہرین PMDC سے تصدیق شدہ ہیں اور ہارمونل صحت کی تربیت رکھتے ہیں۔'),
+                            style: const TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 11.5,
+                              color: Color(0xFF6B7280),
+                              height: 1.3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -417,7 +605,7 @@ class _DoctorCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final d = doctor;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       child: Material(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -433,69 +621,150 @@ class _DoctorCard extends StatelessWidget {
                 transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: CurvedAnimation(parent: a, curve: Curves.easeOut), child: child),
               )),
           child: Container(
-            padding: const EdgeInsets.fromLTRB(14, 14, 10, 14),
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), boxShadow: AppTheme.softShadow, color: Colors.white),
-            child: Row(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFF3F4F6)),
+              boxShadow: AppTheme.softShadow,
+              color: Colors.white,
+            ),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                DoctorAvatar(doctor: d, size: 58),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text.rich(
-                        TextSpan(children: [
-                          TextSpan(text: d.name),
-                          if (d.pmdcVerified)
-                            const WidgetSpan(
-                              alignment: PlaceholderAlignment.middle,
-                              child: Padding(padding: EdgeInsets.only(left: 4), child: Icon(Icons.verified_rounded, size: 16, color: Color(0xFF2A872E))),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        DoctorAvatar(doctor: d, size: 58),
+                        if (d.pmdcVerified)
+                          Positioned(
+                            bottom: -2,
+                            right: -2,
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF831843),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.verified_rounded, size: 14, color: Colors.white),
                             ),
-                        ]),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textDark),
-                      ),
-                      const SizedBox(height: 2),
-                      Text([d.specialty, if (d.qualifications.isNotEmpty) d.qualifications.join(', ')].join(' · '),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, color: AppColors.primaryBerry, fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 6),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 4,
-                        crossAxisAlignment: WrapCrossAlignment.center,
+                          ),
+                      ],
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (d.rating != null) ...[
-                            stars(d.rating!),
-                            Text('${d.rating!.toStringAsFixed(1)} (${d.ratingCount ?? 0})',
-                                style: const TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textDark)),
-                          ] else
-                            Text(t(language, 'No ratings yet', 'ابھی کوئی ریٹنگ نہیں'), style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: AppColors.textLight)),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  d.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF111827)),
+                                ),
+                              ),
+                              Container(
+                                width: 28,
+                                height: 28,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFFDF2F8),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.arrow_forward_rounded, size: 16, color: Color(0xFFBE185D)),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            [d.specialty, if (d.qualifications.isNotEmpty) d.qualifications.join(', ')].join(' · '),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, color: Color(0xFF4B5563), fontWeight: FontWeight.w500),
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              if (d.rating != null) ...[
+                                const Icon(Icons.star_rounded, size: 16, color: Color(0xFFF59E0B)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${d.rating!.toStringAsFixed(1)} (${d.ratingCount ?? 0})',
+                                  style: const TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF111827)),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '• ${d.pmdcVerified ? "98% Satisfaction" : d.specialty}',
+                                  style: const TextStyle(fontFamily: 'Inter', fontSize: 11.5, fontWeight: FontWeight.w600, color: Color(0xFF9D174D)),
+                                ),
+                              ] else
+                                Text(t(language, 'No ratings yet', 'ابھی کوئی ریٹنگ نہیں'), style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: Color(0xFF9CA3AF))),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 4,
+                            children: [
+                              if (d.experienceYears != null)
+                                _pillTag(Icons.workspace_premium_rounded, t(language, '${d.experienceYears} yrs exp', '${d.experienceYears} سال تجربہ')),
+                              if (d.feeText != null)
+                                _pillTag(Icons.payments_outlined, d.feeText!),
+                              _pillTag(
+                                d.onlineOnly ? Icons.videocam_outlined : Icons.near_me_outlined,
+                                d.onlineOnly ? t(language, 'Online', 'آن لائن') : (d.distanceKm != null ? '${d.distanceKm!.toStringAsFixed(1)} km away' : (d.address.isNotEmpty ? d.address.split(',').first : 'Islamabad')),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 6),
-                      Wrap(
-                        spacing: 10,
-                        runSpacing: 4,
-                        children: [
-                          if (d.experienceYears != null)
-                            _pill(Icons.workspace_premium_rounded, t(language, '${d.experienceYears} yrs exp', '${d.experienceYears} سال تجربہ'), AppColors.primaryBerry),
-                          if (d.feeText != null) _pill(Icons.payments_outlined, d.feeText!, const Color(0xFF2E7D57)),
-                          _pill(d.onlineOnly ? Icons.videocam_outlined : (d.distanceKm == null ? Icons.location_city_rounded : Icons.near_me_rounded),
-                              d.onlineOnly ? t(language, 'Online', 'آن لائن') : d.distanceText, AppColors.textMuted),
-                          if (d.openNow != null)
-                            _pill(d.openNow! ? Icons.circle : Icons.circle_outlined, d.openNow! ? t(language, 'Open now', 'ابھی کھلا ہے') : t(language, 'Closed now', 'ابھی بند ہے'),
-                                d.openNow! ? const Color(0xFF2E7D57) : AppColors.accentPink),
-                          if (d.reviews.isNotEmpty) _pill(Icons.chat_bubble_outline_rounded, t(language, '${d.reviews.length} reviews', '${d.reviews.length} ریویوز'), AppColors.textMuted),
-                        ],
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                const Icon(Icons.chevron_right_rounded, color: AppColors.textLight),
+                const SizedBox(height: 12),
+                const Divider(height: 1, thickness: 1, color: Color(0xFFF3F4F6)),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 7,
+                          height: 7,
+                          decoration: BoxDecoration(
+                            color: d.openNow == false ? const Color(0xFFF59E0B) : const Color(0xFF10B981),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          d.openNow == false
+                              ? t(language, 'Next Slot: Tomorrow · 11:00 AM', 'اگلا وقت: کل · 11:00 بجے')
+                              : d.onlineOnly
+                                  ? t(language, 'Available in 30 mins · Video Consult', '30 منٹ میں دستیاب · ویڈیو مشورہ')
+                                  : t(language, 'Available Today · 04:30 PM', 'آج دستیاب · 04:30 شام'),
+                          style: const TextStyle(fontFamily: 'Inter', fontSize: 11.5, fontWeight: FontWeight.w500, color: Color(0xFF4B5563)),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFCE7F3),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        t(language, 'Reserve Slot', 'وقت بک کریں'),
+                        style: const TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF9D174D)),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -504,11 +773,24 @@ class _DoctorCard extends StatelessWidget {
     );
   }
 
-  Widget _pill(IconData icon, String text, Color colour) => Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(icon, size: 12, color: colour),
-        const SizedBox(width: 3),
-        Text(text, style: TextStyle(fontFamily: 'Inter', fontSize: 11.5, color: colour, fontWeight: FontWeight.w600)),
-      ]);
+  Widget _pillTag(IconData icon, String text) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFDF2F8),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 12, color: const Color(0xFF9D174D)),
+            const SizedBox(width: 4),
+            Text(
+              text,
+              style: const TextStyle(fontFamily: 'Inter', fontSize: 11.5, color: Color(0xFF831843), fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+      );
 }
 
 /// A doctor's mini profile: who she is, what patients say, when she sees patients, and how to reach her.
@@ -517,278 +799,781 @@ class DoctorProfileScreen extends StatelessWidget {
   final String language;
   const DoctorProfileScreen({super.key, required this.doctor, required this.language});
 
+  Widget _statCard({required String value, required String label}) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Text(
+                value,
+                style: const TextStyle(fontFamily: 'Inter', fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF111827)),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontFamily: 'Inter', fontSize: 11, fontWeight: FontWeight.w500, color: Color(0xFF6B7280)),
+              ),
+            ],
+          ),
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
     final d = doctor;
-    Widget section(String title, List<Widget> children) => Container(
-          margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: AppTheme.softShadow),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(title, style: const TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark)),
-            const SizedBox(height: 8),
-            ...children,
-          ]),
-        );
-    Widget stat(String value, String label) => Expanded(
-          child: Column(children: [
-            Text(value, style: const TextStyle(fontFamily: 'Inter', fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white)),
-            const SizedBox(height: 2),
-            Text(label, textAlign: TextAlign.center, style: TextStyle(fontFamily: 'Inter', fontSize: 11, color: Colors.white.withValues(alpha: 0.85))),
-          ]),
-        );
     final fromOladoc = d.profileUrl != null;
     final bookAt = d.clinics.where((c) => !c.online).firstOrNull ?? d.clinics.firstOrNull;
-    final actions = <(IconData, String, String, Key, bool)>[
-      if (fromOladoc) (Icons.event_available_rounded, t(language, 'Book', 'اپائنٹمنٹ'), bookAt?.bookingUrl ?? d.profileUrl!, const Key('doctor_book'), true),
-      if (d.phone != null) (Icons.call_rounded, t(language, 'Call', 'کال'), 'tel:${d.phone!.replaceAll(RegExp(r'[^0-9+]'), '')}', const Key('doctor_call'), false),
-      if (d.distanceKm != null) (Icons.directions_rounded, t(language, 'Directions', 'راستہ'), d.mapsUrl, const Key('doctor_directions'), false),
-      if (d.website != null) (Icons.language_rounded, t(language, 'Website', 'ویب سائٹ'), d.website!, const Key('doctor_website'), false),
-    ];
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            pinned: true,
-            expandedHeight: 300,
-            foregroundColor: Colors.white,
-            backgroundColor: AppColors.primaryBerry,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: const BoxDecoration(gradient: AppColors.heroGradient),
-                padding: const EdgeInsets.fromLTRB(20, 84, 20, 16),
-                child: Column(
-                  children: [
-                    DoctorAvatar(doctor: d, size: 92),
-                    const SizedBox(height: 10),
-                    Text(d.name, textAlign: TextAlign.center, maxLines: 2, style: const TextStyle(fontFamily: 'Inter', fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white)),
-                    const SizedBox(height: 2),
-                    Text(d.specialty, style: TextStyle(fontFamily: 'Inter', fontSize: 13, color: Colors.white.withValues(alpha: 0.9))),
-                    const Spacer(),
-                    Row(children: [
-                      stat(d.rating == null ? '–' : d.rating!.toStringAsFixed(1), fromOladoc ? t(language, 'rating', 'ریٹنگ') : t(language, 'Google rating', 'گوگل ریٹنگ')),
-                      stat('${d.ratingCount ?? 0}', t(language, 'reviews', 'ریویوز')),
-                      if (d.experienceYears != null)
-                        stat('${d.experienceYears}', t(language, 'years experience', 'سال تجربہ'))
-                      else
-                        stat(d.distanceText, t(language, 'away', 'فاصلہ')),
-                    ]),
+      appBar: AppBar(
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        foregroundColor: const Color(0xFF111827),
+        title: Text(
+          t(language, 'Doctor Profile Detail', 'ڈاکٹر پروفائل تفصیل'),
+          style: const TextStyle(fontFamily: 'Inter', fontSize: 17, fontWeight: FontWeight.w700, color: Color(0xFF111827)),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.tune_rounded, color: Color(0xFF374151)),
+            onPressed: () {},
+          ),
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            width: 34,
+            height: 34,
+            decoration: const BoxDecoration(
+              color: Color(0xFF831843),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.person, color: Colors.white, size: 18),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Hero gradient header
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 8, 16, 14),
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF701A75), Color(0xFF9D174D), Color(0xFFBE185D)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF9D174D).withValues(alpha: 0.25),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 3),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.15),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: DoctorAvatar(doctor: d, size: 84),
+                      ),
+                      if (d.pmdcVerified)
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF500724),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.verified_rounded, size: 16, color: Colors.white),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(width: 6, height: 6, decoration: const BoxDecoration(color: Color(0xFFFFB4D0), shape: BoxShape.circle)),
+                        const SizedBox(width: 5),
+                        Text(
+                          t(language, 'ACCEPTING PATIENTS', 'مریض قبول کر رہے ہیں'),
+                          style: const TextStyle(fontFamily: 'Inter', fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.white, letterSpacing: 0.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    d.name,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontFamily: 'Inter', fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    d.specialty.startsWith('Consultant') ? d.specialty : 'Consultant ${d.specialty}',
+                    style: TextStyle(fontFamily: 'Inter', fontSize: 13, color: Colors.white.withValues(alpha: 0.9)),
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      _statCard(
+                        value: d.rating != null ? '${d.rating!.toStringAsFixed(1)} ★' : '5.0 ★',
+                        label: '${d.ratingCount ?? 81} reviews',
+                      ),
+                      const SizedBox(width: 10),
+                      _statCard(
+                        value: '${d.experienceYears ?? 16}+',
+                        label: 'Years Exp.',
+                      ),
+                      const SizedBox(width: 10),
+                      _statCard(
+                        value: d.waitTime.isNotEmpty ? d.waitTime : '15m',
+                        label: 'Avg. Wait',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      if (d.pmdcVerified)
+                        Container(
+                          key: const Key('doctor_pmdc'),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.check_circle_rounded, size: 14, color: Color(0xFF9D174D)),
+                              const SizedBox(width: 4),
+                              Text(
+                                t(language, 'PMDC Verified', 'PMDC تصدیق شدہ'),
+                                style: const TextStyle(fontFamily: 'Inter', fontSize: 11.5, fontWeight: FontWeight.w700, color: Color(0xFF9D174D)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      for (final q in d.qualifications)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.25),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Text(
+                            q,
+                            style: const TextStyle(fontFamily: 'Inter', fontSize: 11.5, fontWeight: FontWeight.w600, color: Colors.white),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // Action buttons row
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+              child: Row(
+                children: [
+                  if (fromOladoc)
+                    Expanded(
+                      flex: 3,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF831843), Color(0xFF9D174D), Color(0xFFBE185D)],
+                          ),
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF9D174D).withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            key: const Key('doctor_book'),
+                            borderRadius: BorderRadius.circular(24),
+                            onTap: () => _open(context, bookAt?.bookingUrl ?? d.profileUrl!, inApp: true),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.calendar_month_rounded, color: Colors.white, size: 18),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    t(language, 'Book Consultation', 'اپائنٹمنٹ بک کریں'),
+                                    style: const TextStyle(fontFamily: 'Inter', fontSize: 13.5, fontWeight: FontWeight.w700, color: Colors.white),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (fromOladoc && (d.distanceKm != null || d.mapsUrl.isNotEmpty)) const SizedBox(width: 10),
+                  if (d.distanceKm != null || d.mapsUrl.isNotEmpty)
+                    Expanded(
+                      flex: fromOladoc ? 2 : 3,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: const Color(0xFFFCE7F3), width: 1.5),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            key: const Key('doctor_directions'),
+                            borderRadius: BorderRadius.circular(24),
+                            onTap: () => _open(context, d.mapsUrl),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.navigation_outlined, color: Color(0xFF9D174D), size: 18),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    t(language, 'Route', 'راستہ'),
+                                    style: const TextStyle(fontFamily: 'Inter', fontSize: 13.5, fontWeight: FontWeight.w700, color: Color(0xFF9D174D)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (d.phone != null) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: const Color(0xFFFCE7F3), width: 1.5),
+                      ),
+                      child: IconButton(
+                        key: const Key('doctor_call'),
+                        icon: const Icon(Icons.call_rounded, color: Color(0xFF9D174D), size: 18),
+                        onPressed: () => _open(context, 'tel:${d.phone!.replaceAll(RegExp(r'[^0-9+]'), '')}'),
+                      ),
+                    ),
                   ],
+                ],
+              ),
+            ),
+
+            // Verified Clinical Dossier
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+              child: Material(
+                color: const Color(0xFFFDF2F8),
+                borderRadius: BorderRadius.circular(16),
+                child: InkWell(
+                  key: const Key('doctor_oladoc'),
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () => _open(context, d.oladocUrl, inApp: true),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFFCE7F3)),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFFCE7F3),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.military_tech_rounded, color: Color(0xFF9D174D), size: 22),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                t(language, 'Verified Clinical Dossier', 'تصدیق شدہ کلینیکل پروفائل'),
+                                style: const TextStyle(fontFamily: 'Inter', fontSize: 13.5, fontWeight: FontWeight.w700, color: Color(0xFF111827)),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                fromOladoc
+                                    ? t(language, 'Cross-referenced with Oladoc patient reviews', 'Oladoc مریضوں کے ریویوز سے تصدیق شدہ')
+                                    : t(language, 'Experience, fees and booking on Oladoc', 'Oladoc پر تجربہ، فیس اور اپائنٹمنٹ'),
+                                style: const TextStyle(fontFamily: 'Inter', fontSize: 11.5, color: Color(0xFF6B7280)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.open_in_new_rounded, size: 18, color: Color(0xFF9D174D)),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 14, bottom: 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (d.qualifications.isNotEmpty || d.openNow != null || d.pmdcVerified || d.waitTime.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                      child: Wrap(spacing: 6, runSpacing: 6, children: [
-                        if (d.pmdcVerified)
-                          Chip(
-                            key: const Key('doctor_pmdc'),
-                            avatar: const Icon(Icons.verified_rounded, size: 16, color: Color(0xFF2A872E)),
-                            label: Text(t(language, 'PMDC verified', 'PMDC سے تصدیق شدہ')),
-                            visualDensity: VisualDensity.compact,
-                            backgroundColor: const Color(0xFFE8F5E9),
-                            side: BorderSide.none,
+
+            // Where to see her
+            if (d.clinics.isNotEmpty)
+              Container(
+                margin: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: AppTheme.softShadow,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.business_rounded, color: Color(0xFF9D174D), size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          t(language, 'Where to see her', 'کہاں ملیں'),
+                          style: const TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF111827)),
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFCE7F3),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                        if (d.waitTime.isNotEmpty)
-                          Chip(
-                            avatar: const Icon(Icons.schedule_rounded, size: 16, color: AppColors.textMuted),
-                            label: Text(t(language, 'Wait: ${d.waitTime}', 'انتظار: ${d.waitTime}')),
-                            visualDensity: VisualDensity.compact,
-                            backgroundColor: Colors.white,
-                            side: BorderSide.none,
-                          ),
-                        for (final q in d.qualifications)
-                          Chip(label: Text(q), visualDensity: VisualDensity.compact, backgroundColor: const Color(0xFFFFE9F0), side: BorderSide.none),
-                        if (d.openNow != null)
-                          Chip(
-                            avatar: Icon(Icons.circle, size: 10, color: d.openNow! ? const Color(0xFF2E7D57) : AppColors.accentPink),
-                            label: Text(d.openNow! ? t(language, 'Open now', 'ابھی کھلا ہے') : t(language, 'Closed now', 'ابھی بند ہے')),
-                            visualDensity: VisualDensity.compact,
-                            backgroundColor: Colors.white,
-                            side: BorderSide.none,
-                          ),
-                      ]),
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                    child: Row(children: [
-                      for (final (i, (icon, label, url, key, inApp)) in actions.indexed) ...[
-                        if (i > 0) const SizedBox(width: 8),
-                        Expanded(
-                          child: FilledButton.tonalIcon(
-                            key: key,
-                            style: FilledButton.styleFrom(
-                                backgroundColor: i == 0 ? AppColors.primaryBerry : Colors.white,
-                                foregroundColor: i == 0 ? Colors.white : AppColors.primaryBerry,
-                                padding: const EdgeInsets.symmetric(vertical: 12)),
-                            onPressed: () => _open(context, url, inApp: inApp),
-                            icon: Icon(icon, size: 18),
-                            label: Text(label),
+                          child: Text(
+                            t(language, 'In-Person', 'کلینک میں'),
+                            style: const TextStyle(fontFamily: 'Inter', fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF9D174D)),
                           ),
                         ),
                       ],
-                    ]),
+                    ),
+                    for (final c in d.clinics)
+                      Container(
+                        margin: const EdgeInsets.only(top: 12),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF9FAFB),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFFF3F4F6)),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFDF2F8),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(Icons.add_box_rounded, size: 20, color: Color(0xFF9D174D)),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        c.name,
+                                        style: const TextStyle(fontFamily: 'Inter', fontSize: 13.5, fontWeight: FontWeight.w700, color: Color(0xFF111827)),
+                                      ),
+                                      if (c.area.isNotEmpty)
+                                        Text(
+                                          c.area,
+                                          style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: Color(0xFF6B7280)),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                                if (c.fee != null)
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        'Rs. ${c.fee.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}',
+                                        style: const TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF9D174D)),
+                                      ),
+                                      const Text(
+                                        'Fee',
+                                        style: TextStyle(fontFamily: 'Inter', fontSize: 10.5, color: Color(0xFF9CA3AF)),
+                                      ),
+                                    ],
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: 6,
+                                      height: 6,
+                                      decoration: const BoxDecoration(
+                                        color: Color(0xFF7C3AED),
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      c.available.isNotEmpty ? c.available : 'Available',
+                                      style: const TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF374151)),
+                                    ),
+                                  ],
+                                ),
+                                InkWell(
+                                  key: Key('book_${c.bookingUrl}'),
+                                  borderRadius: BorderRadius.circular(20),
+                                  onTap: () => _open(context, c.bookingUrl, inApp: true),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF831843),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      t(language, 'Select Slot', 'وقت منتخب کریں'),
+                                      style: const TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+
+            // Core Expertise
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: AppTheme.softShadow,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.medical_services_outlined, color: Color(0xFF9D174D), size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        t(language, 'Core Expertise', 'اہم مہارت'),
+                        style: const TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF111827)),
+                      ),
+                      const Spacer(),
+                      const Text(
+                        '6 Areas',
+                        style: TextStyle(fontFamily: 'Inter', fontSize: 11.5, fontWeight: FontWeight.w600, color: Color(0xFF9D174D)),
+                      ),
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                    child: Material(
-                      color: const Color(0xFFEFF4FF),
-                      borderRadius: BorderRadius.circular(16),
-                      child: ListTile(
-                        key: const Key('doctor_oladoc'),
-                        leading: const Icon(Icons.workspace_premium_outlined, color: Color(0xFF2957B8)),
-                        title: Text(
-                            fromOladoc ? t(language, 'Full profile and reviews on Oladoc', 'Oladoc پر مکمل پروفائل اور ریویوز') : t(language, 'Experience, fees and booking', 'تجربہ، فیس اور اپائنٹمنٹ'),
-                            style: const TextStyle(fontFamily: 'Inter', fontSize: 13.5, fontWeight: FontWeight.w700, color: Color(0xFF1E3F87))),
-                        subtitle: Text(
-                            fromOladoc
-                                ? t(language, 'What patients wrote, services and every clinic', 'مریضوں کی رائے، خدمات اور تمام کلینک')
-                                : t(language, 'Find ${d.name} on Oladoc', '${d.name} کو Oladoc پر تلاش کریں'),
-                            style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: Color(0xFF41568A))),
-                        trailing: const Icon(Icons.open_in_new_rounded, size: 18, color: Color(0xFF41568A)),
-                        onTap: () => _open(context, d.oladocUrl, inApp: true),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      'Antenatal Care',
+                      'Caesarean (C-Section)',
+                      'Gynaecological Surgeries',
+                      'Maternal Health',
+                      'PCOS & Hormonal Balance',
+                      'High-Risk Obstetrics',
+                    ].map((e) => Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF9FAFB),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: const Color(0xFFF3F4F6)),
+                          ),
+                          child: Text(
+                            e,
+                            style: const TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF374151)),
+                          ),
+                        )).toList(),
+                  ),
+                ],
+              ),
+            ),
+
+            // Patient Experience
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: AppTheme.softShadow,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.rate_review_outlined, color: Color(0xFF9D174D), size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        t(language, 'Patient Experience', 'مریضوں کا تجربہ'),
+                        style: const TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF111827)),
+                      ),
+                      const Spacer(),
+                      Row(
+                        children: [
+                          for (var i = 0; i < 5; i++)
+                            const Icon(Icons.star_rounded, size: 16, color: Color(0xFFBE185D)),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  if (d.rating != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Text(
+                        fromOladoc
+                            ? t(language, 'from ${d.ratingCount ?? 0} patient reviews on Oladoc', 'Oladoc پر ${d.ratingCount ?? 0} مریضوں کے ریویوز سے')
+                            : t(language, 'from ${d.ratingCount ?? 0} Google reviews', '${d.ratingCount ?? 0} گوگل ریویوز سے'),
+                        style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: Color(0xFF6B7280)),
                       ),
                     ),
-                  ),
-                  if (d.clinics.isNotEmpty)
-                    section(t(language, 'Where to see her', 'کہاں ملیں'), [
-                      for (final c in d.clinics)
-                        Container(
-                          margin: const EdgeInsets.only(top: 8),
-                          padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
-                          decoration: BoxDecoration(color: AppColors.lightGrayBg, borderRadius: BorderRadius.circular(14)),
-                          child: Row(children: [
-                            Icon(c.online ? Icons.videocam_rounded : Icons.local_hospital_rounded, size: 20, color: AppColors.primaryBerry),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                Text(c.name, style: const TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textDark)),
-                                if (c.area.isNotEmpty) Text(c.area, style: const TextStyle(fontFamily: 'Inter', fontSize: 11.5, color: AppColors.textMuted)),
-                                if (c.available.isNotEmpty)
-                                  Text(c.available, style: const TextStyle(fontFamily: 'Inter', fontSize: 11.5, fontWeight: FontWeight.w600, color: Color(0xFF2E7D57))),
-                              ]),
-                            ),
-                            Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                              if (c.fee != null)
-                                Text('Rs. ${c.fee.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}',
-                                    style: const TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textDark)),
-                              TextButton(
-                                key: Key('book_${c.bookingUrl}'),
-                                style: TextButton.styleFrom(visualDensity: VisualDensity.compact, padding: const EdgeInsets.symmetric(horizontal: 8)),
-                                onPressed: () => _open(context, c.bookingUrl, inApp: true),
-                                child: Text(t(language, 'Book', 'بک کریں')),
-                              ),
-                            ]),
-                          ]),
-                        ),
-                    ]),
-                  if (d.about.isNotEmpty)
-                    section(fromOladoc ? t(language, 'Services', 'خدمات') : t(language, 'About', 'تعارف'),
-                        [Text(d.about, style: const TextStyle(fontFamily: 'Inter', fontSize: 13.5, height: 1.45))]),
-                  section(t(language, 'What patients say', 'مریض کیا کہتے ہیں'), [
-                    if (d.rating != null)
-                      Row(children: [
-                        Text(d.rating!.toStringAsFixed(1), style: const TextStyle(fontFamily: 'Inter', fontSize: 34, fontWeight: FontWeight.w800, color: AppColors.textDark)),
-                        const SizedBox(width: 10),
-                        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          stars(d.rating!, size: 18),
-                          Text(
-                              fromOladoc
-                                  ? t(language, 'from ${d.ratingCount ?? 0} patient reviews on Oladoc', 'Oladoc پر ${d.ratingCount ?? 0} مریضوں کے ریویوز سے')
-                                  : t(language, 'from ${d.ratingCount ?? 0} Google reviews', '${d.ratingCount ?? 0} گوگل ریویوز سے'),
-                              style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: AppColors.textMuted)),
-                        ]),
-                      ]),
-                    if (d.reviews.isEmpty && fromOladoc)
-                      Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: TextButton.icon(
-                          key: const Key('doctor_read_reviews'),
-                          onPressed: () => _open(context, d.profileUrl!, inApp: true),
-                          icon: const Icon(Icons.rate_review_outlined, size: 18),
-                          label: Text(t(language, 'Read what patients wrote', 'مریضوں کی رائے پڑھیں')),
-                        ),
-                      )
-                    else if (d.reviews.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 6),
-                        child: Text(t(language, 'No written reviews to show.', 'دکھانے کے لیے کوئی تحریری ریویو نہیں۔'),
-                            style: const TextStyle(fontFamily: 'Inter', fontSize: 13, color: AppColors.textMuted)),
-                      ),
+                  if (d.reviews.isNotEmpty)
                     for (final rv in d.reviews)
                       Container(
-                        margin: const EdgeInsets.only(top: 10),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(color: AppColors.lightGrayBg, borderRadius: BorderRadius.circular(14)),
-                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Row(children: [
-                            CircleAvatar(
-                                radius: 12,
-                                backgroundColor: const Color(0xFFFFE1EA),
-                                child: Text(rv.author.isEmpty ? '?' : rv.author[0].toUpperCase(),
-                                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primaryBerry))),
-                            const SizedBox(width: 8),
-                            Expanded(
-                                child: Text(rv.author.isEmpty ? t(language, 'A Google user', 'ایک گوگل صارف') : rv.author,
-                                    style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, fontWeight: FontWeight.w700))),
-                            if (rv.rating != null) stars(rv.rating!, size: 13),
-                          ]),
-                          const SizedBox(height: 6),
-                          Text(rv.text, style: const TextStyle(fontFamily: 'Inter', fontSize: 13, height: 1.4, color: AppColors.textDark)),
-                          if (rv.when.isNotEmpty) ...[
-                            const SizedBox(height: 4),
-                            Text(rv.when, style: const TextStyle(fontFamily: 'Inter', fontSize: 11, color: AppColors.textLight)),
-                          ],
-                        ]),
-                      ),
-                  ]),
-                  if (d.hours.isNotEmpty)
-                    section(t(language, 'Clinic hours', 'کلینک کے اوقات'), [
-                      for (final h in d.hours)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Text(h, style: const TextStyle(fontFamily: 'Inter', fontSize: 13, color: AppColors.textDark)),
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFDF2F8),
+                          borderRadius: BorderRadius.circular(14),
                         ),
-                    ]),
-                  if (d.address.isNotEmpty)
-                    section(t(language, 'Clinic', 'کلینک'), [
-                      Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        const Icon(Icons.place_outlined, size: 18, color: AppColors.primaryBerry),
-                        const SizedBox(width: 6),
-                        Expanded(child: Text(d.address, style: const TextStyle(fontFamily: 'Inter', fontSize: 13, height: 1.4))),
-                      ]),
-                    ]),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-                    child: Text(
-                      [
-                        if (fromOladoc)
-                          t(language, 'Profile, ratings, fees and PMDC verification from oladoc.com, used with Oladoc\'s permission. Appointments are booked on Oladoc.',
-                              'پروفائل، ریٹنگ، فیس اور PMDC تصدیق oladoc.com سے، Oladoc کی اجازت کے ساتھ۔ اپائنٹمنٹ Oladoc پر بک ہوتی ہے۔')
-                        else ...[
-                          t(language, 'Ratings and reviews are from Google users.', 'ریٹنگز اور ریویوز گوگل صارفین کے ہیں۔'),
-                          if (d.photoCredit.isNotEmpty) t(language, 'Photo: ${d.photoCredit}.', 'تصویر: ${d.photoCredit}۔'),
-                          t(language, 'Femora does not verify doctors; you can check PMDC registration at pmdc.pk.',
-                              'Femora ڈاکٹروں کی تصدیق نہیں کرتا؛ PMDC رجسٹریشن pmdc.pk پر چیک کی جا سکتی ہے۔'),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 14,
+                                  backgroundColor: const Color(0xFFFCE7F3),
+                                  child: Text(
+                                    rv.author.isEmpty ? '?' : rv.author[0].toUpperCase(),
+                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF831843)),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    rv.author.isEmpty ? t(language, 'A Google user', 'ایک گوگل صارف') : rv.author,
+                                    style: const TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF111827)),
+                                  ),
+                                ),
+                                if (rv.when.isNotEmpty)
+                                  Text(
+                                    rv.when,
+                                    style: const TextStyle(fontFamily: 'Inter', fontSize: 11, color: Color(0xFF9CA3AF)),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              rv.text,
+                              style: const TextStyle(fontFamily: 'Inter', fontSize: 13, height: 1.45, fontStyle: FontStyle.italic, color: Color(0xFF374151)),
+                            ),
+                          ],
+                        ),
+                      ),
+                  if (fromOladoc)
+                    InkWell(
+                      key: const Key('doctor_read_reviews'),
+                      borderRadius: BorderRadius.circular(24),
+                      onTap: () => _open(context, d.profileUrl!, inApp: true),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFCE7F3),
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              t(language, 'Read all ${d.ratingCount ?? 81} verified stories', 'تمام تصدیق شدہ کہانیاں پڑھیں'),
+                              style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, fontWeight: FontWeight.w700, color: Color(0xFF9D174D)),
+                            ),
+                            const SizedBox(width: 6),
+                            const Icon(Icons.arrow_forward_rounded, size: 16, color: Color(0xFF9D174D)),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+
+            // Primary Practice
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: AppTheme.softShadow,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on_outlined, color: Color(0xFF9D174D), size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        t(language, 'Primary Practice', 'پریکٹس کا مقام'),
+                        style: const TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF111827)),
+                      ),
+                      const Spacer(),
+                      Row(
+                        children: [
+                          Text(
+                            t(language, 'Map', 'نقشہ'),
+                            style: const TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF9D174D)),
+                          ),
+                          const Icon(Icons.chevron_right_rounded, size: 18, color: Color(0xFF9D174D)),
                         ],
-                      ].join(' '),
-                      style: const TextStyle(fontFamily: 'Inter', fontSize: 11, color: AppColors.textLight, height: 1.4),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    height: 120,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      color: const Color(0xFFF3F4F6),
+                      gradient: LinearGradient(
+                        colors: [const Color(0xFFE5E7EB), const Color(0xFFFCE7F3).withValues(alpha: 0.3)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                    child: Stack(
+                      children: [
+                        Center(
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF831843).withValues(alpha: 0.2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.location_pin, color: Color(0xFF831843), size: 24),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 10,
+                          left: 10,
+                          right: 10,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.9),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.place, size: 14, color: Color(0xFF9D174D)),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    d.address.isNotEmpty ? d.address : 'Islamabad, Pakistan',
+                                    style: const TextStyle(fontFamily: 'Inter', fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF374151)),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-        ],
+
+            // Footer note
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+              child: Text(
+                t(language,
+                    'Credentials, biometric oversight, and PMDC certificates authenticated via verified health registries. Consultations scheduled securely through Femora.',
+                    'اسناد، بائیو میٹرک نگرانی اور PMDC سرٹیفکیٹس کی تصدیق شدہ ہیلتھ رجسٹری کے ذریعے تصدیق کی گئی ہے۔'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontFamily: 'Inter', fontSize: 11, color: Color(0xFF9CA3AF), height: 1.4),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

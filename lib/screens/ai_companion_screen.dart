@@ -168,27 +168,48 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
     ];
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-      padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
-      decoration: BoxDecoration(color: AppColors.cardWhite, borderRadius: BorderRadius.circular(22), boxShadow: AppTheme.softShadow),
+      padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
+      decoration: BoxDecoration(color: AppColors.cardWhite, borderRadius: BorderRadius.circular(24), boxShadow: AppTheme.softShadow),
       child: Row(
         children: [
-          GlowRing(
-            size: 50,
-            child: Container(
-              width: 42,
-              height: 42,
-              decoration: const BoxDecoration(gradient: AppColors.buttonGradient, shape: BoxShape.circle),
-              child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 22),
+          Container(
+            width: 44,
+            height: 44,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF831843), Color(0xFF9D174D), Color(0xFFBE185D)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              shape: BoxShape.circle,
             ),
+            child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  p.firstName.isEmpty ? 'Your Femora companion' : 'Hi ${p.firstName}, I\'m your companion',
-                  style: const TextStyle(fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        p.firstName.isEmpty ? 'Your Femora companion' : 'Hi ${p.firstName}, I\'m your companion',
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontFamily: 'Inter', fontSize: 14.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF10B981),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 3),
                 Text(
@@ -204,10 +225,19 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
               ],
             ),
           ),
-          IconButton(
-            key: const Key('companion_menu'),
-            icon: const Icon(Icons.tune_rounded, color: AppColors.primaryBerry),
-            onPressed: () => _openMenu(context),
+          Container(
+            width: 38,
+            height: 38,
+            decoration: const BoxDecoration(
+              color: Color(0xFFF9FAFB),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              key: const Key('companion_menu'),
+              padding: EdgeInsets.zero,
+              icon: const Icon(Icons.tune_rounded, color: Color(0xFF4B5563), size: 20),
+              onPressed: () => _openMenu(context),
+            ),
           ),
         ],
       ),
@@ -449,29 +479,33 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
             children: [
               Flexible(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFFFFE3EC), Color(0xFFFFD2E1)],
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFDF2F8),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
+                      bottomLeft: Radius.circular(20),
+                      bottomRight: Radius.circular(6),
                     ),
-                    borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
-                        bottomLeft: Radius.circular(20),
-                        bottomRight: Radius.circular(4)),
+                    border: Border.all(color: const Color(0xFFFCE7F3)),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 6, offset: const Offset(0, 2)),
+                    ],
                   ),
-                  child: Text(m.text,
-                      textDirection: dir, style: const TextStyle(fontFamily: 'Inter', fontSize: 14, color: Color(0xFF3A1F2B), height: 1.4)),
+                  child: Text(
+                    m.text,
+                    textDirection: dir,
+                    style: const TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF1E1B18), height: 1.4),
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
               Container(
                 width: 32,
                 height: 32,
-                decoration: const BoxDecoration(color: Color(0xFFFF487E), shape: BoxShape.circle),
-                child: const Icon(Icons.person, color: Colors.white, size: 18),
+                decoration: const BoxDecoration(color: Color(0xFFFCE7F3), shape: BoxShape.circle),
+                child: const Icon(Icons.person, color: Color(0xFF831843), size: 18),
               ),
             ],
           ),
@@ -484,16 +518,25 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _avatar(),
+            Container(
+              width: 28,
+              height: 28,
+              margin: const EdgeInsets.only(top: 4),
+              decoration: const BoxDecoration(
+                color: Color(0xFFFCE7F3),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.chevron_left_rounded, color: Color(0xFFBE185D), size: 18),
+            ),
             const SizedBox(width: 10),
             Flexible(
               child: Container(
-                padding: const EdgeInsets.fromLTRB(16, 14, 10, 8),
+                padding: const EdgeInsets.fromLTRB(18, 16, 14, 12),
                 decoration: BoxDecoration(
                   color: AppColors.cardWhite,
                   borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(4), topRight: Radius.circular(20), bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
-                  border: m.urgent ? Border.all(color: AppColors.accentPink, width: 1.5) : null,
+                      topLeft: Radius.circular(6), topRight: Radius.circular(24), bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24)),
+                  border: m.urgent ? Border.all(color: AppColors.accentPink, width: 1.5) : Border.all(color: const Color(0xFFF3F4F6)),
                   boxShadow: AppTheme.softShadow,
                 ),
                 child: Column(
@@ -501,7 +544,7 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
                   children: [
                     if (m.urgent)
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 6),
+                        padding: const EdgeInsets.only(bottom: 8),
                         child: Row(children: [
                           const Icon(Icons.warning_amber_rounded, color: AppColors.accentPink, size: 18),
                           const SizedBox(width: 6),
@@ -510,11 +553,109 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
                         ]),
                       ),
                     ReplyText(m.text,
-                        direction: dir, style: const TextStyle(fontFamily: 'Inter', fontSize: 14, color: Color(0xFF2C2538), height: 1.45)),
+                        direction: dir, style: const TextStyle(fontFamily: 'Inter', fontSize: 13.5, color: Color(0xFF2C2538), height: 1.45)),
                     if (m.urgent) ...[
                       const SizedBox(height: 10),
                       NearbyCareButton(kind: CareKind.hospital, label: t(language, 'Nearest hospitals', 'قریب ترین ہسپتال')),
                     ],
+                    // Hormone Concordance subcard
+                    Container(
+                      margin: const EdgeInsets.only(top: 14, bottom: 12),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF7F9),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFFCE7F3), width: 1.2),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF3E8EE),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(Icons.insights_rounded, color: Color(0xFF831843), size: 18),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  t(language, 'HORMONE CONCORDANCE', 'ہارمون مطابقت'),
+                                  style: const TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.5,
+                                    color: Color(0xFF6B7280),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  t(language, 'Elevated Androgen Indicators', 'اینڈروجن انڈیکیٹرز بلند'),
+                                  style: const TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF1E1B18),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: _openReader,
+                            child: Text(
+                              t(language, 'View\nlab', 'لیب\nدیکھیں'),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF831843),
+                                height: 1.2,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Summary and physician disclaimer
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.verified_outlined, size: 13, color: Color(0xFF9D174D)),
+                            const SizedBox(width: 4),
+                            Text(
+                              t(language, 'AI clinical summary • For\nguidance only', 'AI طبی خلاصہ • صرف\nرہنمائی کے لیے'),
+                              style: const TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 10,
+                                color: Color(0xFF6B7280),
+                                height: 1.25,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          t(language, 'Consult\nphysician', 'ڈاکٹر سے\nمشورہ کریں'),
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF374151),
+                            height: 1.25,
+                          ),
+                        ),
+                      ],
+                    ),
                     if (m.sources.isNotEmpty) ...[
                       const SizedBox(height: 10),
                       Row(
@@ -646,7 +787,10 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
                         duration: const Duration(milliseconds: 200),
                         width: 44,
                         height: 44,
-                        decoration: BoxDecoration(color: recording ? AppColors.accentPink : const Color(0xFFFFDFE8), shape: BoxShape.circle),
+                        decoration: BoxDecoration(
+                          color: recording ? AppColors.accentPink : const Color(0xFFFFF1F2),
+                          shape: BoxShape.circle,
+                        ),
                         child: busy
                             ? const Padding(
                                 padding: EdgeInsets.all(12), child: CircularProgressIndicator(strokeWidth: 2.4, color: AppColors.primaryBerry))
@@ -656,8 +800,8 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
                                     : phase == VoicePhase.speaking
                                         ? Icons.volume_off_rounded
                                         : Icons.mic_rounded,
-                                color: recording ? Colors.white : AppColors.primaryBerry,
-                                size: 24,
+                                color: recording ? Colors.white : const Color(0xFFBE185D),
+                                size: 22,
                               ),
                       ),
                     ),
@@ -675,20 +819,46 @@ class _AICompanionScreenState extends State<AICompanionScreen> {
                         buildCounter: (_, {required currentLength, required isFocused, maxLength}) => null,
                         decoration: InputDecoration(
                           hintText: hint,
-                          hintStyle: const TextStyle(fontFamily: 'Inter', fontSize: 14, color: Color(0xFF9E9CA8)),
+                          hintStyle: const TextStyle(fontFamily: 'Inter', fontSize: 13.5, color: Color(0xFF9E9CA8)),
                           border: InputBorder.none,
                           isDense: true,
                         ),
                       ),
                     ),
                     GestureDetector(
+                      onTap: _openReader,
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 6),
+                        child: Icon(Icons.add_circle_outline_rounded, color: Color(0xFF6B7280), size: 22),
+                      ),
+                    ),
+                    GestureDetector(
                       key: const Key('send_button'),
                       onTap: chat.sending ? null : () => _send(_controller.text),
                       child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(color: chat.sending ? const Color(0xFFD9C3CC) : AppColors.primaryBerry, shape: BoxShape.circle),
-                        child: const Icon(Icons.arrow_upward_rounded, color: Colors.white, size: 21),
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          gradient: chat.sending
+                              ? null
+                              : const LinearGradient(
+                                  colors: [Color(0xFF831843), Color(0xFF9D174D), Color(0xFFBE185D)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                          color: chat.sending ? const Color(0xFFD9C3CC) : null,
+                          shape: BoxShape.circle,
+                          boxShadow: chat.sending
+                              ? null
+                              : [
+                                  BoxShadow(
+                                    color: const Color(0xFF831843).withValues(alpha: 0.35),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                        ),
+                        child: const Icon(Icons.arrow_upward_rounded, color: Colors.white, size: 20),
                       ),
                     ),
                   ],

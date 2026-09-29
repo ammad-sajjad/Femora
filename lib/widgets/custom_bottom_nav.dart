@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../l10n/lang.dart';
 import '../models/health_store.dart';
-import '../theme/app_theme.dart';
 
 class CustomBottomNav extends StatelessWidget {
   final int currentIndex;
@@ -19,14 +18,21 @@ class CustomBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final language = Provider.of<HealthStore?>(context)?.profile.language ?? 'en';
     return Container(
-      margin: const EdgeInsets.fromLTRB(24, 0, 24, 20),
-      height: 68,
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      height: 64,
       decoration: BoxDecoration(
-        color: AppColors.cardWhite,
-        borderRadius: BorderRadius.circular(34),
-        boxShadow: AppTheme.floatingNavShadow,
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.0),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0F172A).withOpacity(0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
@@ -34,7 +40,6 @@ class CustomBottomNav extends StatelessWidget {
           _buildNavItem(1, Icons.calendar_today_outlined, t(language, 'Cycle', 'سائیکل')),
           _buildNavItem(2, Icons.show_chart_rounded, 'PCOS'),
           _buildNavItem(3, Icons.local_florist_outlined, t(language, 'Breast health', 'بریسٹ ہیلتھ')),
-          // A chat bubble, not a person: the person is now her profile (the avatar at the top)
           _buildNavItem(4, Icons.chat_bubble_outline_rounded, t(language, 'AI companion', 'AI کمپینین')),
         ],
       ),
@@ -56,15 +61,15 @@ class CustomBottomNav extends StatelessWidget {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 220),
             curve: Curves.easeInOut,
-            width: 46,
-            height: 46,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
-              color: isActive ? AppColors.primaryBerry : Colors.transparent,
+              color: isActive ? const Color(0xFFE11D48) : Colors.transparent,
               shape: BoxShape.circle,
               boxShadow: isActive
                   ? [
                       BoxShadow(
-                        color: AppColors.primaryBerry.withValues(alpha: 0.35),
+                        color: const Color(0xFFE11D48).withOpacity(0.35),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       )
@@ -73,8 +78,8 @@ class CustomBottomNav extends StatelessWidget {
             ),
             child: Icon(
               icon,
-              color: isActive ? Colors.white : const Color(0xFF6E5970),
-              size: 24,
+              color: isActive ? Colors.white : const Color(0xFF64748B),
+              size: 22,
             ),
           ),
         ),

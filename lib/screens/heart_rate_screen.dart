@@ -85,7 +85,8 @@ class _HeartRateScreenState extends State<HeartRateScreen> with SingleTickerProv
     await _source.stop();
     final r = PulseAnalyzer.analyze(_samples);
     if (!mounted) return;
-    final hour = DateTime.now().hour;
+    final now = mounted ? context.read<HealthStore>().now() : DateTime.now();
+    final hour = now.hour;
     setState(() {
       _result = r;
       _resting = hour < 11; // a morning reading is most likely the resting kind; she can change it

@@ -8,6 +8,7 @@ class CircularRiskWidget extends StatelessWidget {
   final String? centerText; // defaults to the fill as a percentage
   final Color color;
   final Color trackColor;
+  final Color? textColor;
 
   const CircularRiskWidget({
     super.key,
@@ -16,18 +17,19 @@ class CircularRiskWidget extends StatelessWidget {
     this.centerText,
     this.color = AppColors.greenSuccess,
     this.trackColor = const Color(0xFFE5F6EC),
+    this.textColor,
   });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 136,
-      height: 136,
+      width: 146,
+      height: 146,
       child: Stack(
         alignment: Alignment.center,
         children: [
           CustomPaint(
-            size: const Size(136, 136),
+            size: const Size(146, 146),
             painter: CircularRiskPainter(percentage: percentage, color: color, trackColor: trackColor),
           ),
           Column(
@@ -37,19 +39,20 @@ class CircularRiskWidget extends StatelessWidget {
                 centerText ?? '${(percentage * 100).toInt()}%',
                 style: TextStyle(
                   fontFamily: 'Inter',
-                  fontSize: 26,
-                  fontWeight: FontWeight.w700,
-                  color: color,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  color: textColor ?? AppColors.textDark,
+                  letterSpacing: -0.5,
                   height: 1.1,
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 3),
               Text(
                 riskLabel,
                 style: const TextStyle(
                   fontFamily: 'Inter',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
                   color: AppColors.textDark,
                 ),
               ),

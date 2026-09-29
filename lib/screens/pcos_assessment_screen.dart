@@ -56,9 +56,18 @@ class PCOSAssessmentScreen extends StatelessWidget {
               const FemoraHeader(),
               const SizedBox(height: 6),
 
+              // Top Intelligence Pill
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: result == null
+                    ? _buildUnassessedPill()
+                    : _buildAssessedPill(),
+              ),
+              const SizedBox(height: 10),
+
               // Title Section
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -66,25 +75,27 @@ class PCOSAssessmentScreen extends StatelessWidget {
                       t(language, 'PCOS Risk Assessment', 'PCOS رسک جائزہ'),
                       style: const TextStyle(
                         fontFamily: 'Inter',
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 26,
+                        fontWeight: FontWeight.w800,
                         color: AppColors.textDark,
-                        letterSpacing: -0.5,
+                        letterSpacing: -0.6,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      t(language, 'Hormonal trends and lifestyle insights.', 'ہارمونل رجحانات اور طرزِ زندگی کی بصیرت۔'),
+                      result == null
+                          ? t(language, 'Hormonal trends and lifestyle insights.', 'ہارمونل رجحانات اور طرزِ زندگی کی بصیرت۔')
+                          : t(language, 'Hormonal trends and personalized lifestyle insights.', 'ہارمونل رجحانات اور ذاتی نوعیت کی طرزِ زندگی کی بصیرت۔'),
                       style: const TextStyle(
                         fontFamily: 'Inter',
-                        fontSize: 14,
+                        fontSize: 13.5,
                         color: AppColors.textMuted,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 16),
 
               // Card 1: Risk Assessment Gauge (or start prompt)
               Padding(
@@ -93,6 +104,8 @@ class PCOSAssessmentScreen extends StatelessWidget {
                     ? _buildStartCard(context, language)
                     : _buildResultCard(context, result, language),
               ),
+
+              // Card 2: What If (only when result is available)
               if (result != null && answers != null) ...[
                 const SizedBox(height: 18),
                 Padding(
@@ -106,16 +119,22 @@ class PCOSAssessmentScreen extends StatelessWidget {
                   ),
                 ),
               ],
-              const SizedBox(height: 18),
 
-              // Card 2: Hormonal Trends
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.0),
-                child: HormoneChartWidget(),
+              // Card 3: Hormonal Trends
+              const SizedBox(height: 18),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: HormoneChartWidget(isAssessed: result != null),
               ),
 
-              // Card 3: Actionable Guidance
-              if (result != null) ...[
+              // Card 4: Cohort Dataset Card (when unassessed) OR Actionable Guidance (when assessed)
+              if (result == null) ...[
+                const SizedBox(height: 18),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: _buildCohortDatasetCard(context),
+                ),
+              ] else ...[
                 const SizedBox(height: 18),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -129,56 +148,351 @@ class PCOSAssessmentScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildUnassessedPill() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFCE7F3),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: const BoxDecoration(
+              color: Color(0xFFBE185D),
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 6),
+          const Text(
+            'CLINICAL AI INTELLIGENCE',
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF9D174D),
+              letterSpacing: 0.8,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAssessedPill() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFFCE7F3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: const BoxDecoration(
+              color: Color(0xFFBE185D),
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 6),
+          const Text(
+            'ENDOCRINE DIAGNOSTIC INTELLIGENCE',
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF9D174D),
+              letterSpacing: 0.6,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: const Color(0xFFECFDF5),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 5,
+                  height: 5,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF059669),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Text(
+                  'Live Model',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF059669),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildStartCard(BuildContext context, String language) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 22),
+      padding: const EdgeInsets.fromLTRB(22, 28, 22, 22),
       decoration: BoxDecoration(
         color: AppColors.cardWhite,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
         boxShadow: AppTheme.softShadow,
       ),
       child: Column(
         children: [
+          // Circular Glowing Shield Icon
           Container(
             width: 64,
             height: 64,
-            decoration: const BoxDecoration(
-              color: AppColors.purpleTagBg,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAF5FF),
               shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFBE185D).withOpacity(0.18),
+                  blurRadius: 22,
+                  spreadRadius: 2,
+                ),
+              ],
             ),
+            alignment: Alignment.center,
             child: const Icon(
-              Icons.health_and_safety_outlined,
-              color: AppColors.purpleTagText,
-              size: 32,
+              Icons.health_and_safety_rounded,
+              color: Color(0xFF9D174D),
+              size: 34,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
           Text(
             t(language, 'Check Your PCOS Risk', 'اپنا PCOS رسک چیک کریں'),
             style: const TextStyle(
               fontFamily: 'Inter',
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
               color: AppColors.textDark,
+              letterSpacing: -0.4,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            t(language, 'Answer a few quick questions about your cycle, symptoms and lifestyle. Our AI model, trained on 541 clinical records, estimates your risk in seconds.',
+            t(language,
+                'Answer a few quick questions about your cycle, symptoms and lifestyle. Our AI model, trained on 541 clinical records, estimates your risk in seconds.',
                 'اپنے سائیکل، علامات اور طرزِ زندگی کے بارے میں چند فوری سوالات کے جواب دیں۔ ہمارا AI ماڈل، جو 541 طبی ریکارڈز پر تربیت یافتہ ہے، سیکنڈوں میں آپ کا رسک بتاتا ہے۔'),
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontFamily: 'Inter',
               fontSize: 13.5,
-              color: AppColors.textMuted,
+              color: Color(0xFF64748B),
               height: 1.45,
             ),
           ),
-          const SizedBox(height: 20),
-          _buildPrimaryButton(
-            label: t(language, 'Start Assessment', 'جائزہ شروع کریں'),
+          const SizedBox(height: 22),
+          GestureDetector(
             onTap: () => _openQuestionnaire(context),
+            child: Container(
+              height: 52,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0xFF9D174D),
+                    Color(0xFFBE185D),
+                    Color(0xFFE11D48),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(26),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFBE185D).withOpacity(0.35),
+                    blurRadius: 18,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    t(language, 'Start Assessment', 'جائزہ شروع کریں'),
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Icon(Icons.lock_outline_rounded, color: Color(0xFF94A3B8), size: 13),
+              SizedBox(width: 6),
+              Text(
+                'HIPAA-aligned • Encrypted • 2-3 mins',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCohortDatasetCard(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.cardWhite,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: AppTheme.softShadow,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Mini preview thumbnail matching Figma document preview
+          Container(
+            width: 46,
+            height: 54,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 5),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(width: 3, height: 3, decoration: const BoxDecoration(color: Color(0xFFBE185D), shape: BoxShape.circle)),
+                    const SizedBox(width: 2),
+                    Container(width: 14, height: 2.5, decoration: BoxDecoration(color: const Color(0xFF94A3B8), borderRadius: BorderRadius.circular(1))),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1.5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF1F2),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                  child: Container(width: 20, height: 2, decoration: BoxDecoration(color: const Color(0xFFBE185D), borderRadius: BorderRadius.circular(1))),
+                ),
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFDF2F8),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFFFDA4AF), width: 0.8),
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.shield_rounded, color: Color(0xFFBE185D), size: 7),
+                  ),
+                ),
+                Column(
+                  children: [
+                    Container(width: 26, height: 2, decoration: BoxDecoration(color: const Color(0xFFCBD5E1), borderRadius: BorderRadius.circular(1))),
+                    const SizedBox(height: 2),
+                    Container(width: 18, height: 2, decoration: BoxDecoration(color: const Color(0xFFE2E8F0), borderRadius: BorderRadius.circular(1))),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  'COHORT DATASET • v2.4',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFFBE185D),
+                    letterSpacing: 0.6,
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'Rotterdam Diagnostics Alignment',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textDark,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'Cycle regularity, hyperandrogenism & ultrasound indicators',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 12,
+                    color: Color(0xFF64748B),
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            width: 32,
+            height: 32,
+            decoration: const BoxDecoration(
+              color: Color(0xFFFDF2F8),
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: const Icon(
+              Icons.info_outline_rounded,
+              color: Color(0xFFBE185D),
+              size: 18,
+            ),
           ),
         ],
       ),
@@ -186,55 +500,123 @@ class PCOSAssessmentScreen extends StatelessWidget {
   }
 
   Widget _buildResultCard(BuildContext context, PcosResult result, String language) {
-    final (badgeBg, badgeText, badgeIcon) = switch (result.riskLevel) {
-      RiskLevel.low => (const Color(0xFFD4F8E5), AppColors.greenSuccess, Icons.check_circle_outline_rounded),
-      RiskLevel.medium => (AppColors.purpleTagBg, AppColors.purpleTagText, Icons.warning_amber_rounded),
-      RiskLevel.high => (AppColors.pinkTagBg, AppColors.pinkTagText, Icons.error_outline_rounded),
-    };
-    const tagColors = InfoTag.palette;
-
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.cardWhite,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(26),
         boxShadow: AppTheme.softShadow,
       ),
       child: Column(
         children: [
-          Text(
-            t(language, 'Risk Assessment', 'رسک جائزہ'),
-            style: const TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textDark,
-            ),
+          // Header Row with Bar Chart icon and Retake Pill Button
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFDF2F8),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.bar_chart_rounded,
+                        color: Color(0xFFBE185D),
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Flexible(
+                      child: Text(
+                        t(language, 'Risk Assessment', 'رسک جائزہ'),
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 16.5,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textDark,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () => _openQuestionnaire(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF1F2),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFFFDA4AF)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.refresh_rounded, size: 14, color: Color(0xFFBE185D)),
+                      const SizedBox(width: 4),
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Opacity(
+                            opacity: 0.0,
+                            child: Text(
+                              t(language, 'Retake Assessment', 'دوبارہ جائزہ لیں'),
+                              style: const TextStyle(fontSize: 0.1),
+                            ),
+                          ),
+                          Text(
+                            t(language, 'Retake', 'دوبارہ'),
+                            style: const TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFFBE185D),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
+
+          // Custom Arc Gauge
           GaugeMeterWidget(percentage: result.probability),
           const SizedBox(height: 18),
 
-          // Risk Badge
+          // Risk Score Badge
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             decoration: BoxDecoration(
-              color: badgeBg,
+              color: const Color(0xFFFFF1F2),
               borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFFECDD3)),
             ),
             child: Row(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(badgeIcon, color: badgeText, size: 18),
-                const SizedBox(width: 6),
+                const Icon(Icons.warning_amber_rounded, color: Color(0xFFBE185D), size: 20),
+                const SizedBox(width: 8),
                 Text(
                   '${result.percent}% • ${result.riskLabel}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: 'Inter',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: badgeText,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF9D174D),
                   ),
                 ),
               ],
@@ -250,37 +632,81 @@ class PCOSAssessmentScreen extends StatelessWidget {
               runSpacing: 8,
               children: [
                 for (var i = 0; i < result.factors.length; i++)
-                  InfoTag(
-                    label: result.factors[i].label,
-                    bgColor: tagColors[i % tagColors.length].$1,
-                    textColor: tagColors[i % tagColors.length].$2,
-                  ),
+                  _buildFactorPill(result.factors[i].label, i),
               ],
             ),
           ],
           const SizedBox(height: 16),
-          Text(
-            result.disclaimer,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 11.5,
-              color: AppColors.textLight,
-              height: 1.4,
+
+          // Disclaimer Card
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFFBFD),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFFCE7F3)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(
+                  Icons.info_outline_rounded,
+                  color: Color(0xFFBE185D),
+                  size: 20,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    result.disclaimer,
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 12,
+                      color: Color(0xFF64748B),
+                      height: 1.45,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 12),
-          TextButton.icon(
-            onPressed: () => _openQuestionnaire(context),
-            icon: const Icon(Icons.refresh_rounded, size: 18, color: AppColors.primaryBerry),
-            label: Text(
-              t(language, 'Retake Assessment', 'دوبارہ جائزہ لیں'),
-              style: const TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.primaryBerry,
-              ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFactorPill(String label, int index) {
+    final isBmi = label.toLowerCase().contains('bmi');
+    final dotColor = isBmi ? const Color(0xFFF59E0B) : const Color(0xFFA855F7);
+    final borderColor = isBmi ? const Color(0xFFFDE68A) : const Color(0xFFE9D5FF);
+    final bgColor = isBmi ? const Color(0xFFFFFBEB) : const Color(0xFFFAF5FF);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: borderColor),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(
+              color: dotColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textDark,
             ),
           ),
         ],
@@ -289,87 +715,61 @@ class PCOSAssessmentScreen extends StatelessWidget {
   }
 
   Widget _buildGuidanceSection(PcosResult result, String language) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.cardWhite,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: AppTheme.softShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFFDFE6),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.auto_awesome_rounded,
-                  color: AppColors.primaryBerry,
-                  size: 20,
-                ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section Header
+        Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFDF2F8),
+                borderRadius: BorderRadius.circular(10),
               ),
-              const SizedBox(width: 12),
-              Text(
-                t(language, 'Actionable Guidance', 'قابلِ عمل رہنمائی'),
-                style: const TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textDark,
-                ),
+              alignment: Alignment.center,
+              child: const Icon(
+                Icons.monitor_heart_outlined,
+                color: Color(0xFFBE185D),
+                size: 20,
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          for (var i = 0; i < result.guidance.length; i++) ...[
-            if (i > 0) const SizedBox(height: 12),
-            GuidanceCard(
-              icon: guidanceIcon(result.guidance[i].key),
-              title: result.guidance[i].title,
-              description: result.guidance[i].description,
+            ),
+            const SizedBox(width: 10),
+            Text(
+              t(language, 'Actionable Guidance', 'قابلِ عمل رہنمائی'),
+              style: const TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textDark,
+                letterSpacing: -0.3,
+              ),
             ),
           ],
-          if (result.riskLevel != RiskLevel.low) ...[
-            const SizedBox(height: 14),
-            NearbyCareButton(
-                kind: CareKind.gynae,
-                doctor: DoctorSpecialty.gynae,
-                label: t(language, 'Find a gynaecologist near you', 'قریب ترین گائناکالوجسٹ تلاش کریں')),
-          ],
-        ],
-      ),
-    );
-  }
+        ),
+        const SizedBox(height: 14),
 
-  Widget _buildPrimaryButton({required String label, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 50,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          gradient: AppColors.buttonGradient,
-          borderRadius: BorderRadius.circular(25),
-          boxShadow: AppTheme.buttonShadow,
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          label,
-          style: const TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
+        // Individual Guidance Cards
+        for (var i = 0; i < result.guidance.length; i++) ...[
+          if (i > 0) const SizedBox(height: 12),
+          GuidanceCard(
+            icon: guidanceIcon(result.guidance[i].key),
+            title: result.guidance[i].title,
+            description: result.guidance[i].description,
           ),
-        ),
-      ),
+        ],
+
+        // Nearby Gynaecologist Action
+        if (result.riskLevel != RiskLevel.low) ...[
+          const SizedBox(height: 16),
+          NearbyCareButton(
+            kind: CareKind.gynae,
+            doctor: DoctorSpecialty.gynae,
+            label: t(language, 'Find a gynaecologist near you', 'قریب ترین گائناکالوجسٹ تلاش کریں'),
+          ),
+        ],
+      ],
     );
   }
 }
