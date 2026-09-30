@@ -17,7 +17,14 @@ import '../models/pcos.dart';
 import '../models/reminders.dart';
 import '../models/report_reader.dart';
 import '../models/self_exam.dart';
+import '../screens/auth_screen.dart';
+import '../screens/breast_risk_questionnaire_screen.dart';
 import '../screens/dashboard_screen.dart';
+import '../screens/find_doctor_screen.dart';
+import '../screens/onboarding_screen.dart';
+import '../screens/pcos_questionnaire_screen.dart';
+import '../screens/report_reader_screen.dart';
+import '../screens/self_exam_guide_screen.dart';
 import '../screens/doctor_qr_screen.dart';
 import '../screens/heart_rate_screen.dart';
 import '../screens/hormone_insights_screen.dart';
@@ -68,6 +75,13 @@ const _screens = <String, Widget>{
   'trends': TrendsScreen(),
   'insights': HormoneInsightsScreen(),
   'reminders': RemindersScreen(),
+  'doctors': FindDoctorScreen(),
+  'selfexam': SelfExamGuideScreen(),
+  'reader': ReportReaderScreen(),
+  'pcosq': PCOSQuestionnaireScreen(),
+  'breastq': BreastRiskQuestionnaireScreen(),
+  'auth': AuthScreen(),
+  'onboarding': OnboardingScreen(),
 };
 
 class _HarnessRootState extends State<_HarnessRoot> {
@@ -198,6 +212,13 @@ class _HarnessRootState extends State<_HarnessRoot> {
           // Forces a real phone's logical size regardless of the actual (desktop) browser window, and
           // clips to it, so a screenshot of this page is a real phone screenshot, not a stretched layout.
           final phone = Size(double.tryParse(_query['w'] ?? '') ?? 320, double.tryParse(_query['h'] ?? '') ?? 540);
+          // ?pt=&pb= reserve a real phone's status-bar and gesture-bar space (safe area), so screens lay out
+          // exactly as on a device; ?toggle=0 hides the language button for clean marketing shots.
+          final safe = EdgeInsets.only(
+            top: double.tryParse(_query['pt'] ?? '') ?? 0,
+            bottom: double.tryParse(_query['pb'] ?? '') ?? 0,
+          );
+          final showToggle = _query['toggle'] != '0';
           return ColoredBox(
             color: const Color(0xFF12181F),
             child: Center(
@@ -206,13 +227,14 @@ class _HarnessRootState extends State<_HarnessRoot> {
                 height: phone.height,
                 child: ClipRect(
                   child: MediaQuery(
-                    data: MediaQuery.of(context).copyWith(size: phone, devicePixelRatio: 2, padding: EdgeInsets.zero, viewPadding: EdgeInsets.zero),
+                    data: MediaQuery.of(context).copyWith(size: phone, devicePixelRatio: 2, padding: safe, viewPadding: safe),
                     child: DefaultTextStyle.merge(
                       style: const TextStyle(fontFamilyFallback: kUrduFontFallback),
                       child: Stack(children: [
                         child!,
                         // A tiny toggle lets the same running app switch language for the Urdu screenshots.
-                        Positioned(
+                        if (showToggle)
+                          Positioned(
                           top: 4,
                           right: 4,
                           child: SafeArea(

@@ -1,0 +1,681 @@
+<!doctype html>
+<title>Femora</title>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Noto+Nastaliq+Urdu:wght@500&display=swap">
+<style>
+/*
+  Femora — marketing deck. Print-first: every .slide is one 1280×720 page.
+  Same system as the Leadway CRM deck; palette is the app's own berry-wine
+  (lib/theme/app_theme.dart) so deck and screenshots read as one product.
+  Every phone shows a real, uncropped 390×844 screenshot from the app
+  (lib/dev/screenshot_harness.dart), with the status bar in its real safe area.
+*/
+:root {
+  --wine: #2a0b19;        /* dark ground — cover, flow, close */
+  --wine-2: #3a1024;
+  --berry: #9e1b46;
+  --berry-deep: #831438;
+  --rose: #ff4d79;
+  --blush: #ffc2d2;       /* accent on dark only */
+  --paper: #f9f7fa;       /* light ground */
+  --card: #ffffff;
+  --ink: #1e1b2e;
+  --body: #3f3a4d;
+  --muted: #6f6a7d;
+  --line: #ece6ef;
+  --signal: #ffb547;      /* one highlight colour, used sparingly */
+  --display: "Bricolage Grotesque", "Manrope", system-ui, sans-serif;
+  --sans: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@page { size: 1280px 720px; margin: 0; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #1a0710; }
+body { -webkit-print-color-adjust: exact; print-color-adjust: exact; counter-reset: page; }
+img { max-width: 100%; display: block; }
+
+.slide {
+  position: relative; width: 1280px; height: 720px; overflow: hidden;
+  margin: 0 auto 24px; background: var(--paper); color: var(--ink);
+  font-family: var(--sans); font-size: 15px; line-height: 1.5; letter-spacing: -0.005em;
+  counter-increment: page; break-after: page; page-break-after: always;
+}
+@media print { .slide { margin: 0; } }
+.slide.dark { background: radial-gradient(120% 90% at 85% 10%, #5a1330 0%, var(--wine) 55%, #1c0610 100%); color: #f6e9ee; }
+
+/* ---------- type ---------- */
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; font-weight: 800; }
+h2 { font-size: 44px; line-height: 1.04; letter-spacing: -1.6px; color: var(--ink); }
+.dark h2 { color: #fff5f8; }
+h3 { font-size: 19px; line-height: 1.2; letter-spacing: -0.4px; font-weight: 700; }
+p { margin: 0; }
+.eyebrow {
+  font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: 1.6px;
+  text-transform: uppercase; color: var(--berry); display: flex; gap: 10px; align-items: center; margin: 0;
+}
+.eyebrow .act { background: var(--berry); color: #fff; padding: 3px 9px; border-radius: 999px; letter-spacing: 1.2px; }
+.dark .eyebrow { color: var(--blush); }
+.dark .eyebrow .act { background: var(--blush); color: var(--wine); }
+.lede { font-size: 17px; line-height: 1.55; color: var(--muted); max-width: 520px; }
+.dark .lede { color: #d9b9c5; }
+.hd { display: grid; gap: 14px; }
+
+/* ---------- footer ---------- */
+.ft {
+  position: absolute; left: 56px; right: 56px; bottom: 26px; display: flex; align-items: center; gap: 10px;
+  font-size: 12px; color: var(--muted);
+}
+.dark .ft { color: #b98a9c; }
+.ft .mark { display: flex; align-items: center; gap: 7px; color: var(--ink); font-family: var(--display); font-weight: 800; font-size: 14px; letter-spacing: -0.3px; }
+.dark .ft .mark { color: #fff1f5; }
+.ft .mark img { width: 20px; height: 20px; }
+.ft .pg { margin-left: auto; font-family: var(--mono); font-weight: 700; color: var(--berry); }
+.dark .ft .pg { color: var(--blush); }
+.ft .pg::before { content: counter(page, decimal-leading-zero); }
+
+/* ---------- phone frame: real 390×844 screenshot, nothing cropped ---------- */
+.phone {
+  position: relative; margin: 0; padding: 8px; background: #17121c; border-radius: 40px;
+  box-shadow: 0 30px 60px -20px rgba(42, 11, 25, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+}
+.phone .scr { position: relative; border-radius: 32px; overflow: hidden; aspect-ratio: 390 / 844; background: #fff; }
+.phone .scr img { width: 100%; height: 100%; object-fit: cover; }
+/* status bar sits in the screen's own 40-pt safe area, exactly like a device */
+.phone .sb {
+  position: absolute; left: 0; right: 0; top: 0; height: 4.74%; display: flex; align-items: center;
+  justify-content: space-between; padding: 0 11% 0 13%; font: 700 10px/1 var(--sans); color: #1e1b2e;
+  background: rgba(249, 249, 252, 0.94);
+}
+.phone .sb .cam { position: absolute; left: 50%; top: 50%; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: #0b0810; }
+.phone .sb svg { height: 9px; width: auto; }
+.phone .sb .icons { display: flex; gap: 4px; align-items: center; }
+.phone .home-ind { position: absolute; left: 50%; bottom: 0.9%; width: 34%; height: 4px; margin-left: -17%; border-radius: 4px; background: rgba(30, 27, 46, 0.35); }
+.phone.sm .sb { font-size: 8px; padding: 0 12% 0 15%; }
+.phone.sm .sb svg { height: 6.5px; }
+.phone.sm .sb .icons { gap: 3px; }
+.phone.sm .sb .cam { width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; }
+
+.pin {
+  position: absolute; background: #fff; border-radius: 12px; padding: 9px 13px; box-shadow: 0 12px 28px -12px rgba(42, 11, 25, 0.4);
+  font-size: 12px; font-weight: 700; color: var(--ink); display: flex; gap: 8px; align-items: center; white-space: nowrap;
+}
+.pin i { width: 8px; height: 8px; border-radius: 50%; background: var(--rose); }
+.pin.ok i { background: #2eaa68; }
+
+/* ---------- numbered points ---------- */
+.points { list-style: none; margin: 0; padding: 0; display: grid; gap: 15px; counter-reset: pt; }
+.points li { display: grid; grid-template-columns: 28px 1fr; gap: 3px 14px; align-items: start; }
+.points li::before {
+  counter-increment: pt; content: counter(pt); grid-row: span 2; width: 28px; height: 28px; border-radius: 50%;
+  background: #fbe3ea; color: var(--berry); font: 800 13px/28px var(--sans); text-align: center;
+}
+.points.plain li::before { content: ""; width: 9px; height: 9px; margin: 7px 0 0 9px; background: var(--rose); }
+.points b { font-size: 15.5px; font-weight: 800; color: var(--ink); letter-spacing: -0.2px; }
+.points span { font-size: 13.5px; color: var(--muted); line-height: 1.45; }
+.dark .points b { color: #fff5f8; }
+.dark .points span { color: #d2afbd; }
+.dark .points li::before { background: rgba(255, 194, 210, 0.14); color: var(--blush); }
+
+/* ---------- feature slide: copy left, phones right ---------- */
+.feat .copy { position: absolute; left: 56px; top: 52px; width: 460px; display: grid; gap: 20px; }
+.feat .phones { position: absolute; left: 600px; top: 44px; display: flex; gap: 34px; align-items: flex-start; }
+.feat .phones .phone { width: 262px; }
+.feat .phones .phone:nth-child(2) { margin-top: 64px; }
+.feat .phones.three { left: 560px; gap: 22px; }
+.feat .phones.three .phone { width: 212px; }
+.feat .phones.three .phone:nth-child(2) { margin-top: 56px; }
+.feat .phones.three .phone:nth-child(3) { margin-top: 14px; }
+
+.note {
+  display: flex; gap: 12px; align-items: flex-start; background: #fbe3ea; color: #6e1633; border-radius: 12px;
+  padding: 11px 14px; font-size: 12.5px; line-height: 1.45;
+}
+.note b { font-family: var(--mono); font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; white-space: nowrap; padding-top: 1px; }
+.dark .note { background: rgba(255, 194, 210, 0.1); color: #f3d6e0; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 999px; background: #fff; color: var(--berry); border: 1px solid var(--line); }
+.dark .chip { background: rgba(255, 255, 255, 0.08); color: #ffe3eb; border-color: rgba(255, 255, 255, 0.12); }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+.stat b { display: block; font-family: var(--display); font-size: 38px; line-height: 1; letter-spacing: -1.4px; color: var(--berry); }
+.stat span { display: block; margin-top: 8px; font-size: 13px; color: var(--muted); line-height: 1.4; }
+</style>
+
+<!-- ======================================================= 01 COVER -->
+<section class="slide dark cover">
+  <style>
+    .cover .copy { position: absolute; left: 64px; top: 70px; width: 560px; display: grid; gap: 22px; }
+    .cover .brand { display: flex; align-items: center; gap: 12px; font: 800 26px/1 var(--display); letter-spacing: -0.8px; color: #fff; }
+    .cover .brand img { width: 44px; height: 44px; border-radius: 12px; }
+    .cover .brand small { display: block; font: 700 11px/1 var(--mono); letter-spacing: 1.6px; color: var(--blush); margin-top: 6px; }
+    .cover h1 { font-size: 60px; line-height: 1; letter-spacing: -2.6px; color: #fff; }
+    .cover h1 em { font-style: normal; color: var(--signal); }
+    .cover .stage { position: absolute; left: 700px; top: 40px; display: flex; gap: 30px; align-items: flex-start; }
+    .cover .stage .phone { width: 250px; }
+    .cover .stage .phone:nth-child(2) { margin-top: 80px; }
+  </style>
+  <div class="copy">
+    <div class="brand"><img src="logo.png" alt=""><div>Femora<small>AI WOMEN'S HEALTH · PAKISTAN</small></div></div>
+    <p class="eyebrow">A women's health companion for the phone</p>
+    <h1>Her health, understood — <em>in her own language.</em></h1>
+    <p class="lede">PCOS and breast screening, cycle tracking and an AI companion that speaks Urdu and English — private, on her phone, and ready to hand to her doctor.</p>
+    <div class="chips">
+      <span class="chip">PCOS risk model</span><span class="chip">Breast ultrasound AI</span><span class="chip">Cycle prediction</span>
+      <span class="chip">Urdu & English voice</span><span class="chip">Doctor-ready report</span>
+    </div>
+  </div>
+  <div class="stage">
+    <figure class="phone"><div class="scr"><img src="shots/home.jpg" alt="Femora home screen"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+    <figure class="phone"><div class="scr"><img src="shots/companion.jpg" alt="The AI companion"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+  </div>
+  <div class="ft"><span class="mark"><img src="logo.png" alt="">Femora</span><span>by the Femora team · Air University, Islamabad</span><span class="pg"></span></div>
+</section>
+
+<!-- ======================================================= 02 WHAT -->
+<section class="slide what">
+  <style>
+    .what .hd { position: absolute; left: 56px; top: 56px; width: 900px; }
+    .what .grid { position: absolute; left: 56px; right: 56px; top: 250px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .what .card { display: grid; gap: 10px; align-content: start; min-height: 330px; }
+    .what .card .k { font: 700 11px/1 var(--mono); letter-spacing: 1.4px; color: var(--berry); text-transform: uppercase; }
+    .what .card ul { margin: 6px 0 0; padding-left: 18px; color: var(--body); font-size: 13.5px; display: grid; gap: 6px; }
+    .what .card p { color: var(--muted); font-size: 13.5px; }
+  </style>
+  <div class="hd">
+    <p class="eyebrow">What is Femora</p>
+    <h2>One app for her whole health journey — from first period to the doctor's desk.</h2>
+    <p class="lede" style="max-width:760px">Built for women in Pakistan who wait too long for answers. Four jobs, one private app, the same health record on every screen.</p>
+  </div>
+  <div class="grid">
+    <div class="card"><span class="k">Screen</span><h3>Early warning signs, checked</h3><p>Three trained models look for PCOS and breast-cancer risk from answers and scans.</p><ul><li>PCOS risk (XGBoost)</li><li>Breast ultrasound (ResNet50)</li><li>Breast risk questionnaire</li></ul></div>
+    <div class="card"><span class="k">Track</span><h3>Her cycle, learned</h3><p>Logging, a phase calendar and predictions that learn from her own history.</p><ul><li>Cycle and fertile window</li><li>Symptoms and mood</li><li>Hormonal insights</li></ul></div>
+    <div class="card"><span class="k">Understand</span><h3>Answers she can follow</h3><p>An AI companion that talks and listens in Urdu or English.</p><ul><li>Voice in and out</li><li>Lab report explainer</li><li>Emergency red flags</li></ul></div>
+    <div class="card"><span class="k">Connect</span><h3>Care, one tap away</h3><p>A lab-style report, a QR for the doctor and nearby care.</p><ul><li>PDF health report</li><li>Show my doctor QR</li><li>Find a doctor · nearby care</li></ul></div>
+  </div>
+  <div class="ft"><span class="mark"><img src="logo.png" alt="">Femora</span><span>Women's health companion</span><span class="pg"></span></div>
+</section>
+
+<!-- ======================================================= 03 WHY -->
+<section class="slide why">
+  <style>
+    .why .hd { position: absolute; left: 56px; top: 56px; width: 900px; }
+    .why .cols { position: absolute; left: 56px; right: 56px; top: 240px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .why .col { border-radius: 18px; padding: 26px 28px; }
+    .why .old { background: #fff0f3; border: 1px solid #f6d3dc; }
+    .why .new { background: var(--wine); color: #f6e9ee; }
+    .why .col h3 { font: 700 12px/1 var(--mono); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 16px; }
+    .why .old h3 { color: #b5234a; } .why .new h3 { color: var(--blush); }
+    .why ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; font-size: 14px; }
+    .why li { display: flex; gap: 10px; align-items: flex-start; }
+    .why li::before { content: ""; flex: none; width: 18px; height: 18px; border-radius: 50%; margin-top: 1px; }
+    .why .old li::before { background: #f6c6d3 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18"><path d="M6 6l6 6M12 6l-6 6" stroke="%23b5234a" stroke-width="2" stroke-linecap="round"/></svg>'); }
+    .why .new li::before { background: #2eaa68 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18"><path d="M5 9.5l2.6 2.5L13 6.5" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/></svg>'); }
+  </style>
+  <div class="hd">
+    <p class="eyebrow">Why women switch</p>
+    <h2>Symptoms get brushed aside. Femora gives her a clear next step.</h2>
+    <p class="lede" style="max-width:760px">What women's health often looks like today — and what it looks like with Femora on her phone.</p>
+  </div>
+  <div class="cols">
+    <div class="col old"><h3>The old way</h3><ul>
+      <li>Irregular periods and pain are called "normal" for years</li>
+      <li>Health questions feel too private to ask anyone</li>
+      <li>Lab and ultrasound reports arrive full of unexplained terms</li>
+      <li>Period dates live in memory or a paper diary</li>
+      <li>Every doctor visit starts again from zero</li>
+      <li>Most apps are English-only and made for other countries</li>
+    </ul></div>
+    <div class="col new"><h3>With Femora</h3><ul>
+      <li>A PCOS risk check and breast screening in minutes, on the phone</li>
+      <li>A private companion to ask anything, by voice, in Urdu or English</li>
+      <li>Reports photographed and explained in plain words</li>
+      <li>Cycle, symptoms and mood tracked with predictions</li>
+      <li>One tap builds a lab-style report and a QR for the doctor</li>
+      <li>Built for Pakistan: Urdu, local doctors, 1122 emergency</li>
+    </ul></div>
+  </div>
+  <div class="ft"><span class="mark"><img src="logo.png" alt="">Femora</span><span>Women's health companion</span><span class="pg"></span></div>
+</section>
+
+<!-- ======================================================= 04 DAY FLOW -->
+<section class="slide dark flow">
+  <style>
+    .flow .hd { position: absolute; left: 56px; top: 56px; width: 900px; }
+    .flow .line { position: absolute; left: 56px; right: 56px; top: 250px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; }
+    .flow .line::before { content: ""; position: absolute; left: 8px; right: 8px; top: 49px; height: 2px; background: rgba(255, 194, 210, 0.25); }
+    .flow .st { position: relative; display: grid; gap: 8px; align-content: start; }
+    .flow .st time { font: 700 26px/1 var(--mono); color: #fff; letter-spacing: -0.5px; }
+    .flow .st.hl time { color: var(--signal); }
+    .flow .st i { width: 16px; height: 16px; border-radius: 50%; background: var(--wine); border: 2px solid var(--blush); margin: 6px 0 8px; z-index: 1; }
+    .flow .st.hl i { background: var(--signal); border-color: var(--signal); }
+    .flow .st b { font-size: 15px; color: #fff; }
+    .flow .st span { font-size: 12.5px; color: #d2afbd; line-height: 1.45; }
+  </style>
+  <div class="hd">
+    <p class="eyebrow"><span class="act">A day with Femora</span> One woman, one morning</p>
+    <h2>From "is this normal?" to a doctor with her full picture — before lunch.</h2>
+  </div>
+  <div class="line">
+    <div class="st"><time>09:00</time><i></i><b>Logs her day</b><span>Cramps, low mood, day 7 — logged in a few taps on the cycle calendar.</span></div>
+    <div class="st"><time>09:05</time><i></i><b>PCOS check</b><span>A short questionnaire; the model returns a risk band and what drives it.</span></div>
+    <div class="st"><time>09:15</time><i></i><b>Asks, in Urdu</b><span>She speaks her question; the companion answers aloud, knowing her results.</span></div>
+    <div class="st"><time>09:30</time><i></i><b>Report explained</b><span>A photo of last month's blood test, values flagged against their ranges.</span></div>
+    <div class="st hl"><time>09:40</time><i></i><b>Finds a doctor</b><span>Gynaecologists near her, with experience, fees and ratings.</span></div>
+    <div class="st"><time>11:30</time><i></i><b>Shows her doctor</b><span>One QR opens her full health report on the doctor's screen.</span></div>
+  </div>
+  <div class="ft"><span class="mark"><img src="logo.png" alt="">Femora</span><span>Illustrative day — every step is a real screen in the app</span><span class="pg"></span></div>
+</section>
+
+<!-- ======================================================= 05 PCOS -->
+<section class="slide feat">
+  <div class="copy">
+    <div class="hd">
+      <p class="eyebrow"><span class="act">Screen</span> PCOS risk</p>
+      <h2>A PCOS risk check in two minutes — and what she can change.</h2>
+      <p class="lede">A short questionnaire about her body, cycle and lifestyle goes to a trained model that returns a risk band and the factors behind it.</p>
+    </div>
+    <ul class="points">
+      <li><b>Trained and tested</b><span>XGBoost on self-reported features: 84.4% accuracy, 0.88 ROC-AUC on held-out data.</span></li>
+      <li><b>Shows the "why"</b><span>BMI, hair growth, weight gain — the drivers appear as tags under the gauge.</span></li>
+      <li><b>What-if simulator</b><span>Live sliders show how her risk could respond to realistic lifestyle changes, within safe limits.</span></li>
+    </ul>
+    <p class="note"><b>Not a diagnosis</b>A risk-awareness estimate; every result points her to a gynaecologist or endocrinologist.</p>
+  </div>
+  <div class="phones">
+    <figure class="phone"><div class="scr"><img src="shots/pcosq.jpg" alt="PCOS questionnaire"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+    <figure class="phone"><div class="scr"><img src="shots/pcos.jpg" alt="PCOS result"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+  </div>
+  <div class="ft"><span class="mark"><img src="logo.png" alt="">Femora</span><span>Women's health companion</span><span class="pg"></span></div>
+</section>
+
+<!-- ======================================================= 06 BREAST US -->
+<section class="slide feat">
+  <div class="copy">
+    <div class="hd">
+      <p class="eyebrow"><span class="act">Screen</span> Breast ultrasound</p>
+      <h2>An ultrasound, checked by AI — with the area it looked at outlined.</h2>
+      <p class="lede">She uploads a breast ultrasound image. A ResNet50 model classifies it, and a second model outlines the area the result is about.</p>
+    </div>
+    <ul class="points">
+      <li><b>Tuned to catch cancers</b><span>At its screening threshold it caught 89.2% of cancers on 710 held-out scans (AUC 0.87).</span></li>
+      <li><b>Three views</b><span>Switch between the original scan, the AI focus heatmap and the lesion outline (U-Net, Dice 0.86).</span></li>
+      <li><b>Refuses the wrong picture</b><span>A gate checks it really is a breast ultrasound before any result is shown.</span></li>
+    </ul>
+    <p class="note"><b>Screening aid</b>It supports, never replaces, a radiologist's reading.</p>
+  </div>
+  <div class="phones">
+    <figure class="phone"><div class="scr"><img src="shots/breast.jpg" alt="Upload an ultrasound"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+    <figure class="phone"><div class="scr"><img src="shots/breast-2.jpg" alt="Analysis with lesion outline"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+  </div>
+  <div class="ft"><span class="mark"><img src="logo.png" alt="">Femora</span><span>Women's health companion</span><span class="pg"></span></div>
+</section>
+
+<!-- ======================================================= 07 BREAST RISK + SELF EXAM -->
+<section class="slide feat">
+  <div class="copy">
+    <div class="hd">
+      <p class="eyebrow"><span class="act">Screen</span> Breast risk & self-exam</p>
+      <h2>Know her risk, and know her normal.</h2>
+      <p class="lede">A three-minute questionnaire estimates breast-cancer risk; a guided self-exam and a monthly reminder help her notice changes early.</p>
+    </div>
+    <ul class="points">
+      <li><b>Trained on real screening data</b><span>XGBoost on the BCSC risk data — 2.39 million mammograms — and well calibrated.</span></li>
+      <li><b>Step-by-step self-exam</b><span>Seven illustrated steps: when, how long, and what to look for.</span></li>
+      <li><b>A reminder that fits her cycle</b><span>Once a month, a few days after her period ends.</span></li>
+    </ul>
+  </div>
+  <div class="phones">
+    <figure class="phone"><div class="scr"><img src="shots/breastq.jpg" alt="Breast health questionnaire"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+    <figure class="phone"><div class="scr"><img src="shots/selfexam.jpg" alt="Self-exam guide"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+  </div>
+  <div class="ft"><span class="mark"><img src="logo.png" alt="">Femora</span><span>Women's health companion</span><span class="pg"></span></div>
+</section>
+
+<!-- ======================================================= 08 CYCLE -->
+<section class="slide feat">
+  <div class="copy">
+    <div class="hd">
+      <p class="eyebrow"><span class="act">Track</span> Cycle</p>
+      <h2>Her cycle, predicted from her own history.</h2>
+      <p class="lede">Log a period in one tap. Femora shows the phase, the next period, ovulation and the fertile window — and says when a cycle looks late or irregular.</p>
+    </div>
+    <ul class="points">
+      <li><b>Learns from her</b><span>Her own average blended with a study average; after three cycles the next period was within 3 days about 82% of the time.</span></li>
+      <li><b>A calendar she can read</b><span>Period, expected, fertile and ovulation days in one month view, with a note when a cycle runs long or irregular. Tap any day to log when a period started or ended.</span></li>
+      <li><b>Honest estimates</b><span>Ovulation and fertile days are clearly marked as estimates, not contraception.</span></li>
+    </ul>
+  </div>
+  <div class="phones three">
+    <figure class="phone sm"><div class="scr"><img src="shots/cycle.jpg" alt="My cycle"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+    <figure class="phone sm"><div class="scr"><img src="shots/calendar.jpg" alt="Cycle calendar"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+    <figure class="phone sm"><div class="scr"><img src="shots/daysheet.jpg" alt="Tap a day to log a period"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+  </div>
+  <div class="ft"><span class="mark"><img src="logo.png" alt="">Femora</span><span>Women's health companion</span><span class="pg"></span></div>
+</section>
+
+<!-- ======================================================= 09 HOME -->
+<section class="slide feat">
+  <div class="copy">
+    <div class="hd">
+      <p class="eyebrow"><span class="act">Track</span> Home</p>
+      <h2>Everything that matters, the moment she opens the app.</h2>
+      <p class="lede">A living cycle card and a health snapshot of her latest screenings — all read from one private store on her phone.</p>
+    </div>
+    <ul class="points">
+      <li><b>Cycle at a glance</b><span>Day, phase, days to go and the fertile window, with a hormone curve.</span></li>
+      <li><b>Health snapshot</b><span>PCOS, breast ultrasound, breast risk and self-exam — each with its date.</span></li>
+      <li><b>One tap deeper</b><span>Every row opens its full result or the next step.</span></li>
+    </ul>
+  </div>
+  <div class="phones">
+    <figure class="phone"><div class="scr"><img src="shots/home.jpg" alt="Home"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+    <figure class="phone"><div class="scr"><img src="shots/home-3.jpg" alt="Health snapshot"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+  </div>
+  <div class="ft"><span class="mark"><img src="logo.png" alt="">Femora</span><span>Women's health companion</span><span class="pg"></span></div>
+</section>
+
+<!-- ======================================================= 10 INSIGHTS + TRENDS -->
+<section class="slide feat">
+  <div class="copy">
+    <div class="hd">
+      <p class="eyebrow"><span class="act">Track</span> Insights & trends</p>
+      <h2>Patterns she can finally see.</h2>
+      <p class="lede">Symptoms, mood, sleep, stress and energy — logged daily, then laid out against her cycle.</p>
+    </div>
+    <ul class="points">
+      <li><b>Log in seconds</b><span>Tap cramps, bloating, headache, fatigue and more for today, yesterday or another day.</span></li>
+      <li><b>Hormones through her cycle</b><span>Oestrogen, progesterone and LH, with today marked on the curve.</span></li>
+      <li><b>Symptoms by phase, trends over time</b><span>Which symptoms come with which phase, and mood, sleep, stress and energy over 7, 30 or 90 days.</span></li>
+          </ul>
+  </div>
+  <div class="phones three">
+    <figure class="phone sm"><div class="scr"><img src="shots/log.jpg" alt="Daily symptom log"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+    <figure class="phone sm"><div class="scr"><img src="shots/insights.jpg" alt="Hormonal insights"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+    <figure class="phone sm"><div class="scr"><img src="shots/trends.jpg" alt="My trends"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+  </div>
+  <div class="ft"><span class="mark"><img src="logo.png" alt="">Femora</span><span>Women's health companion</span><span class="pg"></span></div>
+</section>
+
+<!-- ======================================================= 11 COMPANION -->
+<section class="slide dark feat">
+  <div class="copy">
+    <div class="hd">
+      <p class="eyebrow"><span class="act">Understand</span> AI companion</p>
+      <h2>A companion she can talk to — out loud, in Urdu.</h2>
+      <p class="lede">She taps how she feels or asks anything. The companion answers in Urdu or English, by voice or text, and knows her own results.</p>
+    </div>
+    <ul class="points">
+      <li><b>Voice in, voice out</b><span>Speech-to-text and a natural voice; the phone's own voice takes over if needed.</span></li>
+      <li><b>Knows her context</b><span>Her results guide the answers — her name is never sent to the model.</span></li>
+      <li><b>Emergency red flags in code</b><span>Heavy bleeding and other danger signs are caught in English, Urdu and Roman Urdu, not left to the AI.</span></li>
+    </ul>
+  </div>
+  <div class="phones">
+    <figure class="phone"><div class="scr"><img src="shots/companion.jpg" alt="AI companion"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+    <figure class="phone"><div class="scr"><img src="shots/companion-ur.jpg" alt="AI companion in Urdu"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+  </div>
+  <div class="ft"><span class="mark"><img src="logo.png" alt="">Femora</span><span>Women's health companion</span><span class="pg"></span></div>
+</section>
+
+<!-- ======================================================= 12 REPORT READER + PDF -->
+<section class="slide feat">
+  <div class="copy">
+    <div class="hd">
+      <p class="eyebrow"><span class="act">Understand</span> Reports</p>
+      <h2>Reports she can read — and one she can hand over.</h2>
+      <p class="lede">Photograph a lab test, hormone panel or ultrasound report for a plain-language explanation. One tap builds her own lab-style health report.</p>
+    </div>
+    <ul class="points">
+      <li><b>Values against their ranges</b><span>Colour-coded results and questions to ask her doctor, in Urdu or English.</span></li>
+      <li><b>Private by design</b><span>Photos are cleaned of location data, never stored on the server or kept on the phone.</span></li>
+      <li><b>A PDF, one panel per test</b><span>PCOS, breast screening and cycle results, ready to print or share.</span></li>
+    </ul>
+  </div>
+  <div class="phones three">
+    <figure class="phone sm"><div class="scr"><img src="shots/reader.jpg" alt="Explain my report"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+    <figure class="phone sm"><div class="scr"><img src="shots/explained.jpg" alt="An explained blood test"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+    <figure class="phone sm"><div class="scr"><img src="shots/report.jpg" alt="Health report PDF"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+  </div>
+  <div class="ft"><span class="mark"><img src="logo.png" alt="">Femora</span><span>Women's health companion</span><span class="pg"></span></div>
+</section>
+
+<!-- ======================================================= 13 DOCTOR QR + FIND DOCTOR -->
+<section class="slide feat">
+  <div class="copy">
+    <div class="hd">
+      <p class="eyebrow"><span class="act">Connect</span> Doctors</p>
+      <h2>The right doctor, with her whole picture.</h2>
+      <p class="lede">Find a women's-health doctor nearby, then share her results by letting the doctor scan one QR code.</p>
+    </div>
+    <ul class="points">
+      <li><b>Find a doctor</b><span>Gynaecologists and breast specialists with qualifications, experience, fees and where to see them (Oladoc listings, used with permission).</span></li>
+      <li><b>Show my doctor</b><span>A QR opens her full report on the doctor's screen — no app or account needed.</span></li>
+      <li><b>Private link</b><span>The results travel inside the code itself; nothing is uploaded or stored.</span></li>
+    </ul>
+  </div>
+  <div class="phones three">
+    <figure class="phone sm"><div class="scr"><img src="shots/doctors.jpg" alt="Doctor directory"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+    <figure class="phone sm"><div class="scr"><img src="shots/doctor-profile.jpg" alt="Doctor profile"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+    <figure class="phone sm"><div class="scr"><img src="shots/doctor.jpg" alt="Show my doctor QR"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+  </div>
+  <div class="ft"><span class="mark"><img src="logo.png" alt="">Femora</span><span>Women's health companion</span><span class="pg"></span></div>
+</section>
+
+<!-- ======================================================= 14 NEARBY + HEART + REMINDERS -->
+<section class="slide feat">
+  <div class="copy">
+    <div class="hd">
+      <p class="eyebrow"><span class="act">Connect</span> Care & daily habits</p>
+      <h2>Help nearby, and small daily checks.</h2>
+      <p class="lede">Hospitals, gynaecologists, clinics and labs on a map; a morning heart check with the phone camera; reminders that follow her cycle.</p>
+    </div>
+    <ul class="points">
+      <li><b>Nearby care</b><span>Closest hospitals and clinics with one-tap directions, and 1122 for emergencies.</span></li>
+      <li><b>Morning heart check</b><span>A fingertip over the camera and flash reads her resting pulse — a wellness check, not a medical device.</span></li>
+      <li><b>Cycle-aware reminders</b><span>Period, fertile window, daily log, monthly self-exam and medication.</span></li>
+    </ul>
+  </div>
+  <div class="phones three">
+    <figure class="phone sm"><div class="scr"><img src="shots/nearby.jpg" alt="Nearby care"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+    <figure class="phone sm"><div class="scr"><img src="shots/heart.jpg" alt="Heart rate check"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+    <figure class="phone sm"><div class="scr"><img src="shots/reminders.jpg" alt="Reminders"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+  </div>
+  <div class="ft"><span class="mark"><img src="logo.png" alt="">Femora</span><span>Women's health companion</span><span class="pg"></span></div>
+</section>
+
+<!-- ======================================================= 15 URDU -->
+<section class="slide dark feat">
+  <div class="copy">
+    <div class="hd">
+      <p class="eyebrow"><span class="act">Everywhere</span> Urdu & English</p>
+      <h2>Urdu isn't a translation layer. The whole app turns around.</h2>
+      <p class="lede">Switch to Urdu and every screen flips right-to-left, with a bundled Nastaliq font so the text reads the way she writes it.</p>
+    </div>
+    <ul class="points">
+      <li><b>Right-to-left, everywhere</b><span>Home, calendar, questionnaires, results and the companion all mirror their layout.</span></li>
+      <li><b>Nastaliq built in</b><span>Noto Nastaliq Urdu ships with the app, so no phone is left with broken script.</span></li>
+      <li><b>Voice in Urdu</b><span>She can speak and listen in Urdu, not only read it.</span></li>
+    </ul>
+  </div>
+  <div class="phones">
+    <figure class="phone"><div class="scr"><img src="shots/home-ur.jpg" alt="Home in Urdu"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+    <figure class="phone"><div class="scr"><img src="shots/companion-ur.jpg" alt="Companion in Urdu"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+  </div>
+  <div class="ft"><span class="mark"><img src="logo.png" alt="">Femora</span><span>Women's health companion</span><span class="pg"></span></div>
+</section>
+
+<!-- ======================================================= 16 ONBOARDING -->
+<section class="slide feat">
+  <div class="copy">
+    <div class="hd">
+      <p class="eyebrow"><span class="act">Everywhere</span> First minute</p>
+      <h2>Set up in a minute, on her terms.</h2>
+      <p class="lede">A short onboarding asks only what helps — every field is optional, and it all stays on her phone.</p>
+    </div>
+    <ul class="points">
+      <li><b>She chooses what matters</b><span>PCOS, cycle tracking, pregnancy or breast health shape what Femora shows first.</span></li>
+      <li><b>Her data, her device</b><span>One on-device health store feeds every screen; nothing is uploaded to build her profile.</span></li>
+      <li><b>Delete everything</b><span>"Delete all my data" erases it in one step, and personalisation can be switched off.</span></li>
+    </ul>
+  </div>
+  <div class="phones">
+    <figure class="phone"><div class="scr"><img src="shots/onboarding.jpg" alt="Onboarding"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+    <figure class="phone"><div class="scr"><img src="shots/dashboard.jpg" alt="Health dashboard"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+  </div>
+  <div class="ft"><span class="mark"><img src="logo.png" alt="">Femora</span><span>Women's health companion</span><span class="pg"></span></div>
+</section>
+
+<!-- ======================================================= 17 SAFETY -->
+<section class="slide safety">
+  <style>
+    .safety .hd { position: absolute; left: 56px; top: 56px; width: 900px; }
+    .safety .grid { position: absolute; left: 56px; right: 56px; top: 250px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .safety .card { min-height: 250px; display: grid; gap: 10px; align-content: start; }
+    .safety .card .k { font: 700 11px/1 var(--mono); letter-spacing: 1.4px; color: var(--berry); text-transform: uppercase; }
+    .safety .card p { font-size: 13.5px; color: var(--muted); }
+    .safety .bar { position: absolute; left: 56px; right: 56px; top: 540px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; background: var(--wine); border-radius: 16px; padding: 18px 22px; color: #f6e9ee; font-size: 12.5px; }
+    .safety .bar b { display: block; color: #fff; font-size: 13.5px; margin-bottom: 2px; }
+  </style>
+  <div class="hd">
+    <p class="eyebrow">Privacy & safety</p>
+    <h2>Designed to help her doctor — never to replace one.</h2>
+  </div>
+  <div class="grid">
+    <div class="card"><span class="k">Screening</span><h3>Risk, not diagnosis</h3><p>Every result is a risk estimate with a clear "see a doctor" next step.</p></div>
+    <div class="card"><span class="k">Red flags</span><h3>Emergencies caught in code</h3><p>Danger signs trigger an urgent message and 1122 — the AI is not trusted with it.</p></div>
+    <div class="card"><span class="k">Medicines</span><h3>No doses, no prescriptions</h3><p>The companion and report reader never diagnose or give doses.</p></div>
+    <div class="card"><span class="k">Honesty</span><h3>Estimates labelled as estimates</h3><p>Ovulation, heart rate and hormone curves say exactly what they are.</p></div>
+  </div>
+  <div class="bar">
+    <div><b>On-device store</b>Her health record lives on her phone.</div>
+    <div><b>Name never sent</b>The AI sees results, not who she is.</div>
+    <div><b>Photos not kept</b>Report photos are cleaned and discarded.</div>
+    <div><b>One-tap delete</b>All her data, gone in one step.</div>
+  </div>
+  <div class="ft"><span class="mark"><img src="logo.png" alt="">Femora</span><span>Women's health companion</span><span class="pg"></span></div>
+</section>
+
+<!-- ======================================================= 18 BUILT & TESTED -->
+<section class="slide built">
+  <style>
+    .built .hd { position: absolute; left: 56px; top: 56px; width: 900px; }
+    .built .grid { position: absolute; left: 56px; right: 56px; top: 250px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .built .card { min-height: 160px; }
+    .built .models { position: absolute; left: 56px; right: 56px; top: 440px; }
+  </style>
+  <div class="hd">
+    <p class="eyebrow">Under the hood</p>
+    <h2>A native app on real models — measured, not guessed.</h2>
+    <p class="lede" style="max-width:780px">Flutter on the phone, a FastAPI server for the models, every model trained on public medical datasets and tested on data it never saw.</p>
+  </div>
+  <div class="grid">
+    <div class="card stat"><b>4</b><span>AI models live: PCOS, breast ultrasound, breast risk and lesion outline</span></div>
+    <div class="card stat"><b>400</b><span>Flutter tests passing across 41 test files</span></div>
+    <div class="card stat"><b>26.3 MB</b><span>Android release APK (arm64), split per ABI</span></div>
+    <div class="card stat"><b>2</b><span>Languages end to end: Urdu (right-to-left) and English</span></div>
+  </div>
+  <div class="models">
+    <table style="width:100%; border-collapse:collapse; font-size:13px; background:#fff; border:1px solid var(--line); border-radius:14px; overflow:hidden">
+      <thead><tr style="background:#fbe3ea; color:#6e1633; text-align:left"><th style="padding:10px 16px">Model</th><th style="padding:10px 16px">Data</th><th style="padding:10px 16px">Held-out result</th></tr></thead>
+      <tbody>
+        <tr><td style="padding:9px 16px; border-top:1px solid var(--line)"><b>PCOS risk</b> · XGBoost</td><td style="padding:9px 16px; border-top:1px solid var(--line)">Self-reported symptoms and body measures</td><td style="padding:9px 16px; border-top:1px solid var(--line)">84.4% accuracy · ROC-AUC 0.88</td></tr>
+        <tr><td style="padding:9px 16px; border-top:1px solid var(--line)"><b>Breast ultrasound</b> · ResNet50</td><td style="padding:9px 16px; border-top:1px solid var(--line)">BUSI, BrEaST and BUS-BRA scans</td><td style="padding:9px 16px; border-top:1px solid var(--line)">AUC 0.87 · 89.2% of cancers caught (710 scans)</td></tr>
+        <tr><td style="padding:9px 16px; border-top:1px solid var(--line)"><b>Lesion outline</b> · U-Net</td><td style="padding:9px 16px; border-top:1px solid var(--line)">Radiologists' outlines</td><td style="padding:9px 16px; border-top:1px solid var(--line)">Dice 0.86</td></tr>
+        <tr><td style="padding:9px 16px; border-top:1px solid var(--line)"><b>Breast risk</b> · XGBoost</td><td style="padding:9px 16px; border-top:1px solid var(--line)">BCSC — 2.39 million mammograms</td><td style="padding:9px 16px; border-top:1px solid var(--line)">AUC 0.64 (typical for risk models: 0.6–0.7), calibrated</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="ft"><span class="mark"><img src="logo.png" alt="">Femora</span><span>Women's health companion</span><span class="pg"></span></div>
+</section>
+
+<!-- ======================================================= 19 ALL FEATURES -->
+<section class="slide feats">
+  <style>
+    .feats .hd { position: absolute; left: 56px; top: 56px; }
+    .feats .cols { position: absolute; left: 56px; right: 56px; top: 150px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; }
+    .feats h4 { margin: 0 0 10px; font: 700 11px/1 var(--mono); letter-spacing: 1.4px; color: var(--berry); text-transform: uppercase; padding-bottom: 8px; border-bottom: 2px solid #fbe3ea; }
+    .feats ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; font-size: 12.5px; color: var(--body); line-height: 1.35; }
+  </style>
+  <div class="hd"><p class="eyebrow">Everything in one list</p><h2>Every feature in Femora.</h2></div>
+  <div class="cols">
+    <div><h4>Screening</h4><ul><li>PCOS risk questionnaire</li><li>PCOS risk gauge and drivers</li><li>What-if simulator</li><li>Breast ultrasound AI</li><li>AI focus heatmap</li><li>Lesion outline</li><li>Ultrasound gate</li><li>Breast risk questionnaire</li><li>Self-exam guide</li></ul></div>
+    <div><h4>Cycle</h4><ul><li>One-tap period logging</li><li>Phase calendar</li><li>Next period prediction</li><li>Ovulation estimate</li><li>Fertile window</li><li>Late / irregular notes</li><li>Cycle history</li><li>Prediction check</li></ul></div>
+    <div><h4>Tracking</h4><ul><li>Symptom logging</li><li>Mood check-in</li><li>Hormonal insights</li><li>Symptoms by phase</li><li>Mood, sleep, stress, energy trends</li><li>Health dashboard</li><li>Morning heart check</li><li>Cycle-aware reminders</li></ul></div>
+    <div><h4>Companion</h4><ul><li>Chat in Urdu or English</li><li>Voice in and out</li><li>Knows her results</li><li>Emergency red flags</li><li>Lab report explainer</li><li>Questions for the doctor</li><li>Personalise on / off</li></ul></div>
+    <div><h4>Doctors & care</h4><ul><li>PDF health report</li><li>Show my doctor QR</li><li>Web report for doctors</li><li>Find a doctor</li><li>Nearby hospitals & labs</li><li>1122 emergency</li><li>Directions</li></ul></div>
+    <div><h4>Platform</h4><ul><li>Urdu right-to-left</li><li>Nastaliq font bundled</li><li>On-device health store</li><li>Delete all my data</li><li>Guest, email, Google and phone sign-in</li><li>Android release build</li></ul></div>
+  </div>
+  <div class="ft"><span class="mark"><img src="logo.png" alt="">Femora</span><span>Women's health companion</span><span class="pg"></span></div>
+</section>
+
+<!-- ======================================================= 20 TEAM -->
+<section class="slide team">
+  <style>
+    .team .copy { position: absolute; left: 56px; top: 60px; width: 600px; display: grid; gap: 22px; }
+    .team .people { position: absolute; left: 720px; top: 90px; width: 504px; display: grid; gap: 14px; }
+    .team .person { display: flex; gap: 14px; align-items: center; }
+    .team .person i { flex: none; width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg, var(--rose), var(--berry)); color: #fff; font: 800 16px/46px var(--sans); text-align: center; font-style: normal; }
+    .team .person b { display: block; font-size: 16px; }
+    .team .person span { font-size: 13px; color: var(--muted); }
+  </style>
+  <div class="copy">
+    <div class="hd">
+      <p class="eyebrow">Who built it</p>
+      <h2>A final-year project from Air University, Islamabad.</h2>
+      <p class="lede">Femora was designed and built as a final-year project: a phone app, a model server and four trained models, tested end to end.</p>
+    </div>
+    <ul class="points plain">
+      <li><b>Research-backed</b><span>Every model trained on public medical datasets and evaluated on unseen data.</span></li>
+      <li><b>Built for Pakistan</b><span>Urdu, local doctors, local emergency numbers and local privacy expectations.</span></li>
+      <li><b>Ready to pilot</b><span>An Android release build and a web report for doctors.</span></li>
+    </ul>
+  </div>
+  <div class="people card">
+    <div class="person"><i>AN</i><div><b>Arshia Naseer</b><span>Team member</span></div></div>
+    <div class="person"><i>AH</i><div><b>Ali Haider Bilal</b><span>Team member</span></div></div>
+    <div class="person"><i>AS</i><div><b>Ammad Sajjad</b><span>Team member</span></div></div>
+    <div class="person"><i>MF</i><div><b>Mustabshera Fatima</b><span>Supervisor</span></div></div>
+  </div>
+  <div class="ft"><span class="mark"><img src="logo.png" alt="">Femora</span><span>Women's health companion</span><span class="pg"></span></div>
+</section>
+
+<!-- ======================================================= 21 CLOSE -->
+<section class="slide dark close">
+  <style>
+    .close .copy { position: absolute; left: 64px; top: 90px; width: 600px; display: grid; gap: 22px; }
+    .close h2 { font-size: 54px; letter-spacing: -2.2px; }
+    .close h2 em { font-style: normal; color: var(--signal); }
+    .close .ticks { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; font-size: 14.5px; color: #f3d6e0; }
+    .close .ticks li { display: flex; gap: 10px; }
+    .close .ticks li::before { content: ""; flex: none; width: 18px; height: 18px; border-radius: 50%; background: #2eaa68 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18"><path d="M5 9.5l2.6 2.5L13 6.5" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/></svg>'); }
+    .close .stage { position: absolute; left: 780px; top: 50px; }
+    .close .stage .phone { width: 280px; }
+  </style>
+  <div class="copy">
+    <div class="brand" style="display:flex;align-items:center;gap:12px;font:800 24px/1 var(--display);color:#fff"><img src="logo.png" alt="" style="width:42px;height:42px;border-radius:12px">Femora</div>
+    <h2>Care that every woman <em>deserves</em> — in her pocket.</h2>
+    <p class="lede">Screening, tracking and answers in her own language, and a clear path to the right doctor.</p>
+    <ul class="ticks">
+      <li>PCOS and breast screening with trained, tested models</li>
+      <li>Cycle predictions that learn from her own history</li>
+      <li>An AI companion that speaks Urdu and English</li>
+      <li>A doctor-ready report, one tap away</li>
+    </ul>
+  </div>
+  <div class="stage">
+    <figure class="phone"><div class="scr"><img src="shots/home.jpg" alt="Femora home"><span class="sb"><b>9:41</b><i class="cam"></i><span class="icons">SIG</span></span><i class="home-ind"></i></div></figure>
+  </div>
+  <div class="ft"><span class="mark"><img src="logo.png" alt="">Femora</span><span>Air University, Islamabad</span><span class="pg"></span></div>
+</section>
+
+<script>
+  // Status-bar icons (signal, wifi, battery), drawn once for every phone.
+  const icons = '<svg viewBox="0 0 17 11"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>'
+    + '<svg viewBox="0 0 15 11"><path d="M7.5 2.2c2.2 0 4.2.9 5.6 2.3l1.2-1.2A9.6 9.6 0 0 0 7.5.5 9.6 9.6 0 0 0 .7 3.3l1.2 1.2a7.9 7.9 0 0 1 5.6-2.3zm0 3.4c1.3 0 2.4.5 3.3 1.3l1.2-1.2a6.4 6.4 0 0 0-9 0l1.2 1.2c.9-.8 2-1.3 3.3-1.3zm0 3.3-1.9 1.9 1.9 1.9 1.9-1.9z"/></svg>'
+    + '<svg viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="16" height="8" rx="1.6"/><rect x="22.5" y="4" width="2" height="4" rx="1" opacity=".45"/></svg>';
+  document.querySelectorAll('.phone .sb .icons').forEach((el) => { el.innerHTML = icons; });
+  document.querySelectorAll('.phone .sb svg').forEach((s) => s.setAttribute('fill', 'currentColor'));
+</script>
