@@ -1608,6 +1608,15 @@ bullets([
 ])
 
 
+H2("19.5 Marketing deck from real screenshots (30 September 2026)")
+bullets([
+    "**What was made.** A 21-slide marketing deck (marketing/deck.html, printed to marketing/Femora - Marketing Deck.pdf, 1280 by 720 px per slide) in the style of the team's earlier pitch decks. Every phone on every slide is a real capture of the running app, not a mock-up: 28 different screens including the cycle calendar and its day sheet, the symptom log, an explained blood test, the doctor profile, the PCOS and breast results and the Urdu screens.",
+    "**How the screenshots were taken.** lib/dev/screenshot_harness.dart (development only, not in the shipped app) now opens seven more screens directly (?screen=doctors, selfexam, reader, pcosq, breastq, auth, onboarding), reserves a real phone's status-bar and gesture-bar space (?pt=40&pb=20) so each screen lays out exactly as on a device, and hides its language button (?toggle=0). Chrome captured each screen at 390 by 844 points and 3x scale; results come from real model calls against the local backend.",
+    "**Claims checked.** Every number on the slides is taken from this report (for example PCOS AUC 0.88, 89.2% of cancers caught at threshold 0.25, Dice 0.86, 400 Flutter tests, the 26.3 MB APK). An earlier draft of the deck that overstated results was withdrawn.",
+    "**Found while capturing.** The Gemini key in backend/.env is being refused again (HTTP 401 on 30 September), so every companion question gets the offline fallback reply. The deck therefore shows the companion's welcome screens but no conversation; a real conversation will be added once the key is replaced. The sign-in screen renders blank in the harness because Firebase is not configured there, so it is not in the deck.",
+])
+
+
 # ================================================================== 20 CONCLUSION
 H1("20. Conclusion")
 para("The breast module now consists of two models backed by measured evidence and an honest account of their limits. The most valuable result of this "
@@ -1751,6 +1760,7 @@ table(["Commit", "Date", "Change"], [
     ["caab65e", "25 Sep 2026", "Profile panel; header fixes"],
     ["5e86f62", "25 Sep 2026", "Nearby care map"],
     ["8165ace", "25 Sep 2026", "UI review fixes in English and Urdu"],
+    ["f51290a", "30 Sep 2026", "Marketing deck with real phone screenshots; harness safe-area and extra screens (branch marketing-deck)"],
 ], [2.4, 3.0, 11.2], caption="Commits made during this period")
 
 H1("Appendix F. Questions a panel may ask")
