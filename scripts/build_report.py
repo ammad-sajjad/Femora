@@ -235,7 +235,7 @@ for a, b in (("Team", "Arshia Naseer (232428)\nAli Haider Bilal (232398)\nAmmad 
              ("Supervisor", "Mustabshera Fatima"),
              ("Department", "Computer Science, Air University Islamabad"),
              ("Report date", "20 September 2026"),
-             ("Source code", "github.com/ammad-sajjad/Femora (branch main, state as of the AI companion commit 8c5eb71)")):
+             ("Source code", "github.com/ammad-sajjad/Femora (branch main, state as of the AI companion commit 539abce)")):
     cells = tt.add_row().cells
     cells[0].text = ""; cells[1].text = ""
     add_runs(cells[0].paragraphs[0], a, bold=True, color=BERRY)
@@ -925,12 +925,12 @@ table(["Item", "Detail"], [
 ], [3.6, 13.0], caption="Environment", size=8.5)
 H2("9.4 APK builds")
 table(["Build", "Source state", "Result"], [
-    ["1 (20 Sep 2026)", "Commit 6479090 (in-app server address setting added)", "app-release.apk, 19.0 MB (19,873,821 bytes), arm64-v8a, APK signature scheme v2 (debug key), SHA-256 starts 1e8848241c77dd1a. First build took about 13 minutes (cold Gradle cache)"],
-    ["2 (20 Sep 2026)", "Commit 8b0caf7 (only the report, README and scripts changed since build 1)", "Same size, same SHA-256: the rebuild is byte-for-byte identical, which confirms the APK matches the current app code. Took under one minute (warm cache)"],
-    ["3 (20 Sep 2026)", "Commit 8c5eb71 (AI companion, voice, health store, report)", "app-release.apk, 20.9 MB (21,892,133 bytes), arm64-v8a; adds the RECORD_AUDIO permission. A first attempt crashed the Gradle JVM for lack of memory on the 8 GB PC and succeeded when nothing else was running"],
-    ["4 (20 Sep 2026)", "Commit 72ecf4b (Home wired to the health store, heavy-bleeding detector fix)", "app-release.apk, 20.9 MB (21,891,981 bytes), arm64-v8a, RECORD_AUDIO present; SHA-256 starts 2ef1b6e6094741c2. Two earlier attempts of this build were stopped by low memory on the 8 GB PC; it succeeded once other programs used less memory"],
-    ["5 (20 Sep 2026)", "Commit 0c4c007 (phone-voice fallback, backup voice model, audio played from a file)", "app-release.apk, 20.9 MB (21,892,173 bytes), arm64-v8a, RECORD_AUDIO present; SHA-256 starts c8e0d945cb6a6be6"],
-    ["(not built yet)", "Commit d354fb2 (accounts, package rename, companion look, faster voice)", "No APK has been built from this code. The package name is now pk.edu.au.femora, so a new APK installs as a separate app; the earlier one should be uninstalled"],
+    ["1 (20 Sep 2026)", "Commit 1df0052 (in-app server address setting added)", "app-release.apk, 19.0 MB (19,873,821 bytes), arm64-v8a, APK signature scheme v2 (debug key), SHA-256 starts 1e8848241c77dd1a. First build took about 13 minutes (cold Gradle cache)"],
+    ["2 (20 Sep 2026)", "Commit 9338726 (only the report, README and scripts changed since build 1)", "Same size, same SHA-256: the rebuild is byte-for-byte identical, which confirms the APK matches the current app code. Took under one minute (warm cache)"],
+    ["3 (20 Sep 2026)", "Commit 539abce (AI companion, voice, health store, report)", "app-release.apk, 20.9 MB (21,892,133 bytes), arm64-v8a; adds the RECORD_AUDIO permission. A first attempt crashed the Gradle JVM for lack of memory on the 8 GB PC and succeeded when nothing else was running"],
+    ["4 (20 Sep 2026)", "Commit d92408e (Home wired to the health store, heavy-bleeding detector fix)", "app-release.apk, 20.9 MB (21,891,981 bytes), arm64-v8a, RECORD_AUDIO present; SHA-256 starts 2ef1b6e6094741c2. Two earlier attempts of this build were stopped by low memory on the 8 GB PC; it succeeded once other programs used less memory"],
+    ["5 (20 Sep 2026)", "Commit 3599321 (phone-voice fallback, backup voice model, audio played from a file)", "app-release.apk, 20.9 MB (21,892,173 bytes), arm64-v8a, RECORD_AUDIO present; SHA-256 starts c8e0d945cb6a6be6"],
+    ["(not built yet)", "Commit 2d861ad (accounts, package rename, companion look, faster voice)", "No APK has been built from this code. The package name is now pk.edu.au.femora, so a new APK installs as a separate app; the earlier one should be uninstalled"],
 ], [3.0, 5.6, 8.0], caption="Release APK builds", size=8.5,
     note="Both builds pass apksigner verification and request INTERNET, POST_NOTIFICATIONS, RECEIVE_BOOT_COMPLETED and VIBRATE (build 3 also RECORD_AUDIO). The file is copied to the user's Desktop as femora-release-arm64.apk. Build 1 was installed and run on the developer's phone on 20 September 2026 (section 10).")
 
@@ -1041,7 +1041,7 @@ table(["Order", "Item (scope ref.)", "What is needed"], [
 H1("13. AI companion, personal health store and health report")
 para("This chapter covers the work added on 20 and 21 September 2026: a Gemini-based AI companion that understands and speaks Urdu and English, "
      "the on-device health store that connects every part of the app to it, first-launch onboarding, and a one-tap lab-style health report. "
-     "It is in commits b098f85 (backend) and 8c5eb71 (app); sections 13.11 and 13.12 cover the refinements and the accounts added afterwards.")
+     "It is in commits 7f22f33 (backend) and 539abce (app); sections 13.11 and 13.12 cover the refinements and the accounts added afterwards.")
 H2("13.1 What the user gets")
 bullets([
     "**Personal companion.** The AI tab greets the user by first name, lists what it knows (for example \"PCOS high 71%\", the last ultrasound, the last self-exam) and answers with that context.",
@@ -1180,7 +1180,7 @@ table(["Problem", "Fix"], [
 ], [8.0, 8.6], caption="Issues and fixes", size=8.5)
 
 H2("13.11 Companion refinements (21 September 2026)")
-para("Made in a second working session on another PC (commits 25e6841, 41fbecb, e3e1dd2 and d38ab9a). The results below are the measurements recorded in those commits; they have not been re-measured on a phone for this report.")
+para("Made in a second working session on another PC (commits 48e101b, fd651b5, 2c4cb89 and 9dcce5e). The results below are the measurements recorded in those commits; they have not been re-measured on a phone for this report.")
 bullets([
     "**Tone.** The system prompt has a How you speak section: answer like a kind older sister, say one warm sentence that shows she was heard before any advice, and make clear that nothing she asks is silly. The safety rules are unchanged, and softness must not hide a real concern: a message about pain still says to see a doctor.",
     "**Mood buttons.** Six feelings (happy, sad, angry, tired, worried, in pain) as animated emoji. Large circles greet her before the conversation starts, then shrink to a slim strip above the input. A tap sends an ordinary message in her language (Urdu labels included), so the companion answers as if she had typed it. The In pain button uses the bandaged-face emoji because two other candidates drew nothing in the animation library.",
@@ -1189,7 +1189,7 @@ bullets([
     "**Spoken answers are short and start at once.** Measured through the tunnel, the wait after a spoken question was the AI voice, not the model: Gemini text to speech took 4.7 s for one sentence and 16.1 s for a paragraph, so a typical answer needed 25 to 30 s, while chat itself answered in 1.8 s. Now an answer that is read out automatically is spoken by the phone's own voice, which starts at once, costs nothing and works offline; the AI voice stays on the speaker button of each message and is the fallback when a phone has no voice. The chat request carries a brief flag, set when the answer will be spoken, which asks for under 45 words (543 characters became 185 on the same question). This replaces the order described in section 13.5a (AI voice first).",
 ])
 H2("13.12 Accounts (scope 6.1)")
-para("Made on 21 September 2026 (commit d354fb2). Scope item 6.1 asks for secure account creation with email authentication.")
+para("Made on 21 September 2026 (commit 2d861ad). Scope item 6.1 asks for secure account creation with email authentication.")
 bullets([
     "**Why Firebase Authentication.** The Femora backend is a laptop behind a temporary tunnel, so sign-in has to keep working when that machine is off, and nobody on the team should be storing passwords. Only the account lives in Firebase; results, scans, logs and the conversation stay on the phone, so the privacy design in section 13.7 still holds.",
     "**Four ways in:** email and password, Google, phone with an SMS code, and anonymous look around first, because a woman may not want to give an email before she trusts a breast-cancer app. Firebase's error codes are translated into plain sentences (for example That email or password is not correct).",
@@ -1205,7 +1205,7 @@ CYC = json.load(open(ROOT / "ml" / "cycle_results.json", encoding="utf-8"))
 pc0 = lambda x: f"{x * 100:.0f}%"
 H1("14. Menstrual cycle tracking and prediction")
 para("This chapter covers scope item 6.2: logging periods and predicting the next period, ovulation and the fertile window, with notes on late or irregular cycles. "
-     "It was built on 21 September 2026 (commit 388032f). The study behind it is ml/cycle_eval.py; its results are stored in ml/cycle_results.json, from which the tables below are read.")
+     "It was built on 21 September 2026 (commit c134f7e). The study behind it is ml/cycle_eval.py; its results are stored in ml/cycle_results.json, from which the tables below are read.")
 H2("14.1 What the user gets")
 bullets([
     "**Logging.** One tap for My period started today, and My period ended today once it is under way; a date picker or a tap on any past calendar day covers earlier dates. Impossible entries are refused with the reason (a future date, a start less than 15 days from another period, an end more than 15 days after the start).",
@@ -1718,49 +1718,49 @@ table(["Decision", "Reason"], [
 
 H1("Appendix E. Commit history (main branch)")
 table(["Commit", "Date", "Change"], [
-    ["9f369f5", "19 Sep 2026", "Add breast health module: ultrasound CNN, risk questionnaire, self-exam"],
-    ["0654525", "19 Sep 2026", "Document breast module status and next steps in README"],
-    ["f40904a", "19 Sep 2026", "Add BUS-BRA breast ultrasound model and multi-scanner evaluation"],
-    ["88b30f7", "20 Sep 2026", "Add BUS-UCLM experiment notebook (not deployed) and record result"],
-    ["e8eea4a", "20 Sep 2026", "Set breast screening threshold to 0.25 and refresh demo scan"],
-    ["238b7ea", "20 Sep 2026", "Train breast risk questionnaire model on real BCSC data"],
-    ["ce35151", "20 Sep 2026", "Add Hugging Face Space (Docker) files for the backend"],
-    ["6479090", "20 Sep 2026", "Add in-app server address setting and free-tunnel demo script"],
-    ["8ca482f", "20 Sep 2026", "Fix tunnel path in README"],
-    ["8b0caf7", "20 Sep 2026", "Add detailed project progress and technical report (Word)"],
-    ["493889f", "20 Sep 2026", "Update report: APK builds, verification and panel questions"],
-    ["70fd06a", "20 Sep 2026", "Record first real-phone run; clearer demo script prompt"],
-    ["79c81f6, 2397213, 0249b7b", "20 Sep 2026", "Report: phone test plans (ultrasound, questionnaires) and the informal web-image check"],
-    ["f168378", "20 Sep 2026", "Retrain the ultrasound gate to refuse other-organ ultrasounds (ml/train_gate_v2.py, new breast_gate.npz and metadata)"],
-    ["b098f85", "20 Sep 2026", "Add AI companion backend: Gemini chat, voice in and out, safety rules"],
-    ["8c5eb71, dc8249b", "20 Sep 2026", "Add AI companion app: onboarding, on-device health store, chat with voice, one-tap lab-style report; report and README"],
-    ["72ecf4b", "20 Sep 2026", "Wire Home to the health store; catch heavy-bleeding wording in Roman Urdu"],
-    ["0c4c007", "20 Sep 2026", "Voice: phone-voice fallback, backup voice model, audio played from a file"],
-    ["5b17937, 680ede3", "20 Sep 2026", "Report: record APK builds 4 and 5"],
-    ["3306a4b, c124511", "20 Sep 2026", "Handoff notes and the latest APK; backend/.env.example"],
-    ["cb488d3, e66ad4a", "20 Sep 2026", "backend/.env committed at the owner's request; handoff updated"],
-    ["2bbe7b7", "21 Sep 2026", "Report: regenerate the docx with APK build 5; scripts that restore its inputs"],
-    ["25e6841, 41fbecb", "21 Sep 2026", "Companion: warmer voice, animated moods, softer look; emoji fix"],
-    ["e3e1dd2", "21 Sep 2026", "Voice: answer out loud in about a second"],
-    ["d38ab9a", "21 Sep 2026", "Companion: moderate replies; the three effects redrawn in Flutter"],
-    ["d354fb2", "21 Sep 2026", "Accounts: sign in with email, Google, phone or as a guest (Firebase)"],
-    ["0692b15, 8d70906, eddc190", "21 Sep 2026", "Report and handoff updates; dataset search and BUSI-WHU external check; breast module improvement closed"],
-    ["388032f", "21 Sep 2026", "Cycle tracking and prediction: period logging, calendar, predictions, notes, Home card, report panel, ml/cycle_eval.py"],
-    ["c23db27", "21 Sep 2026", "Report chapter 14 on cycle tracking and prediction; README and handoff updated"],
-    ["661e1f9, 2bfbad6, 66f6e1d, 8730a45", "21 Sep 2026", "Symptom and mood tracker, hormonal insights, reminders, reports and dashboard (scope 6.10, 6.6, 6.8, 6.9)"],
-    ["8bc67ca, 7d25fc2", "21 Sep 2026", "PCOS what-if simulator; photograph a medical report"],
-    ["f40568f, 28c4e68, 0acc7b7", "21-22 Sep 2026", "Urdu and English language switch"],
-    ["1dc3076, f2a454a", "22 Sep 2026", "Screenshot harness; app showcase and supervisor progress report PDFs"],
-    ["072e231", "25 Sep 2026", "Home body clock"],
-    ["eac9a21", "25 Sep 2026", "Lesion outline model (U-Net) and Outline view"],
-    ["450b895", "25 Sep 2026", "Show my doctor QR code"],
-    ["74d9f98", "25 Sep 2026", "Morning heart check (phone camera)"],
-    ["37b8f49", "25 Sep 2026", "Smarter companion: trusted notes, checked medicine table, evaluation"],
-    ["cf92172", "25 Sep 2026", "Femora on WhatsApp"],
-    ["caab65e", "25 Sep 2026", "Profile panel; header fixes"],
-    ["5e86f62", "25 Sep 2026", "Nearby care map"],
-    ["8165ace", "25 Sep 2026", "UI review fixes in English and Urdu"],
-    ["f51290a", "30 Sep 2026", "Marketing deck with real phone screenshots; harness safe-area and extra screens (branch marketing-deck)"],
+    ["e56ea2c", "19 Sep 2026", "Add breast health module: ultrasound CNN, risk questionnaire, self-exam"],
+    ["ae333af", "19 Sep 2026", "Document breast module status and next steps in README"],
+    ["413fee5", "19 Sep 2026", "Add BUS-BRA breast ultrasound model and multi-scanner evaluation"],
+    ["13bd165", "20 Sep 2026", "Add BUS-UCLM experiment notebook (not deployed) and record result"],
+    ["d039922", "20 Sep 2026", "Set breast screening threshold to 0.25 and refresh demo scan"],
+    ["fe49f1e", "20 Sep 2026", "Train breast risk questionnaire model on real BCSC data"],
+    ["e46453c", "20 Sep 2026", "Add Hugging Face Space (Docker) files for the backend"],
+    ["1df0052", "20 Sep 2026", "Add in-app server address setting and free-tunnel demo script"],
+    ["8b0f206", "20 Sep 2026", "Fix tunnel path in README"],
+    ["9338726", "20 Sep 2026", "Add detailed project progress and technical report (Word)"],
+    ["0a952b3", "20 Sep 2026", "Update report: APK builds, verification and panel questions"],
+    ["f5cd619", "20 Sep 2026", "Record first real-phone run; clearer demo script prompt"],
+    ["c08679a, f1a78bb, aae4fae", "20 Sep 2026", "Report: phone test plans (ultrasound, questionnaires) and the informal web-image check"],
+    ["0ec576a", "20 Sep 2026", "Retrain the ultrasound gate to refuse other-organ ultrasounds (ml/train_gate_v2.py, new breast_gate.npz and metadata)"],
+    ["7f22f33", "20 Sep 2026", "Add AI companion backend: Gemini chat, voice in and out, safety rules"],
+    ["539abce, f76b8d8", "20 Sep 2026", "Add AI companion app: onboarding, on-device health store, chat with voice, one-tap lab-style report; report and README"],
+    ["d92408e", "20 Sep 2026", "Wire Home to the health store; catch heavy-bleeding wording in Roman Urdu"],
+    ["3599321", "20 Sep 2026", "Voice: phone-voice fallback, backup voice model, audio played from a file"],
+    ["27f363f, 7fcd032", "20 Sep 2026", "Report: record APK builds 4 and 5"],
+    ["3872f60, cffbef3", "20 Sep 2026", "Handoff notes and the latest APK; backend/.env.example"],
+    ["f526f8e, fde05ca", "20 Sep 2026", "backend/.env committed at the owner's request; handoff updated"],
+    ["5cb7d0f", "21 Sep 2026", "Report: regenerate the docx with APK build 5; scripts that restore its inputs"],
+    ["48e101b, fd651b5", "21 Sep 2026", "Companion: warmer voice, animated moods, softer look; emoji fix"],
+    ["2c4cb89", "21 Sep 2026", "Voice: answer out loud in about a second"],
+    ["9dcce5e", "21 Sep 2026", "Companion: moderate replies; the three effects redrawn in Flutter"],
+    ["2d861ad", "21 Sep 2026", "Accounts: sign in with email, Google, phone or as a guest (Firebase)"],
+    ["dd04906, e27e121, 8e00b7c", "21 Sep 2026", "Report and handoff updates; dataset search and BUSI-WHU external check; breast module improvement closed"],
+    ["c134f7e", "21 Sep 2026", "Cycle tracking and prediction: period logging, calendar, predictions, notes, Home card, report panel, ml/cycle_eval.py"],
+    ["5efe4aa", "21 Sep 2026", "Report chapter 14 on cycle tracking and prediction; README and handoff updated"],
+    ["e4a071e, ec8e2d6, c3b7763, 6534af5", "21 Sep 2026", "Symptom and mood tracker, hormonal insights, reminders, reports and dashboard (scope 6.10, 6.6, 6.8, 6.9)"],
+    ["ea9e34b, a2490d7", "21 Sep 2026", "PCOS what-if simulator; photograph a medical report"],
+    ["6130ead, 04e1369, ea9fa2d", "21-22 Sep 2026", "Urdu and English language switch"],
+    ["09e4e92, 15bb1c1", "22 Sep 2026", "Screenshot harness; app showcase and supervisor progress report PDFs"],
+    ["67b8f19", "25 Sep 2026", "Home body clock"],
+    ["7798cef", "25 Sep 2026", "Lesion outline model (U-Net) and Outline view"],
+    ["5e05d4e", "25 Sep 2026", "Show my doctor QR code"],
+    ["5e208cb", "25 Sep 2026", "Morning heart check (phone camera)"],
+    ["d9706df", "25 Sep 2026", "Smarter companion: trusted notes, checked medicine table, evaluation"],
+    ["47e8bcf", "25 Sep 2026", "Femora on WhatsApp"],
+    ["b5d4659", "25 Sep 2026", "Profile panel; header fixes"],
+    ["9c7d845", "25 Sep 2026", "Nearby care map"],
+    ["36081e9", "25 Sep 2026", "UI review fixes in English and Urdu"],
+    ["d1c2a0e", "30 Sep 2026", "Marketing deck with real phone screenshots; harness safe-area and extra screens (branch marketing-deck)"],
 ], [2.4, 3.0, 11.2], caption="Commits made during this period")
 
 H1("Appendix F. Questions a panel may ask")
