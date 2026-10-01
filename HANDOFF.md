@@ -1,6 +1,6 @@
 # Femora: handoff notes (state on 29 September 2026)
 
-Read this first when continuing on another PC (or in a new Claude Code session: say "read HANDOFF.md and continue").
+Read this first when continuing on another PC (or in a new session: say "read HANDOFF.md and continue").
 The earlier chat transcript lives only on the home PC, so this file carries the context.
 
 ## What Femora is
@@ -82,7 +82,7 @@ with `VIRTUAL_ENV=ml/.venv uv pip install python-docx pywin32` (the venvs are uv
 
 ## Open items and ideas
 1. Real-phone check: voice, report share, notifications, accounts, and now the heart check (real camera), map tiles, QR scanned by another phone, profile panel.
-2. Branch `bucket-features` (pushed) holds the 25 Sep work; merge it into `main` when happy (not merged by Claude).
+2. Branch `bucket-features` (pushed) holds the 25 Sep work; merge it into `main` when happy (not merged yet).
 3. Companion: clinician review of a sample of answers; native-speaker review of all Urdu.
 4. WhatsApp: create the Meta app and set the four WHATSAPP_* keys (backend/README.md). Nearby care: add GOOGLE_PLACES_API_KEY once a Google Cloud account with billing is possible.
 5. Revoke the exposed Gemini key and the Hugging Face token; use a paid Gemini key for real users.
