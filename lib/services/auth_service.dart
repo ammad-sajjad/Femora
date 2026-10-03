@@ -125,8 +125,12 @@ class FirebaseAuthService implements AuthService {
       case 'invalid-phone-number':
         return 'That phone number does not look right. Include the country code, like +92.';
       case 'operation-not-allowed':
-        return 'This way of signing in is not enabled for the app yet.';
+        return 'Phone or Google sign-in is not enabled in Firebase Console yet.';
       default:
+        final msg = e.message?.trim();
+        if (msg != null && msg.isNotEmpty) {
+          return 'Could not sign in: $msg';
+        }
         return 'Could not sign in (${e.code}). Please try again.';
     }
   }

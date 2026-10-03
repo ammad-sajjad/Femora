@@ -789,6 +789,22 @@ class _PhoneSignInState extends State<_PhoneSignIn> {
     super.dispose();
   }
 
+  String _cleanPhone(String input) {
+    var s = input.trim().replaceAll(RegExp(r'[\s\-\(\)]'), '');
+    if (s.startsWith('+920')) {
+      s = '+92${s.substring(4)}';
+    } else if (s.startsWith('0092')) {
+      s = '+92${s.substring(4)}';
+    } else if (s.startsWith('03')) {
+      s = '+92${s.substring(1)}';
+    } else if (!s.startsWith('+') && s.startsWith('92')) {
+      s = '+$s';
+    } else if (!s.startsWith('+') && s.length == 10 && s.startsWith('3')) {
+      s = '+92$s';
+    }
+    return s;
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthState>();
@@ -834,7 +850,7 @@ class _PhoneSignInState extends State<_PhoneSignIn> {
                   ? null
                   : () async {
                       final state = context.read<AuthState>();
-                      final ok = waiting ? await state.confirmCode(_code.text) : await state.sendCode(_phone.text);
+                      final ok = waiting ? await state.confirmCode(_code.text.trim()) : await state.sendCode(_cleanPhone(_phone.text));
                       if (ok && waiting && context.mounted) Navigator.pop(context);
                     },
               child: Container(
