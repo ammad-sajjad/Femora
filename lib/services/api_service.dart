@@ -43,6 +43,7 @@ class ApiService {
   /// Override with `flutter run --dart-define=API_BASE_URL=http://192.168.1.5:8000`
   /// when running on a physical phone (use your computer's Wi-Fi IP address).
   static const String _envBaseUrl = String.fromEnvironment('API_BASE_URL');
+  static const String _hostedBaseUrl = 'https://femora-api-production.up.railway.app';
 
   // Server address chosen inside the app (long-press the header): lets a demo point the same APK at a new tunnel address.
   static const String _prefsKey = 'api_base_url';
@@ -79,6 +80,8 @@ class ApiService {
   static String get baseUrl {
     if (_serverOverride != null) return _serverOverride!;
     if (_envBaseUrl.isNotEmpty) return _envBaseUrl;
+    // Release builds talk to the hosted server on Railway; debug runs use a local one
+    if (kReleaseMode) return _hostedBaseUrl;
     // The Android emulator reaches the host computer's localhost via 10.0.2.2
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       return 'http://10.0.2.2:8000';
