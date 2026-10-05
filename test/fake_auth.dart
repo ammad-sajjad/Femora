@@ -72,17 +72,16 @@ class FakeAuth implements AuthService {
   }
 
   @override
-  Future<String> startPhoneSignIn(String phoneNumber, {void Function(AppUser user)? onAutoVerified}) async {
-    calls.add('startPhoneSignIn:$phoneNumber');
+  Future<void> sendEmailCode(String email) async {
+    calls.add('sendEmailCode:$email');
     if (failWith != null) _fail();
-    return 'verification-id';
   }
 
   @override
-  Future<AppUser> confirmPhoneCode({required String verificationId, required String code}) async {
-    calls.add('confirmPhoneCode:$code');
+  Future<AppUser> confirmEmailCode({required String email, required String code}) async {
+    calls.add('confirmEmailCode:$code');
     if (failWith != null) _fail();
-    return _succeed(const AppUser(id: 'uid-phone', phone: '+923001234567'));
+    return _succeed(AppUser(id: 'uid-code-${email.hashCode}', email: email));
   }
 
   @override

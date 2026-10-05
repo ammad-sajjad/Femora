@@ -480,17 +480,17 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                     ),
                     const SizedBox(height: 10),
 
-                    // ── Continue with Phone Number ──
+                    // ── Continue with Email Code ──
                     SlideTransition(
                       position: _socialSlide,
                       child: FadeTransition(
                         opacity: _socialFade,
                         child: _outlineButton(
-                          key: const Key('auth_phone'),
-                          icon: Icons.phone_iphone_rounded,
+                          key: const Key('auth_email_code'),
+                          icon: Icons.mark_email_read_rounded,
                           iconColor: const Color(0xFFD35E81),
-                          label: 'Continue with phone number',
-                          onTap: auth.busy ? null : () => _openPhoneSheet(context),
+                          label: 'Continue with email code',
+                          onTap: auth.busy ? null : () => _openEmailCodeSheet(context),
                         ),
                       ),
                     ),
@@ -708,7 +708,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
         ),
       );
 
-  void _openPhoneSheet(BuildContext context) {
+  void _openEmailCodeSheet(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -716,7 +716,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (sheet) => Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.of(sheet).viewInsets.bottom),
-        child: const _PhoneSignIn(),
+        child: const _EmailCodeSignIn(),
       ),
     ).then((_) => context.mounted ? context.read<AuthState>().cancelCode() : null);
   }
@@ -770,39 +770,23 @@ class _FluidPressState extends State<_FluidPress> with SingleTickerProviderState
   }
 }
 
-/// Phone sign-in: number first, then the code that arrives by SMS.
-class _PhoneSignIn extends StatefulWidget {
-  const _PhoneSignIn();
+/// Email-code sign-in: address first, then the 6-digit code that arrives by email.
+class _EmailCodeSignIn extends StatefulWidget {
+  const _EmailCodeSignIn();
 
   @override
-  State<_PhoneSignIn> createState() => _PhoneSignInState();
+  State<_EmailCodeSignIn> createState() => _EmailCodeSignInState();
 }
 
-class _PhoneSignInState extends State<_PhoneSignIn> {
-  final _phone = TextEditingController(text: '+92');
+class _EmailCodeSignInState extends State<_EmailCodeSignIn> {
+  final _email = TextEditingController();
   final _code = TextEditingController();
 
   @override
   void dispose() {
-    _phone.dispose();
+    _email.dispose();
     _code.dispose();
     super.dispose();
-  }
-
-  String _cleanPhone(String input) {
-    var s = input.trim().replaceAll(RegExp(r'[\s\-\(\)]'), '');
-    if (s.startsWith('+920')) {
-      s = '+92${s.substring(4)}';
-    } else if (s.startsWith('0092')) {
-      s = '+92${s.substring(4)}';
-    } else if (s.startsWith('03')) {
-      s = '+92${s.substring(1)}';
-    } else if (!s.startsWith('+') && s.startsWith('92')) {
-      s = '+$s';
-    } else if (!s.startsWith('+') && s.length == 10 && s.startsWith('3')) {
-      s = '+92$s';
-    }
-    return s;
   }
 
   @override
@@ -816,23 +800,23 @@ class _PhoneSignInState extends State<_PhoneSignIn> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(waiting ? 'Enter the code we sent you' : 'Sign in with your phone number',
+            Text(waiting ? 'Enter the code we emailed you' : 'Sign in with a code by email',
                 style: const TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textDark)),
             const SizedBox(height: 4),
             Text(
               waiting
-                  ? 'Your phone may fill it in by itself. If it does, you are already signed in.'
-                  : 'Include the country code, for example +92 300 1234567.',
+                  ? 'It can take a minute to arrive. Check your spam folder if you do not see it.'
+                  : 'We will email you a 6-digit code. No password needed.',
               style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, color: AppColors.textMuted, height: 1.4),
             ),
             const SizedBox(height: 14),
             TextField(
-              key: waiting ? const Key('auth_sms_code') : const Key('auth_phone_number'),
-              controller: waiting ? _code : _phone,
-              keyboardType: TextInputType.phone,
+              key: waiting ? const Key('auth_email_code_input') : const Key('auth_email_code_address'),
+              controller: waiting ? _code : _email,
+              keyboardType: waiting ? TextInputType.number : TextInputType.emailAddress,
               style: const TextStyle(fontFamily: 'Inter', fontSize: 15, color: AppColors.textDark),
               decoration: InputDecoration(
-                hintText: waiting ? '6-digit code' : '+92 300 1234567',
+                hintText: waiting ? '6-digit code' : 'you@example.com',
                 filled: true,
                 fillColor: AppColors.background,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
@@ -845,12 +829,12 @@ class _PhoneSignInState extends State<_PhoneSignIn> {
               ),
             const SizedBox(height: 14),
             GestureDetector(
-              key: const Key('auth_phone_submit'),
+              key: const Key('auth_email_code_submit'),
               onTap: auth.busy
                   ? null
                   : () async {
                       final state = context.read<AuthState>();
-                      final ok = waiting ? await state.confirmCode(_code.text.trim()) : await state.sendCode(_cleanPhone(_phone.text));
+                      final ok = waiting ? await state.confirmCode(_code.text.trim()) : await state.sendCode(_email.text.trim());
                       if (ok && waiting && context.mounted) Navigator.pop(context);
                     },
               child: Container(

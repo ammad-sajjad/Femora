@@ -37,8 +37,8 @@ class AuthState extends ChangeNotifier {
   String? get error => _error;
 
   /// Set while a code has been sent and she is expected to type it.
-  String? _verificationId;
-  bool get awaitingCode => _verificationId != null;
+  String? _codeEmail;
+  bool get awaitingCode => _codeEmail != null;
 
   void clearError() {
     if (_error == null) return;
@@ -78,19 +78,20 @@ class AuthState extends ChangeNotifier {
 
   Future<bool> continueAsGuest() => _run(() => _service.continueAsGuest());
 
-  Future<bool> sendCode(String phoneNumber) => _run(() async {
-        _verificationId = await _service.startPhoneSignIn(phoneNumber);
+  Future<bool> sendCode(String email) => _run(() async {
+        await _service.sendEmailCode(email);
+        _codeEmail = email;
       });
 
   Future<bool> confirmCode(String code) => _run(() async {
-        final id = _verificationId;
-        if (id == null) throw AuthException('Please ask for a code first.');
-        await _service.confirmPhoneCode(verificationId: id, code: code);
-        _verificationId = null;
+        final email = _codeEmail;
+        if (email == null) throw AuthException('Please ask for a code first.');
+        await _service.confirmEmailCode(email: email, code: code);
+        _codeEmail = null;
       });
 
   void cancelCode() {
-    _verificationId = null;
+    _codeEmail = null;
     _error = null;
     notifyListeners();
   }
