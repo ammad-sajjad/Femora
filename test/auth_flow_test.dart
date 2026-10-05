@@ -110,25 +110,25 @@ void main() {
     expect(auth.current?.isGuest, isTrue);
   });
 
-  testWidgets('phone sign-in sends a code, then confirms it', (tester) async {
+  testWidgets('email-code sign-in sends a code, then confirms it', (tester) async {
     _tallScreen(tester);
     final auth = FakeAuth();
     addTearDown(auth.dispose);
     await tester.pumpWidget(_screen(auth));
 
-    await tester.tap(find.byKey(const Key('auth_phone')));
+    await tester.tap(find.byKey(const Key('auth_email_code')));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byKey(const Key('auth_phone_number')), '+923001234567');
-    await tester.tap(find.byKey(const Key('auth_phone_submit')));
+    await tester.enterText(find.byKey(const Key('auth_email_code_address')), 'ayesha@example.com');
+    await tester.tap(find.byKey(const Key('auth_email_code_submit')));
     await tester.pumpAndSettle();
-    expect(auth.calls, contains('startPhoneSignIn:+923001234567'));
+    expect(auth.calls, contains('sendEmailCode:ayesha@example.com'));
 
-    await tester.enterText(find.byKey(const Key('auth_sms_code')), '123456');
-    await tester.tap(find.byKey(const Key('auth_phone_submit')));
+    await tester.enterText(find.byKey(const Key('auth_email_code_input')), '123456');
+    await tester.tap(find.byKey(const Key('auth_email_code_submit')));
     await tester.pumpAndSettle();
-    expect(auth.calls, contains('confirmPhoneCode:123456'));
-    expect(auth.current?.phone, '+923001234567');
+    expect(auth.calls, contains('confirmEmailCode:123456'));
+    expect(auth.current?.email, 'ayesha@example.com');
   });
 
   testWidgets('two accounts on one phone never see each other\'s results', (tester) async {

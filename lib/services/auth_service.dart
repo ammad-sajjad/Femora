@@ -1,7 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
+
+import 'api_service.dart';
 
 /// Who is signed in, in the app's own terms.
 ///
@@ -40,11 +44,10 @@ abstract class AuthService {
   /// Anonymous sign-in, so she can look around before deciding to register.
   Future<AppUser> continueAsGuest();
 
-  /// Sends the code and returns the id needed to confirm it. [onAutoVerified] fires when Android
-  /// reads the SMS by itself, which it often does in Pakistan, and then no code has to be typed.
-  Future<String> startPhoneSignIn(String phoneNumber, {void Function(AppUser user)? onAutoVerified});
+  /// Emails her a 6-digit sign-in code. Replaces SMS codes, which Firebase only sends on its paid plan.
+  Future<void> sendEmailCode(String email);
 
-  Future<AppUser> confirmPhoneCode({required String verificationId, required String code});
+  Future<AppUser> confirmEmailCode({required String email, required String code});
 
   Future<void> signOut();
 }
@@ -126,6 +129,9 @@ class FirebaseAuthService implements AuthService {
         return 'That phone number does not look right. Include the country code, like +92.';
       case 'operation-not-allowed':
         return 'Phone or Google sign-in is not enabled in Firebase Console yet.';
+      case 'billing-not-enabled':
+      case 'quota-exceeded':
+        return 'Text-message codes are not available right now. Please sign in with email or Google instead.';
       default:
         final msg = e.message?.trim();
         if (msg != null && msg.isNotEmpty) {
@@ -186,37 +192,37 @@ class FirebaseAuthService implements AuthService {
   Future<AppUser> continueAsGuest() => _guard(() => _auth.signInAnonymously());
 
   @override
-  Future<String> startPhoneSignIn(String phoneNumber, {void Function(AppUser user)? onAutoVerified}) async {
-    final sent = Completer<String>();
-    try {
-      await _auth.verifyPhoneNumber(
-        phoneNumber: phoneNumber.trim(),
-        verificationCompleted: (credential) async {
-          // Android can read the SMS itself; if it does, she never types the code.
-          final result = await _auth.signInWithCredential(credential);
-          final user = _wrap(result.user);
-          if (user != null) onAutoVerified?.call(user);
-        },
-        verificationFailed: (e) {
-          if (!sent.isCompleted) sent.completeError(AuthException(_message(e)));
-        },
-        codeSent: (verificationId, _) {
-          if (!sent.isCompleted) sent.complete(verificationId);
-        },
-        codeAutoRetrievalTimeout: (verificationId) {
-          if (!sent.isCompleted) sent.complete(verificationId);
-        },
-      );
-    } on fb.FirebaseAuthException catch (e) {
-      throw AuthException(_message(e));
-    }
-    return sent.future;
+  Future<void> sendEmailCode(String email) async {
+    await _postToServer('/auth/email/start', {'email': email.trim()});
   }
 
   @override
-  Future<AppUser> confirmPhoneCode({required String verificationId, required String code}) {
-    final credential = fb.PhoneAuthProvider.credential(verificationId: verificationId, smsCode: code.trim());
-    return _guard(() => _auth.signInWithCredential(credential));
+  Future<AppUser> confirmEmailCode({required String email, required String code}) async {
+    final body = await _postToServer('/auth/email/verify', {'email': email.trim(), 'code': code.trim()});
+    final token = body['token'];
+    if (token is! String) throw AuthException('Could not sign in. Please ask for a new code.');
+    return _guard(() => _auth.signInWithCustomToken(token));
+  }
+
+  /// The email code lives on the Femora server, which emails it and swaps a correct code for a Firebase token.
+  Future<Map<String, dynamic>> _postToServer(String path, Map<String, String> body) async {
+    final http.Response r;
+    try {
+      r = await http
+          .post(Uri.parse('${ApiService.baseUrl}$path'), headers: {'Content-Type': 'application/json'}, body: jsonEncode(body))
+          .timeout(const Duration(seconds: 30));
+    } catch (_) {
+      throw AuthException('No connection. Please check your internet and try again.');
+    }
+    Map<String, dynamic> data = {};
+    try {
+      data = jsonDecode(r.body) as Map<String, dynamic>;
+    } catch (_) {}
+    if (r.statusCode != 200) {
+      final detail = data['detail'];
+      throw AuthException(detail is String ? detail : 'That email address does not look right.');
+    }
+    return data;
   }
 
   @override
@@ -283,15 +289,11 @@ class GuestAuthService implements AuthService {
   }
 
   @override
-  Future<String> startPhoneSignIn(String phoneNumber, {void Function(AppUser user)? onAutoVerified}) async {
-    final user = AppUser(id: 'phone_web_user', phone: phoneNumber.trim());
-    onAutoVerified?.call(user);
-    return 'demo_verification_id';
-  }
+  Future<void> sendEmailCode(String email) async {}
 
   @override
-  Future<AppUser> confirmPhoneCode({required String verificationId, required String code}) async {
-    _user = const AppUser(id: 'phone_web_user', phone: '+923001234567');
+  Future<AppUser> confirmEmailCode({required String email, required String code}) async {
+    _user = AppUser(id: 'user_${email.hashCode.abs()}', email: email, name: email.split('@').first);
     _controller.add(_user);
     return _user!;
   }

@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 
 import companion
 import doctors
+import email_otp
 import lesion_outline
 import places
 import report_reader
@@ -32,6 +33,7 @@ app.include_router(companion.router)   # AI companion: /chat, /voice/transcribe,
 app.include_router(report_reader.router)  # /report/explain: photo of a medical report explained in Urdu or English
 app.include_router(places.router)  # /places/nearby: hospitals, gynaecologists, clinics, labs, imaging
 app.include_router(doctors.router)  # /doctors/nearby: individual doctors with a mini profile (Google Places, else OpenStreetMap)
+app.include_router(email_otp.router)  # /auth/email/start, /auth/email/verify: sign-in code by email
 app.include_router(whatsapp.router)  # /whatsapp/webhook: the companion on WhatsApp (Meta Cloud API)
 
 @app.get("/")
