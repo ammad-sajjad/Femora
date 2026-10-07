@@ -51,6 +51,14 @@
           }
         },
         {
+          "client_id": "632943140270-9606pl6agugssvcifo9osecgvggg9lp6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "pk.edu.au.femora",
+            "certificate_hash": "ff974c17c6b044d711490da74aae47f60f08e350"
+          }
+        },
+        {
           "client_id": "632943140270-1rfa9m23459tvl8ao7cqitl3mi6a2vn9.apps.googleusercontent.com",
           "client_type": 3
         }
