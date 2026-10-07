@@ -63,7 +63,7 @@ void main() {
     Future<void> _launch(WidgetTester tester, {required String language}) async {
       _tallScreen(tester);
       SharedPreferences.setMockInitialValues(_savedProfile(language));
-      await tester.pumpWidget(FemoraApp(authService: FakeAuth(signedInAs: const AppUser(id: _uid, email: 'a@example.com', name: 'Ayesha'))));
+      await tester.pumpWidget(FemoraApp(authService: FakeAuth(signedInAs: const AppUser(id: _uid, email: 'a@gmail.com', name: 'Ayesha'))));
       await tester.pumpAndSettle();
       expect(find.byType(MainShellScreen), findsOneWidget); // the seeded profile is already onboarded
     }

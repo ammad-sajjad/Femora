@@ -1,8 +1,10 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../models/auth_state.dart';
+import '../models/email_check.dart';
 import '../theme/app_theme.dart';
 import '../widgets/companion_effects.dart';
 
@@ -24,6 +26,8 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   bool _registering = false;
   bool _hidePassword = true;
+  String? _emailIssue; // set by the online check (domain cannot receive mail)
+  bool _checkingEmail = false;
 
   // ── Entrance animations ──
   late final AnimationController _entranceCtrl = AnimationController(
@@ -116,13 +120,29 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _submit() async {
+    if (_checkingEmail) return;
+    _emailIssue = null;
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
     final auth = context.read<AuthState>();
     if (_registering) {
-      await auth.register(_name.text, _email.text, _password.text);
+      // Before making an account, make sure the address can actually receive email.
+      setState(() => _checkingEmail = true);
+      final issue = await EmailCheck.problem(_email.text);
+      if (!mounted) return;
+      setState(() {
+        _checkingEmail = false;
+        _emailIssue = issue;
+      });
+      if (issue != null) {
+        _formKey.currentState!.validate();
+        return;
+      }
+      await auth.register(_name.text.trim(), _email.text.trim(), _password.text);
+      // The account waits for its confirmation link: switch to sign-in with the address filled in.
+      if (mounted && auth.notice != null) setState(() => _registering = false);
     } else {
-      await auth.signIn(_email.text, _password.text);
+      await auth.signIn(_email.text.trim(), _password.text);
     }
   }
 
@@ -298,8 +318,13 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                                   controller: _name,
                                   hint: 'Your first name',
                                   icon: Icons.person_outline_rounded,
-                                  validator: (v) =>
-                                      (v == null || v.trim().isEmpty) ? 'Please tell me what to call you.' : null,
+                                  validator: EmailCheck.nameProblem,
+                                  formatters: [
+                                    FilteringTextInputFormatter.allow(EmailCheck.nameCharacters),
+                                    FilteringTextInputFormatter.deny(RegExp(r'^ | (?= )')), // no leading or double spaces
+                                    LengthLimitingTextInputFormatter(30),
+                                  ],
+                                  keyboardType: TextInputType.name,
                                 ),
                               _field(
                                 key: const Key('auth_email'),
@@ -307,10 +332,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                                 hint: 'Email address',
                                 icon: Icons.mail_outline_rounded,
                                 keyboardType: TextInputType.emailAddress,
-                                validator: (v) =>
-                                    (v == null || !v.contains('@') || !v.contains('.'))
-                                        ? 'Please enter a valid email address.'
-                                        : null,
+                                validator: (v) => EmailCheck.formatProblem(v) ?? _emailIssue,
                               ),
                               _field(
                                 key: const Key('auth_password'),
@@ -368,6 +390,30 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                         ),
                       ),
 
+                    // ── Notice (e.g. confirm your email) ──
+                    if (auth.notice != null)
+                      Container(
+                        key: const Key('auth_notice'),
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE8F5EE),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.mark_email_read_outlined, size: 18, color: Color(0xFF15803D)),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                auth.notice!,
+                                style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, color: AppColors.textDark),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
                     // ── Error Message ──
                     if (auth.error != null)
                       Container(
@@ -405,7 +451,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                         child: _primaryButton(
                           key: const Key('auth_submit'),
                           label: _registering ? 'Create account' : 'Sign In',
-                          busy: auth.busy,
+                          busy: auth.busy || _checkingEmail,
                           onTap: _submit,
                         ),
                       ),
@@ -562,6 +608,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     TextInputType? keyboardType,
     bool obscure = false,
     Widget? suffix,
+    List<TextInputFormatter>? formatters,
   }) =>
       Padding(
         padding: const EdgeInsets.only(bottom: 14),
@@ -570,6 +617,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
           controller: controller,
           obscureText: obscure,
           keyboardType: keyboardType,
+          inputFormatters: formatters,
           validator: validator,
           style: const TextStyle(fontFamily: 'Inter', fontSize: 14, color: AppColors.textDark),
           decoration: InputDecoration(
@@ -781,6 +829,7 @@ class _EmailCodeSignIn extends StatefulWidget {
 class _EmailCodeSignInState extends State<_EmailCodeSignIn> {
   final _email = TextEditingController();
   final _code = TextEditingController();
+  String? _issue; // what is wrong with the typed address, shown under the field
 
   @override
   void dispose() {
@@ -822,6 +871,12 @@ class _EmailCodeSignInState extends State<_EmailCodeSignIn> {
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
               ),
             ),
+            if (!waiting && _issue != null)
+              Padding(
+                key: const Key('auth_email_code_issue'),
+                padding: const EdgeInsets.only(top: 10),
+                child: Text(_issue!, style: const TextStyle(fontFamily: 'Inter', fontSize: 12.5, color: AppColors.accentPink)),
+              ),
             if (auth.error != null)
               Padding(
                 padding: const EdgeInsets.only(top: 10),
@@ -834,6 +889,12 @@ class _EmailCodeSignInState extends State<_EmailCodeSignIn> {
                   ? null
                   : () async {
                       final state = context.read<AuthState>();
+                      if (!waiting) {
+                        final issue = await EmailCheck.problem(_email.text);
+                        if (!mounted) return;
+                        setState(() => _issue = issue);
+                        if (issue != null) return;
+                      }
                       final ok = waiting ? await state.confirmCode(_code.text.trim()) : await state.sendCode(_email.text.trim());
                       if (ok && waiting && context.mounted) Navigator.pop(context);
                     },

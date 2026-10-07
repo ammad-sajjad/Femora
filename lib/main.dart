@@ -54,21 +54,39 @@ class FemoraApp extends StatefulWidget {
   State<FemoraApp> createState() => _FemoraAppState();
 }
 
-class _FemoraAppState extends State<FemoraApp> {
+class _FemoraAppState extends State<FemoraApp> with WidgetsBindingObserver {
   // The on-device health store connects every part of the app: results, logs, the companion and the report
   // The store is not loaded here any more: it is loaded for whichever account signs in.
   late final HealthStore _store = HealthStore();
   late final AppState _app = AppState()..onSaveLog = _store.addLog;
   late final ChatState _chat = ChatState();
-  late final AuthState _auth = AuthState(service: widget.authService ?? FirebaseAuthService());
+  late final AuthState _auth = AuthState(
+    service: widget.authService ?? FirebaseAuthService(),
+    // A deactivated account is signed out within seconds (checked while the app is open).
+    accountCheckEvery: widget.authService == null ? const Duration(seconds: 10) : null,
+  );
   late final RemindersState _reminders = RemindersState()..load();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // Reminders follow the cycle: recalculated whenever periods are logged or an account's data loads
     _store.onCycleChanged = () => _reminders.apply(_store.cycle);
     _store.onCleared = _reminders.clearAll;
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Coming back to the app checks straight away, rather than waiting for the next timed check.
+    if (state == AppLifecycleState.resumed) _auth.checkAccount();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _auth.dispose();
+    super.dispose();
   }
 
   @override

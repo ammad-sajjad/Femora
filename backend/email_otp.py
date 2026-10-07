@@ -17,6 +17,7 @@ import secrets
 import threading
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 
 from fastapi import APIRouter, HTTPException
@@ -27,7 +28,61 @@ router = APIRouter()
 CODE_TTL_SECONDS = 10 * 60
 RESEND_AFTER_SECONDS = 60
 MAX_ATTEMPTS = 5
-EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+EMAIL_RE = re.compile(r"^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*"
+                      r"@([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,24}$")
+
+# Same lists as the app (lib/models/email_check.dart), so calling the API directly cannot skip them.
+TYPOS = {
+    "gmial.com": "gmail.com", "gmal.com": "gmail.com", "gamil.com": "gmail.com", "gmai.com": "gmail.com",
+    "gmil.com": "gmail.com", "gmaill.com": "gmail.com", "gnail.com": "gmail.com", "gmail.co": "gmail.com",
+    "gmail.con": "gmail.com", "gmail.cm": "gmail.com", "gmail.om": "gmail.com", "gmail.comm": "gmail.com",
+    "gmail.pk": "gmail.com", "g.com": "gmail.com", "gm.com": "gmail.com",
+    "yaho.com": "yahoo.com", "yahooo.com": "yahoo.com", "yahoo.co": "yahoo.com", "yahoo.con": "yahoo.com",
+    "hotmial.com": "hotmail.com", "hotmal.com": "hotmail.com", "hotmail.co": "hotmail.com", "hotmail.con": "hotmail.com",
+    "outlok.com": "outlook.com", "outloo.com": "outlook.com", "outlook.co": "outlook.com", "outlook.con": "outlook.com",
+    "iclod.com": "icloud.com", "icloud.co": "icloud.com",
+}
+DISPOSABLE = {
+    "mailinator.com", "yopmail.com", "guerrillamail.com", "guerrillamail.net", "sharklasers.com", "10minutemail.com",
+    "tempmail.com", "temp-mail.org", "tempmail.net", "throwawaymail.com", "trashmail.com", "getnada.com", "nada.email",
+    "dispostable.com", "fakeinbox.com", "maildrop.cc", "mintemail.com", "mohmal.com", "emailondeck.com", "tempr.email",
+    "discard.email", "spamgourmet.com", "mailnesia.com", "mytemp.email", "tempinbox.com", "burnermail.io", "moakt.com",
+}
+RESERVED = {"example.com", "example.org", "example.net", "test.com", "fake.com", "fakemail.com", "domain.com",
+            "abc.com", "xyz.com", "asdf.com", "qwerty.com", "localhost"}
+RESERVED_TLDS = {"test", "example", "invalid", "localhost", "local"}
+PROVIDERS = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com"]
+REAL_LOOKALIKES = {"mail.com", "email.com", "ymail.com", "gmx.com", "live.com", "msn.com", "aol.com", "me.com", "mac.com",
+                   "proton.me", "protonmail.com", "pm.me", "zoho.com", "yandex.com", "rocketmail.com", "hey.com", "fastmail.com"}
+COM_TYPOS = {"co", "con", "cm", "om", "comm", "cmo", "cpm", "vom", "xom", "cim", "coom", "c"}
+_mx_cache: dict[str, tuple[float, bool | None]] = {}
+
+
+def _distance(a: str, b: str) -> int:
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        cur = [i]
+        for j, cb in enumerate(b, 1):
+            cur.append(min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (ca != cb)))
+        prev = cur
+    return prev[-1]
+
+
+def lookalike_of(domain: str) -> str | None:
+    """The big provider a domain misspells (gml.com, gmaail.com, hotmil.com, gmail.cmo), or None.
+    Such domains are often registered by others with working mail servers, so the DNS check alone misses them."""
+    if domain in PROVIDERS or domain in REAL_LOOKALIKES or "." not in domain:
+        return None
+    name, tld = domain.rsplit(".", 1)
+    for provider in PROVIDERS:
+        p_name = provider.split(".")[0]
+        if name == p_name and tld in COM_TYPOS:
+            return provider
+        if len(name) >= 3 and name != p_name and _distance(name, p_name) <= 2 and (tld == "com" or tld in COM_TYPOS):
+            return provider
+        if domain != provider and _distance(domain, provider) <= 2:
+            return provider
+    return None
 
 _lock = threading.Lock()
 _pending: dict[str, dict] = {}  # email -> {"hash", "expires", "sent", "attempts"}
@@ -52,6 +107,42 @@ def _normalise(email: str) -> str:
     if not EMAIL_RE.match(email):
         raise HTTPException(422, "That email address does not look right.")
     return email
+
+
+def _domain_takes_mail(domain: str) -> bool | None:
+    """True/False from a DNS MX lookup (over HTTPS), or None when it could not be checked; then the code decides."""
+    now = time.time()
+    hit = _mx_cache.get(domain)
+    if hit and now - hit[0] < 3600:
+        return hit[1]
+    result = None
+    try:
+        url = "https://dns.google/resolve?" + urllib.parse.urlencode({"name": domain, "type": "MX"})
+        with urllib.request.urlopen(url, timeout=5) as r:
+            data = json.loads(r.read())
+        if data.get("Status") == 3:  # the domain does not exist
+            result = False
+        elif data.get("Status") == 0:
+            result = any(a.get("type") == 15 and a.get("data", "").strip() != "0 ." for a in data.get("Answer", []))
+    except Exception:  # no network or DNS trouble: do not block sign-in over it
+        result = None
+    if result is not None:
+        _mx_cache[domain] = (now, result)
+    return result
+
+
+def _check_real(email: str) -> None:
+    """Refuses typos of big providers, throwaway inboxes, made-up domains and domains that cannot receive mail."""
+    local, domain = email.rsplit("@", 1)
+    fix = TYPOS.get(domain) or lookalike_of(domain)
+    if fix:
+        raise HTTPException(422, f"Did you mean {local}@{fix}?")
+    if domain in DISPOSABLE:
+        raise HTTPException(422, "Temporary email addresses cannot be used. Please use your own email.")
+    if domain in RESERVED or domain.rsplit(".", 1)[-1] in RESERVED_TLDS:
+        raise HTTPException(422, "That is not a real email address. Please use your own email.")
+    if _domain_takes_mail(domain) is False:
+        raise HTTPException(422, f"No email can be delivered to @{domain}. Please check the address.")
 
 
 def _hash(email: str, code: str) -> str:
@@ -117,6 +208,7 @@ def _custom_token(email: str) -> str:
 @router.post("/auth/email/start")
 def start(req: EmailStart):
     email = _normalise(req.email)
+    _check_real(email)
     now = time.time()
     with _lock:
         prev = _pending.get(email)

@@ -1,6 +1,7 @@
 import 'package:femora/models/auth_state.dart';
 import 'package:femora/models/health_store.dart';
 import 'package:femora/screens/auth_screen.dart';
+import 'package:femora/services/auth_service.dart';
 import 'package:femora/widgets/companion_effects.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -33,13 +34,13 @@ void main() {
     addTearDown(auth.dispose);
     await tester.pumpWidget(_screen(auth));
 
-    await tester.enterText(find.byKey(const Key('auth_email')), 'ayesha@example.com');
+    await tester.enterText(find.byKey(const Key('auth_email')), 'ayesha@gmail.com');
     await tester.enterText(find.byKey(const Key('auth_password')), 'secret123');
     await tester.tap(find.byKey(const Key('auth_submit')));
     await tester.pumpAndSettle();
 
-    expect(auth.calls, contains('signInWithEmail:ayesha@example.com'));
-    expect(auth.current?.email, 'ayesha@example.com');
+    expect(auth.calls, contains('signInWithEmail:ayesha@gmail.com'));
+    expect(auth.current?.email, 'ayesha@gmail.com');
   });
 
   testWidgets('a short password is refused before anything is sent', (tester) async {
@@ -48,7 +49,7 @@ void main() {
     addTearDown(auth.dispose);
     await tester.pumpWidget(_screen(auth));
 
-    await tester.enterText(find.byKey(const Key('auth_email')), 'ayesha@example.com');
+    await tester.enterText(find.byKey(const Key('auth_email')), 'ayesha@gmail.com');
     await tester.enterText(find.byKey(const Key('auth_password')), '123');
     await tester.tap(find.byKey(const Key('auth_submit')));
     await tester.pumpAndSettle();
@@ -68,12 +69,12 @@ void main() {
     expect(find.byKey(const Key('auth_name')), findsOneWidget);
 
     await tester.enterText(find.byKey(const Key('auth_name')), 'Ayesha');
-    await tester.enterText(find.byKey(const Key('auth_email')), 'new@example.com');
+    await tester.enterText(find.byKey(const Key('auth_email')), 'new@gmail.com');
     await tester.enterText(find.byKey(const Key('auth_password')), 'secret123');
     await tester.tap(find.byKey(const Key('auth_submit')));
     await tester.pumpAndSettle();
 
-    expect(auth.calls, contains('registerWithEmail:new@example.com:Ayesha'));
+    expect(auth.calls, contains('registerWithEmail:new@gmail.com:Ayesha'));
   });
 
   testWidgets('a refused sign-in is explained in plain words and she can try again', (tester) async {
@@ -82,7 +83,7 @@ void main() {
     addTearDown(auth.dispose);
     await tester.pumpWidget(_screen(auth));
 
-    await tester.enterText(find.byKey(const Key('auth_email')), 'ayesha@example.com');
+    await tester.enterText(find.byKey(const Key('auth_email')), 'ayesha@gmail.com');
     await tester.enterText(find.byKey(const Key('auth_password')), 'wrongpass');
     await tester.tap(find.byKey(const Key('auth_submit')));
     await tester.pumpAndSettle();
@@ -94,7 +95,7 @@ void main() {
     auth.failWith = null;
     await tester.tap(find.byKey(const Key('auth_submit')));
     await tester.pumpAndSettle();
-    expect(auth.current?.email, 'ayesha@example.com');
+    expect(auth.current?.email, 'ayesha@gmail.com');
   });
 
   testWidgets('she can look around without giving any details', (tester) async {
@@ -119,16 +120,16 @@ void main() {
     await tester.tap(find.byKey(const Key('auth_email_code')));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byKey(const Key('auth_email_code_address')), 'ayesha@example.com');
+    await tester.enterText(find.byKey(const Key('auth_email_code_address')), 'ayesha@gmail.com');
     await tester.tap(find.byKey(const Key('auth_email_code_submit')));
     await tester.pumpAndSettle();
-    expect(auth.calls, contains('sendEmailCode:ayesha@example.com'));
+    expect(auth.calls, contains('sendEmailCode:ayesha@gmail.com'));
 
     await tester.enterText(find.byKey(const Key('auth_email_code_input')), '123456');
     await tester.tap(find.byKey(const Key('auth_email_code_submit')));
     await tester.pumpAndSettle();
     expect(auth.calls, contains('confirmEmailCode:123456'));
-    expect(auth.current?.email, 'ayesha@example.com');
+    expect(auth.current?.email, 'ayesha@gmail.com');
   });
 
   testWidgets('two accounts on one phone never see each other\'s results', (tester) async {
@@ -147,5 +148,24 @@ void main() {
     final again = HealthStore();
     await again.useAccount('uid-one');
     expect(again.profile.name, 'Ayesha');
+  });
+
+  testWidgets('a deactivated account is signed out and told why; an active one stays in', (tester) async {
+    final auth = FakeAuth(signedInAs: const AppUser(id: 'uid-1', email: 'ayesha@gmail.com'));
+    addTearDown(auth.dispose);
+    final state = AuthState(service: auth);
+    addTearDown(state.dispose);
+    await tester.pump();
+
+    await state.checkAccount();
+    expect(state.signedIn, isTrue);
+    expect(auth.calls, isNot(contains('signOut')));
+
+    auth.active = false;
+    await state.checkAccount();
+    await tester.pump();
+    expect(state.signedIn, isFalse);
+    expect(auth.calls, contains('signOut'));
+    expect(state.error, AuthState.deactivatedMessage);
   });
 }

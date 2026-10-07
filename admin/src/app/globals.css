@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f7f5fa;
+  --surface: #ffffff;
+  --surface-2: #faf8fc;
+  --border: #ece8f2;
+  --text: #1e1b2e;
+  --muted: #7a7886;
+  --faint: #a6a3b2;
+  --berry: #9e1b46;
+  --rose: #ff4d79;
+  --berry-soft: #fdeef3;
+  --green: #1f9d5c;
+  --green-soft: #e7f7ee;
+  --red: #d92b4b;
+  --red-soft: #fdecef;
+  --amber: #b7791f;
+  --amber-soft: #fdf5e6;
+  --shadow: 0 1px 2px rgba(30, 27, 46, 0.04), 0 8px 24px -12px rgba(30, 27, 46, 0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #110f17;
+    --surface: #1a1722;
+    --surface-2: #211d2b;
+    --border: #2c2738;
+    --text: #f2eff8;
+    --muted: #a29fb0;
+    --faint: #6f6b7e;
+    --berry: #ff6b93;
+    --rose: #ff4d79;
+    --berry-soft: #3a1726;
+    --green: #4ade80;
+    --green-soft: #12301f;
+    --red: #ff6b81;
+    --red-soft: #3a1520;
+    --amber: #f6c25b;
+    --amber-soft: #352a12;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--border);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-berry: var(--berry);
+  --color-rose: var(--rose);
+  --color-berry-soft: var(--berry-soft);
+  --color-ok: var(--green);
+  --color-ok-soft: var(--green-soft);
+  --color-bad: var(--red);
+  --color-bad-soft: var(--red-soft);
+  --color-warn: var(--amber);
+  --color-warn-soft: var(--amber-soft);
+  --font-sans: var(--font-jakarta);
+  --shadow-card: var(--shadow);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.brand-gradient {
+  background: linear-gradient(135deg, #ff4d79 0%, #9e1b46 100%);
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.fade-up { animation: fade-up 0.35s ease-out both; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 0.8s linear infinite; }

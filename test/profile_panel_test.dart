@@ -51,13 +51,13 @@ void main() {
   });
 
   testWidgets('tapping the avatar opens the panel with her name, account and details', (tester) async {
-    await _open(tester, user: const AppUser(id: 'u1', email: 'ayesha@example.com'));
+    await _open(tester, user: const AppUser(id: 'u1', email: 'ayesha@gmail.com'));
     expect(find.text('AK'), findsOneWidget);
     await tester.tap(find.byKey(const Key('header_avatar')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('profile_panel')), findsOneWidget);
     expect(find.byKey(const Key('profile_name')), findsOneWidget);
-    expect(find.text('ayesha@example.com'), findsOneWidget);
+    expect(find.text('ayesha@gmail.com'), findsOneWidget);
     expect(find.text('27 years  ·  BMI 25.9'), findsOneWidget);
     for (final k in ['profile_edit', 'profile_dashboard', 'profile_doctor', 'profile_report', 'profile_heart', 'profile_reminders', 'profile_delete', 'profile_sign_out']) {
       expect(find.byKey(Key(k)), findsOneWidget, reason: k);
@@ -85,7 +85,7 @@ void main() {
   });
 
   testWidgets('sign out signs out', (tester) async {
-    final (_, fake) = await _open(tester, user: const AppUser(id: 'u1', email: 'a@b.c'));
+    final (_, fake) = await _open(tester, user: const AppUser(id: 'u1', email: 'a@gmail.com'));
     await tester.tap(find.byKey(const Key('header_avatar')));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.byKey(const Key('profile_sign_out')));

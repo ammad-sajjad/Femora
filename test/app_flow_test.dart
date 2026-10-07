@@ -41,7 +41,7 @@ void main() {
 
   testWidgets('first launch shows the welcome screen, skipping goes to the app, and it is remembered', (tester) async {
     _tallScreen(tester);
-    await tester.pumpWidget(FemoraApp(authService: FakeAuth(signedInAs: const AppUser(id: 'uid-test', email: 'ayesha@example.com', name: 'Ayesha'))));
+    await tester.pumpWidget(FemoraApp(authService: FakeAuth(signedInAs: const AppUser(id: 'uid-test', email: 'ayesha@gmail.com', name: 'Ayesha'))));
     await tester.pump(); // load the saved data
     await tester.pump();
     expect(find.byType(OnboardingScreen), findsOneWidget);
@@ -53,7 +53,7 @@ void main() {
 
     // next launch: straight into the app
     await tester.pumpWidget(const SizedBox());
-    await tester.pumpWidget(FemoraApp(authService: FakeAuth(signedInAs: const AppUser(id: 'uid-test', email: 'ayesha@example.com', name: 'Ayesha'))));
+    await tester.pumpWidget(FemoraApp(authService: FakeAuth(signedInAs: const AppUser(id: 'uid-test', email: 'ayesha@gmail.com', name: 'Ayesha'))));
     await tester.pump();
     await tester.pump();
     expect(find.byType(MainShellScreen), findsOneWidget);

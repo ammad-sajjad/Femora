@@ -84,6 +84,15 @@ class FakeAuth implements AuthService {
     return _succeed(AppUser(id: 'uid-code-${email.hashCode}', email: email));
   }
 
+  /// Set to false to act as if an admin deactivated the account.
+  bool active = true;
+
+  @override
+  Future<bool> stillActive() async {
+    calls.add('stillActive');
+    return active;
+  }
+
   @override
   Future<void> signOut() async {
     calls.add('signOut');

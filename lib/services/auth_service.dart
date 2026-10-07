@@ -50,6 +50,10 @@ abstract class AuthService {
   Future<AppUser> confirmEmailCode({required String email, required String code});
 
   Future<void> signOut();
+
+  /// False once the account has been deactivated or deleted (e.g. from the admin panel). A failed network
+  /// check counts as still active, so a bad connection never signs her out.
+  Future<bool> stillActive();
 }
 
 /// Raised for every failure, already worded for a woman rather than a developer.
@@ -60,6 +64,11 @@ class AuthException implements Exception {
 
   @override
   String toString() => message;
+}
+
+/// Not a failure: the account exists but its email must be confirmed first. Shown as a notice, not an error.
+class VerifyEmailNotice extends AuthException {
+  VerifyEmailNotice(super.message);
 }
 
 /// The real implementation, on Firebase Authentication.
@@ -73,7 +82,12 @@ class FirebaseAuthService implements AuthService {
   final fb.FirebaseAuth _auth;
   bool _googleReady = false;
 
-  AppUser? _wrap(fb.User? u) => u == null
+  /// A password account whose email was never confirmed. It is treated as signed out, so a made-up
+  /// address cannot get into the app. Google and email-code accounts are confirmed by their sign-in.
+  static bool _unverified(fb.User u) =>
+      !u.isAnonymous && !u.emailVerified && u.providerData.any((p) => p.providerId == 'password');
+
+  AppUser? _wrap(fb.User? u) => u == null || _unverified(u)
       ? null
       : AppUser(
           id: u.uid,
@@ -142,18 +156,49 @@ class FirebaseAuthService implements AuthService {
   }
 
   @override
-  Future<AppUser> signInWithEmail({required String email, required String password}) =>
-      _guard(() => _auth.signInWithEmailAndPassword(email: email.trim(), password: password));
+  Future<AppUser> signInWithEmail({required String email, required String password}) async {
+    try {
+      final credential = await _auth.signInWithEmailAndPassword(email: email.trim(), password: password);
+      final u = credential.user;
+      if (u == null) throw AuthException('Could not sign in. Please try again.');
+      if (_unverified(u)) {
+        await u.reload();
+        final fresh = _auth.currentUser ?? u;
+        if (_unverified(fresh)) {
+          try {
+            await fresh.sendEmailVerification();
+          } catch (_) {} // too many requests: the earlier link still works
+          await _auth.signOut();
+          throw VerifyEmailNotice('Please confirm your email first. We have sent a link to ${email.trim()}: '
+              'open it, then sign in again. Check your spam folder if you do not see it.');
+        }
+        return _wrap(fresh)!;
+      }
+      return _wrap(u)!;
+    } on fb.FirebaseAuthException catch (e) {
+      throw AuthException(_message(e));
+    }
+  }
 
   @override
   Future<AppUser> registerWithEmail({required String email, required String password, required String name}) async {
-    final user = await _guard(() => _auth.createUserWithEmailAndPassword(email: email.trim(), password: password));
-    final trimmed = name.trim();
-    if (trimmed.isNotEmpty) {
-      await _auth.currentUser?.updateDisplayName(trimmed);
-      await _auth.currentUser?.reload();
+    try {
+      await _auth.createUserWithEmailAndPassword(email: email.trim(), password: password);
+    } on fb.FirebaseAuthException catch (e) {
+      throw AuthException(_message(e));
     }
-    return AppUser(id: user.id, email: user.email, name: trimmed.isEmpty ? user.name : trimmed);
+    final trimmed = name.trim();
+    final created = _auth.currentUser;
+    if (trimmed.isNotEmpty) await created?.updateDisplayName(trimmed);
+    try {
+      await created?.sendEmailVerification();
+    } on fb.FirebaseAuthException catch (e) {
+      throw AuthException(_message(e));
+    }
+    // Stay signed out until the link is opened, so an address nobody owns never gets in.
+    await _auth.signOut();
+    throw VerifyEmailNotice('Account created. We have sent a confirmation link to ${email.trim()}. '
+        'Open it, then sign in. Check your spam folder if you do not see it.');
   }
 
   @override
@@ -223,6 +268,20 @@ class FirebaseAuthService implements AuthService {
       throw AuthException(detail is String ? detail : 'That email address does not look right.');
     }
     return data;
+  }
+
+  @override
+  Future<bool> stillActive() async {
+    final u = _auth.currentUser;
+    if (u == null) return true;
+    try {
+      await u.reload();
+      return true;
+    } on fb.FirebaseAuthException catch (e) {
+      return !const {'user-disabled', 'user-not-found', 'user-token-expired', 'invalid-user-token'}.contains(e.code);
+    } catch (_) {
+      return true;
+    }
   }
 
   @override
@@ -297,6 +356,9 @@ class GuestAuthService implements AuthService {
     _controller.add(_user);
     return _user!;
   }
+
+  @override
+  Future<bool> stillActive() async => true;
 
   @override
   Future<void> signOut() async {
